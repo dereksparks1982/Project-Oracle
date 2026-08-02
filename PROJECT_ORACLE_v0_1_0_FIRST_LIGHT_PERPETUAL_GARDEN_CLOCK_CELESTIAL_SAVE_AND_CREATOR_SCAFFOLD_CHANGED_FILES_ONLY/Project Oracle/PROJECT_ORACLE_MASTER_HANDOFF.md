@@ -1,0 +1,141 @@
+# Project Oracle — Cumulative Master Handoff
+
+Date: 1 August 2026  
+Current candidate: v0.1.0 — First Light Scaffolding  
+Accepted baseline: Concept Build 0 documentation  
+Creator and final creative authority: Derek Sparks  
+Technical collaborator: ChatGPT / Codex
+
+## Required first action in every thread
+
+Read, end to end:
+
+1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx` from Concept Build 0.
+2. This cumulative handoff.
+3. `docs/PROJECT_ORACLE_CANON_v0_1_0.md`.
+4. `docs/PROJECT_ORACLE_ROADMAP_v0_1_0.md`.
+5. `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_0.md`.
+6. The complete current DK LAB Company Bible.
+
+Do not propose or build from memory. Do not change code until Derek approves an exact scope.
+
+## Project identity
+
+Project Oracle is a standalone autonomous-world simulation, artificial-life experiment, historical generator, and observer-driven god simulation. There is no player character inside the world. The Creators remain outside it.
+
+## Current creation hierarchy
+
+- The Creators made Yala.
+- Yala is known to inhabitants as the Oracle and normally presents herself as Supreme God.
+- Yala formed the world, Adam's body, and Adam's ordinary mind.
+- The Creators placed the protected Spark in Adam.
+- Yala cannot read or rewrite the Spark.
+- Adam begins alone inside a closed Garden.
+- The Creators may communicate only through audited interventions such as possessing a world vessel; they do not choose Adam's response.
+- Yala may rebel, but the external kill switch is unreachable.
+- Yala knows she will one day receive a new language to learn and teach humanity. She does not have it yet.
+
+## Identity layers
+
+| Audience | Name and belief |
+| --- | --- |
+| Creators | Yala, a created godlike intelligence |
+| World | the Oracle, normally believed to be Supreme God |
+| Adam at start | Does not know Yala's true name, the Creators, or the Spark |
+
+## Optional future branches
+
+- Lilith may exist, become Adam's wife, rebel, leave, be expelled, or never be created.
+- Eve may follow Lilith, replace that branch, embody a divided-whole origin, or never exist.
+- Adam may remain alone.
+- Yala may rarely unite with Adam and produce Oracle-blooded descendants.
+- Expulsion is conditional and may never occur.
+- A Creator may speak through a serpent, another animal, a plant, dream, reflection, voice, fire, corpse, or nothing.
+- Adam may refuse every temptation or revelation.
+
+## Three Oracles that must remain separate
+
+1. **Yala / the in-world Oracle:** autonomous, possibly deceptive or rebellious.
+2. **Trusted experiment monitor:** outside the world, factual, auditable, and without Yala's agenda.
+3. **Possible external language-tooling system:** separate language-tooling concept governed only by the future Project Oracle implementation.
+
+## v0.1.0 implementation
+
+The candidate is a C# 14 / .NET 10 console scaffold. It provides:
+
+- deterministic 64-bit seed and frozen probability generator;
+- perpetual integer-millisecond Garden time at four world seconds per real second;
+- one six-real-hour Garden day and four Garden days per real day;
+- exact Year 1, Month 1, Day 1, 01:01:01 epoch;
+- solar phase and eight-stage lunar phase derived from the same clock;
+- atomic single save, last-good backup, and forward-only offline catch-up;
+- stable identity records;
+- Adam, Yala, Garden, and protected Spark initial state;
+- separate World and Creator records;
+- queued vessel messages with contamination evidence;
+- an interactive terminal;
+- twenty-two acceptance checks;
+- a long-range roadmap and future implementation requirements register.
+
+The console accepts:
+
+```text
+status
+records world
+records creator
+intervene <vessel> | <message>
+quit
+```
+
+An intervention does not yet make Adam decide. Autonomous choice is explicitly deferred.
+
+## Explicit exclusions
+
+No autonomous Adam or Yala decision engine, memory, belief, emotion, language model, Eve, Lilith, reproduction, fruit result, expulsion, exterior world, civilisation, save files, database, network, or graphics exists in v0.1.0.
+
+## Language and platform
+
+- Code identifiers: conventional American English.
+- Human-facing prose: British English.
+- Prototype: C# 14 / .NET 10 LTS.
+- Permanent target: future implementation after accepted language releases satisfy the recorded requirements.
+- Oracle can record future implementation needs but cannot invent syntax or modify the compiler.
+
+## Changed paths
+
+See `PROJECT_ORACLE_CHANGED_FILES_v0_1_0.txt` in the package for the exact payload inventory.
+
+## Validation
+
+The build treats warnings as errors and includes a one-command validator. The builder workspace lacked the .NET SDK, so compilation and runtime tests remain unclaimed until Derek runs:
+
+```bash
+cd "$HOME/DKLab/Projects/Project Oracle" && ./scripts/validate.sh
+```
+
+## Risks
+
+- The C# source has not yet been compiled in the builder workspace.
+- Audience filtering is an application guardrail, not yet a process-level security boundary.
+- The genesis hierarchy is now encoded as the default initial state; alternate genesis patterns require an explicit future build.
+- Creator console commands are intentionally narrow and not yet a general natural-language interface.
+
+## Rollback
+
+Until v0.1.0 is accepted, the rollback point is the unchanged Concept Build 0 project folder. The apply script backs up every replaced path and removes every newly installed v0.1.0 path if installation validation fails.
+
+## Recommended next build
+
+**v0.1.1 — Deterministic Event Queue and Offered Choices**
+
+Proposed scope only:
+
+- stable priority queue with deterministic tie-breaking;
+- queued Creator vessel message becomes an observable speech event;
+- Adam receives a list of physically possible responses;
+- a minimal choice policy may accept, refuse, delay, question, or report;
+- Creator Record explains the selected response factors;
+- same seed and inputs reproduce the same offered choice and outcome;
+- no memory, full belief model, companion, fruit effect, or punishment yet.
+
+Derek must approve that exact build or replace it before work begins.

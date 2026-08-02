@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ProjectOracle.AcceptanceTests</AssemblyName>
+    <RootNamespace>ProjectOracle.AcceptanceTests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/ProjectOracle.Core/ProjectOracle.Core.csproj" />
+  </ItemGroup>
+</Project>

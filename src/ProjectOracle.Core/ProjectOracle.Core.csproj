@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ProjectOracle.Core</AssemblyName>
+    <RootNamespace>ProjectOracle</RootNamespace>
+  </PropertyGroup>
+</Project>

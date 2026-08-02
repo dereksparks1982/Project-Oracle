@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ProjectOracle.Console</AssemblyName>
+    <RootNamespace>ProjectOracle.ConsoleApp</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProjectOracle.Core/ProjectOracle.Core.csproj" />
+  </ItemGroup>
+</Project>
