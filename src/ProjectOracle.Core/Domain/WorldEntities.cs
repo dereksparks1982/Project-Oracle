@@ -24,10 +24,44 @@ public sealed record GardenState(
     string Name,
     bool BoundaryOpen);
 
+public sealed record AddressChannelState(
+    string Key,
+    string Prompt,
+    string FunctionKey,
+    string TargetName,
+    string AuthoritySummary,
+    bool ReceivesDirectAddress);
+
+public sealed record LivingKindState(
+    EntityId Id,
+    string AncientKind,
+    string Domain,
+    string Form,
+    bool PresentedToAdam,
+    bool NamedByAdam,
+    string? AdamName,
+    bool SuitableMate);
+
+public sealed record NamingMandateState(
+    bool Active,
+    int TotalLivingKinds,
+    int PresentedCount,
+    int NamedCount,
+    bool SuitableMateFound,
+    string MandateText);
+
+public sealed record NaturalCourseState(
+    bool Active,
+    string RuleText);
+
 public sealed record WorldState(
     ulong Seed,
     long WorldMilliseconds,
     GardenState Garden,
     YalaState Yala,
     AdamState Adam,
-    SparkState AdamSpark);
+    SparkState AdamSpark,
+    IReadOnlyList<AddressChannelState> AddressChannels,
+    IReadOnlyList<LivingKindState> LivingKinds,
+    NamingMandateState NamingMandate,
+    NaturalCourseState NaturalCourse);

@@ -6,6 +6,13 @@ public sealed class OracleSaveStore
 {
     public const string SaveFormat = "PROJECT_ORACLE_SAVE";
     public const int CurrentSchemaVersion = 1;
+    private static readonly HashSet<string> SupportedProjectVersions = new(StringComparer.Ordinal)
+    {
+        "0.1.1",
+        "0.1.2",
+        "0.1.3",
+        ProjectVersion.Number
+    };
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -114,6 +121,7 @@ public sealed class OracleSaveStore
         string json = File.ReadAllText(path);
         OracleSaveSnapshot snapshot = JsonSerializer.Deserialize<OracleSaveSnapshot>(json, JsonOptions)
             ?? throw new InvalidDataException(emptyMessage);
+        snapshot = snapshot with { World = ProjectOracle.Domain.WorldDefaults.Normalise(snapshot.World) };
         Validate(snapshot);
         return snapshot;
     }
@@ -136,7 +144,7 @@ public sealed class OracleSaveStore
                 $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}.");
         }
 
-        if (!string.Equals(snapshot.ProjectVersion, ProjectVersion.Number, StringComparison.Ordinal))
+        if (!SupportedProjectVersions.Contains(snapshot.ProjectVersion))
         {
             throw new InvalidDataException(
                 $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}.");

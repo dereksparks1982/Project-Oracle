@@ -104,6 +104,72 @@ public sealed class OracleSimulation
         return intervention;
     }
 
+    public void AddressChannel(string channelKey, string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(channelKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+        AddressChannelState channel = State.AddressChannels.FirstOrDefault(candidate =>
+            candidate.Key.Equals(channelKey.Trim(), StringComparison.OrdinalIgnoreCase))
+            ?? throw new ArgumentException($"Address channel is not recognised: {channelKey}");
+
+        Ledger.RecordCreator(
+            Clock.WorldMilliseconds,
+            "DIRECT ADDRESS",
+            $"The Creators addressed {channel.TargetName} at {channel.Prompt}: \"{message.Trim()}\". The address contaminates the experiment.");
+
+        if (channel.Key.Equals("adam", StringComparison.OrdinalIgnoreCase))
+        {
+            Ledger.RecordWorld(
+                Clock.WorldMilliseconds,
+                "VOICE",
+                "Adam heard a direct address from beyond his ordinary world. His response has not been decided.");
+        }
+    }
+
+    public LivingKindState? PresentNextLivingKindToAdam(string presenter)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(presenter);
+
+        int index = State.LivingKinds.ToList().FindIndex(kind => !kind.NamedByAdam);
+        if (index < 0)
+        {
+            return null;
+        }
+
+        LivingKindState current = State.LivingKinds[index];
+        LivingKindState named = current with
+        {
+            PresentedToAdam = true,
+            NamedByAdam = true,
+            AdamName = CreateAdamName(current, index)
+        };
+
+        List<LivingKindState> kinds = State.LivingKinds.ToList();
+        kinds[index] = named;
+        State = State with
+        {
+            LivingKinds = kinds,
+            NamingMandate = State.NamingMandate with
+            {
+                PresentedCount = kinds.Count(kind => kind.PresentedToAdam),
+                NamedCount = kinds.Count(kind => kind.NamedByAdam),
+                SuitableMateFound = kinds.Any(kind => kind.SuitableMate)
+            }
+        };
+
+        Ledger.RecordWorld(
+            Clock.WorldMilliseconds,
+            "NAMING",
+            $"{presenter.Trim()} presented a living kind to Adam. Adam named it {named.AdamName} and found no suitable mate.");
+        Ledger.RecordCreator(
+            Clock.WorldMilliseconds,
+            "NAMING",
+            $"Adam named {named.Id} ({named.AncientKind}) as {named.AdamName}. Suitable mate: {named.SuitableMate}.");
+
+        return named;
+    }
+
     public OracleSaveSnapshot CreateSnapshot(long savedAtUnixMilliseconds)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(savedAtUnixMilliseconds);
@@ -117,43 +183,33 @@ public sealed class OracleSimulation
             Clock.LastRealUnixMilliseconds,
             Clock.CatchUpRuns,
             Clock.LastOfflineElapsedRealMilliseconds,
-            State,
+            WorldDefaults.Normalise(State),
             Ledger.WorldRecords.Concat(Ledger.CreatorRecords).OrderBy(record => record.Sequence).ToArray(),
             _interventions.ToArray());
     }
 
-    private static WorldState CreateInitialState(ulong seed)
-    {
-        EntityId gardenId = new("place:garden:0001");
-        EntityId yalaId = new("being:yala:0001");
-        EntityId adamId = new("being:adam:0001");
-
-        return new WorldState(
-            seed,
-            WorldMilliseconds: 0,
-            new GardenState(gardenId, "the Garden", BoundaryOpen: false),
-            new YalaState(
-                yalaId,
-                TrueName: "Yala",
-                WorldTitle: "the Oracle",
-                KnowsOfCreators: true,
-                KnowsFutureLanguageMandate: true),
-            new AdamState(adamId, "Adam", gardenId, IsConfinedToGarden: true),
-            new SparkState(
-                adamId,
-                CanBeReadByYala: false,
-                CanBeRewrittenByYala: false,
-                CreatorDescription: "A protected source of genuine choice placed by the Creators."));
-    }
+    private static WorldState CreateInitialState(ulong seed) => WorldDefaults.CreateInitialState(seed);
 
     private void RecordGenesis()
     {
+        Ledger.RecordWorld(0, "GENESIS", "The Garden was formed and filled with ancient living kinds.");
         Ledger.RecordWorld(0, "GENESIS", "Adam awoke in the Garden. The Oracle watched in silence.");
+        Ledger.RecordWorld(0, "MANDATE", "Adam was given the task of naming the living kinds and finding whether any was a suitable mate.");
         Ledger.RecordWorld(0, "BOUNDARY", "The Garden boundary was closed.");
 
-        Ledger.RecordCreator(0, "GENESIS", $"Run created with seed {State.Seed}.");
-        Ledger.RecordCreator(0, "AUTHORITY", "The Creators made Yala. Yala formed the world and Adam's body and ordinary mind.");
+        Ledger.RecordCreator(0, "GENESIS", $"World Seed: {State.Seed}.");
+        Ledger.RecordCreator(0, "AUTHORITY", "The Creators made Yala. Yala formed the Garden, Gaia, the celestial governors, the living kinds, Adam's body, and Adam's ordinary mind.");
+        Ledger.RecordCreator(0, "AUTHORITY", "Direct address channels are appointed: F1 Oracle, F2 Gaia, F3 Adam, F4 Sun, F5 Moon.");
+        Ledger.RecordCreator(0, "NATURAL COURSE", State.NaturalCourse.RuleText);
         Ledger.RecordCreator(0, "SPARK", State.AdamSpark.CreatorDescription);
         Ledger.RecordCreator(0, "MANDATE", "Yala knows the Creators will one day give her a new language to learn and teach. The language has not been supplied.");
+    }
+
+    private static string CreateAdamName(LivingKindState kind, int index)
+    {
+        string[] firstWords = ["ground", "wing", "water", "root", "hand", "horn", "night", "reed", "stone"];
+        string[] secondWords = ["walker", "caller", "glider", "crawler", "climber", "grazer", "hunter", "singer", "sleeper"];
+        int kindOffset = kind.Id.Value.Sum(character => (int)character);
+        return $"{firstWords[index % firstWords.Length]}-{secondWords[kindOffset % secondWords.Length]}";
     }
 }

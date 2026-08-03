@@ -1,6 +1,6 @@
-# Project Oracle Long-Range Roadmap — v0.1.2
+# Project Oracle Long-Range Roadmap — v0.1.5
 
-Date: 1 August 2026  
+Date: 2 August 2026  
 Status: Directional dependency roadmap; one build is proposed and authorised at a time  
 Rule: Version numbers below are planned lanes, not reservations. Every actual build uses the next unused number.
 
@@ -16,15 +16,19 @@ The roadmap is intentionally deep enough for years of development. It is not per
 | --- | --- | --- |
 | 1 | v0.1.1 First Light SDK Roll-Forward Repair | Seed; perpetual 4× real-time clock; Year 1 epoch; solar/lunar phases; atomic save and offline catch-up; Adam; Yala; Spark; protected records; Creator intervention queue; tests; compatible .NET 10 SDK roll-forward |
 | 2 | v0.1.2 Separate Live Garden Console Window | Oracle runs in its own live Garden console window while the working terminal stays free |
-| 3 | Deterministic Event Queue | Scheduled actions, stable priority, cancellation, exact tie-breaking |
-| 3 | Observation and Attention | Adam can perceive only nearby or attended events; Creator truth remains hidden |
-| 4 | Memory Foundations | Adam stores experiences with source, time, strength, decay, and uncertainty |
-| 5 | Knowledge and Belief | Truth, testimony, inference, doubt, contradiction, and belief are separate |
-| 6 | Need and Emotion State | Loneliness, safety, hunger, curiosity, trust, fear, affection, anger, pride, and wonder without a crude good/evil bar |
-| 7 | Explainable Choice | Adam selects among available actions and records why; refusal is always possible when physically possible |
-| 8 | Naming and Classification | Adam names plants, animals, places, events, and concepts; names change his mental model, not existence |
-| 9 | Yala's First Agency | Yala observes, forms intentions, chooses silence or intervention, and explains decisions only to the Creator Record |
-| 10 | Save, Restore, Replay | A run resumes exactly and reproduces the same history from seed plus inputs |
+| 3 | v0.1.3 Direct Address Channels, Living Kinds, and Natural Course | Creator console can address Oracle, Gaia, Adam, Sun, and Moon; the Garden starts with seed-based ancient living kinds and Adam's naming mandate |
+| 4 | v0.1.4 Legacy Save Compatibility Hotfix | Old `0.1.1` save files can upgrade through current world defaults instead of blocking startup |
+| 5 | v0.1.5 Project Oracle Company Bible Authority | Oracle carries its own Company Bible and no-guessing authority inside the project files |
+| 6 | Physical Function-Key Channel Capture | Real `F1` through `F5` switch direct-address channels; typed aliases remain fallbacks |
+| 7 | Deterministic Event Queue | Scheduled actions, stable priority, cancellation, exact tie-breaking |
+| 8 | Observation and Attention | Adam can perceive only nearby or attended events; Creator truth remains hidden |
+| 9 | Memory Foundations | Adam stores experiences with source, time, strength, decay, and uncertainty |
+| 10 | Knowledge and Belief | Truth, testimony, inference, doubt, contradiction, and belief are separate |
+| 11 | Need and Emotion State | Loneliness, safety, hunger, curiosity, trust, fear, affection, anger, pride, and wonder without a crude good/evil bar |
+| 12 | Explainable Choice | Adam selects among available actions and records why; refusal is always possible when physically possible |
+| 13 | Naming and Classification | Adam names plants, animals, places, events, and concepts; names change his mental model, not existence |
+| 14 | Yala's First Agency | Yala observes, forms intentions, chooses silence or intervention, and explains decisions only to the Creator Record |
+| 15 | Save, Restore, Replay | A run resumes exactly and reproduces the same history from seed plus inputs |
 
 **Exit gate:** Adam and Yala can live through thirty Garden days with reproducible choices, separated knowledge, useful explanations, and no Creator-truth leaks.
 
@@ -153,6 +157,7 @@ The rewrite begins system by system only with accepted future implementation rel
 
 - One build at a time.
 - Derek approves the exact scope before implementation.
+- The Project Oracle Company Bible is checked before guessing at owner intent.
 - Rejected packages never become baselines.
 - Every accepted build is committed and tagged locally.
 - Every build records changed paths, validation, risks, exclusions, rollback, and the next proposed scope.

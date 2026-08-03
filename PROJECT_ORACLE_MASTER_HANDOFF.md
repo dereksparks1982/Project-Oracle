@@ -1,8 +1,8 @@
 # Project Oracle — Cumulative Master Handoff
 
 Date: 2 August 2026  
-Current candidate: v0.1.2 — Separate Live Garden Console Window  
-Accepted baseline: v0.1.1 — commit `ce58375`, tag `v0.1.1`  
+Current candidate: v0.1.5 — Project Oracle Company Bible Authority  
+Required baseline: Project Oracle v0.1.4 installed candidate files  
 Creator and final creative authority: Derek Sparks  
 Technical collaborator: ChatGPT / Codex
 
@@ -12,10 +12,11 @@ Read, end to end:
 
 1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx` from Concept Build 0.
 2. This cumulative handoff.
-3. `docs/PROJECT_ORACLE_CANON_v0_1_2.md`.
-4. `docs/PROJECT_ORACLE_ROADMAP_v0_1_2.md`.
-5. `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_2.md`.
-6. The complete current DK LAB Company Bible.
+3. `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`.
+4. `docs/PROJECT_ORACLE_CANON_v0_1_5.md`.
+5. `docs/PROJECT_ORACLE_ROADMAP_v0_1_5.md`.
+6. `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_5.md`.
+7. Any explicitly authorised external technical authority only when it is directly relevant to the current work.
 
 Do not propose or build from memory. Do not change code until Derek approves an exact scope.
 
@@ -27,10 +28,14 @@ Project Oracle is a standalone autonomous-world simulation, artificial-life expe
 
 - The Creators made Yala.
 - Yala is known to inhabitants as the Oracle and normally presents herself as Supreme God.
-- Yala formed the world, Adam's body, and Adam's ordinary mind.
+- Yala formed the world, Gaia, the celestial governors, the ancient living kinds, Adam's body, and Adam's ordinary mind.
 - The Creators placed the protected Spark in Adam.
 - Yala cannot read or rewrite the Spark.
 - Adam begins alone inside a closed Garden.
+- Adam receives the task of naming the ancient living kinds and seeing whether any is a suitable mate.
+- Gaia governs animals, land, weather, waters, growth, decay, tremors, and ordinary natural systems beneath the Oracle.
+- Sun and Moon normally follow fixed courses as appointed celestial governors.
+- Natural Course is active: if nobody intervenes, created beings follow their appointed nature, memory, needs, duties, and planned course.
 - The Creators may communicate only through audited interventions such as possessing a world vessel; they do not choose Adam's response.
 - Yala may rebel, but the external kill switch is unreachable.
 - Yala knows she will one day receive a new language to learn and teach humanity. She does not have it yet.
@@ -59,7 +64,7 @@ Project Oracle is a standalone autonomous-world simulation, artificial-life expe
 2. **Trusted experiment monitor:** outside the world, factual, auditable, and without Yala's agenda.
 3. **Possible external language-tooling system:** separate language-tooling concept governed only by the future Project Oracle implementation.
 
-## v0.1.2 implementation
+## v0.1.5 implementation
 
 The candidate is a C# 14 / .NET 10 console scaffold. It provides:
 
@@ -79,21 +84,69 @@ The candidate is a C# 14 / .NET 10 console scaffold. It provides:
 - Adam, Yala, Garden, and protected Spark initial state;
 - separate World and Creator records;
 - queued vessel messages with contamination evidence;
+- deterministic ancient living kinds generated from the World Seed;
+- direct address channels for `F1 <oracle>`, `F2 <gaia>`, `F3 <adam>`, `F4 <sun>`, and `F5 <moon>`;
+- Creator-recorded address handling that does not speak through the Oracle, execute miracles, or puppet Adam;
+- Adam's active naming mandate and first `present next` scaffold;
+- the Natural Course rule;
 - an interactive Creator console;
-- twenty-two acceptance checks;
-- a long-range roadmap and future implementation requirements register.
+- compatibility loading for save versions `0.1.1`, `0.1.2`, and `0.1.3`;
+- twenty-nine acceptance checks;
+- a long-range roadmap and future implementation requirements register;
+- Project Oracle's own canonical Company Bible at `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`;
+- a project law that Codex must check the Oracle Company Bible before guessing;
+- explicit preservation of the distinction between physical function keys and typed fallback aliases.
 
 The console accepts:
 
 ```text
 status
+channels
+life
+naming
+natural
+f1
+f2
+f3
+f4
+f5
+channel <name>
+present next
 records world
 records creator
 intervene <vessel> | <message>
 quit
 ```
 
-An intervention does not yet make Adam decide. Autonomous choice is explicitly deferred.
+The prompt shows who is being directly addressed from the Creator layer. It does not mean the Creator is speaking through that being or power.
+
+An intervention or direct address does not yet make Adam decide. Autonomous choice is explicitly deferred.
+
+The intended direct-address controls are physical `F1` through `F5`. v0.1.5 still has only typed fallback aliases and `channel <name>` in the console loop. Raw terminal function-key capture remains excluded until an explicit repair build.
+
+## v0.1.5 authority repair
+
+Derek corrected the workflow: Project Oracle must carry its own Company Bible inside the Oracle files, and Codex must reference it whenever it thinks it is acceptable to guess.
+
+This build adds that file and makes it the project-specific authority.
+
+This build also records the raw `F1` misunderstanding plainly. A physical `F1` key is not equivalent to typing `f1`.
+
+## Superseded v0.1.4 candidate
+
+Project Oracle v0.1.4 installed and validated on Derek's machine with twenty-nine passing acceptance checks, but it did not carry a Project Oracle Company Bible and still documented typed `f1` aliases in a way that could be mistaken for physical function-key support.
+
+Accept v0.1.5 instead after validation and manual inspection.
+
+## Superseded v0.1.3 candidate
+
+Project Oracle v0.1.3 installed and validated on Derek's machine with twenty-eight passing acceptance checks, but the live console later refused to continue because both the primary save and last-good backup were still save version `0.1.1`.
+
+Project Oracle v0.1.3 should not be accepted as the final checkpoint if this hotfix is applied. Accept v0.1.5 instead after validation and manual inspection.
+
+## Accepted base carried from v0.1.2
+
+Project Oracle v0.1.2 was validated by Derek on 2 August 2026. It passed restore, warnings-as-errors build, twenty-two acceptance tests, console smoke test, live console launcher checks, and manual checks of `help`, `status`, `records world`, and `quit` inside the separate live Garden console window.
 
 ## Accepted base carried from v0.1.1
 
@@ -113,7 +166,7 @@ Project Oracle v0.1.1 repaired that SDK pin by using .NET `10.0.100` with `rollF
 
 ## Explicit exclusions
 
-No autonomous Adam or Yala decision engine, memory, belief, emotion, language model, Eve, Lilith, reproduction, fruit result, expulsion, exterior world, civilisation, database, network, or graphics exists in v0.1.2.
+No autonomous Adam, Gaia, Sun, Moon, or Yala decision engine, memory, belief, emotion, language model, Eve, Lilith, reproduction, fruit result, expulsion, exterior world, civilisation, database, network, graphics, raw terminal function-key capture implementation, event queue, or real plague execution exists in v0.1.5.
 
 ## Language and platform
 
@@ -125,11 +178,11 @@ No autonomous Adam or Yala decision engine, memory, belief, emotion, language mo
 
 ## Changed paths
 
-See `PROJECT_ORACLE_CHANGED_FILES_v0_1_2.txt` in the package for the exact payload inventory.
+See `PROJECT_ORACLE_CHANGED_FILES_v0_1_5.txt` in the package for the exact payload inventory.
 
 ## Validation
 
-The build treats warnings as errors and includes a one-command validator. Builder-side validation is recorded in `docs/PROJECT_ORACLE_VALIDATION_v0_1_2.md`; Derek's install-side validation remains the acceptance gate.
+The build treats warnings as errors and includes a one-command validator. Builder-side validation is recorded in `docs/PROJECT_ORACLE_VALIDATION_v0_1_5.md`; Derek's install-side validation remains the acceptance gate.
 
 ```bash
 cd "$HOME/DKLab/Projects/Project Oracle" && ./scripts/validate.sh
@@ -140,16 +193,28 @@ cd "$HOME/DKLab/Projects/Project Oracle" && ./scripts/validate.sh
 - The prior v0.1.0 installer failed on a strict SDK patch pin and remains unaccepted evidence.
 - Derek's local install-side validation remains required before acceptance.
 - Audience filtering is an application guardrail, not yet a process-level security boundary.
-- The genesis hierarchy is now encoded as the default initial state; alternate genesis patterns require an explicit future build.
-- Creator console commands are intentionally narrow and not yet a general natural-language interface.
+- The expanded genesis hierarchy is now encoded as the default initial state; alternate genesis patterns require an explicit future build.
+- Creator console address channels are intentionally narrow and not yet a general natural-language interface.
+- Typed `f1` through `f5` and `channel <name>` are supported only as fallbacks; physical function-key capture is the intended control law and is not yet implemented.
 
 ## Rollback
 
-Until v0.1.2 is accepted, the rollback point is accepted Project Oracle v0.1.1 commit/tag `ce58375` / `v0.1.1`. The apply script backs up every replaced path, restores deleted versioned paths, and removes every newly installed v0.1.2 path if installation validation fails.
+Until v0.1.5 is accepted, the rollback point is the current v0.1.4 candidate working tree. The apply script backs up every replaced path and removes every newly installed v0.1.5 path if installation validation fails.
 
 ## Recommended next build
 
-**v0.1.3 — Deterministic Event Queue and Offered Choices**
+**v0.1.6 — Physical Function-Key Channel Capture**
+
+Proposed scope only:
+
+- make real physical `F1` through `F5` select `<oracle>`, `<gaia>`, `<adam>`, `<sun>`, and `<moon>` in the live console;
+- preserve typed `f1` through `f5` only as fallback commands;
+- add validation that distinguishes physical function-key handling from typed aliases where the terminal allows it;
+- do not add event queue, memory, belief, Eve, Lilith, reproduction, expulsion, or civilisation yet.
+
+After that repair, the deterministic event queue becomes the next feature build.
+
+**Later — Deterministic Event Queue and Offered Choices**
 
 Proposed scope only:
 

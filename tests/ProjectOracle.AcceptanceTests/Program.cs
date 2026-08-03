@@ -1,5 +1,6 @@
 using ProjectOracle.Interventions;
 using ProjectOracle.Persistence;
+using ProjectOracle.Domain;
 using ProjectOracle.Simulation;
 
 namespace ProjectOracle.AcceptanceTests;
@@ -23,6 +24,7 @@ internal static class Program
         Run("backwards system time never rewinds the world", BackwardsTimeCannotRewind);
         Run("offline catch-up is recorded", OfflineCatchUpIsRecorded);
         Run("save and restore preserve world time", SaveAndRestorePreserveWorldTime);
+        Run("version 0.1.1 save upgrades through current world defaults", Version011SaveUpgradesThroughCurrentDefaults);
         Run("restore applies closed-time catch-up once", RestoreAppliesClosedTimeCatchUpOnce);
         Run("corrupt primary recovers last-good backup", CorruptPrimaryRecoversBackup);
         Run("Adam begins confined to the Garden", AdamBeginsConfined);
@@ -30,10 +32,16 @@ internal static class Program
         Run("Spark is protected from Yala", SparkIsProtected);
         Run("Yala true name stays out of world records", TrueNameDoesNotLeak);
         Run("Creator truth stays out of world records", CreatorTruthDoesNotLeak);
+        Run("world seed creates deterministic living kinds", WorldSeedCreatesDeterministicLivingKinds);
+        Run("address channels follow the appointed hierarchy", AddressChannelsAreAppointed);
+        Run("Adam begins with the naming mandate", AdamBeginsWithNamingMandate);
+        Run("Natural Course rule is active", NaturalCourseRuleIsActive);
+        Run("presenting a living kind lets Adam name it without finding a mate", PresentingLivingKindNamesIt);
+        Run("direct address to Adam is recorded without puppeteering him", DirectAddressToAdamDoesNotPuppet);
         Run("vessel message is queued without forcing Adam", InterventionDoesNotForceAdam);
         Run("intervention contamination is recorded", InterventionContaminationIsRecorded);
         Run("records keep stable sequence order", RecordsKeepStableOrder);
-        Run("version is 0.1.2", VersionIsCorrect);
+        Run("version is 0.1.5", VersionIsCorrect);
 
         Console.WriteLine();
         Console.WriteLine($"Acceptance result: {_passed} passed; {_failed} failed.");
@@ -144,6 +152,34 @@ internal static class Program
         });
     }
 
+    private static void Version011SaveUpgradesThroughCurrentDefaults()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            OracleSaveSnapshot legacySnapshot = simulation.CreateSnapshot(StartRealTime) with
+            {
+                ProjectVersion = "0.1.1",
+                World = simulation.State with
+                {
+                    AddressChannels = [],
+                    LivingKinds = [],
+                    NamingMandate = null!,
+                    NaturalCourse = null!
+                }
+            };
+
+            store.Save(path, legacySnapshot);
+            OracleSaveSnapshot loaded = store.Load(path);
+
+            Equal("0.1.1", loaded.ProjectVersion);
+            True(loaded.World.AddressChannels.Count > 0);
+            True(loaded.World.LivingKinds.Count > 0);
+            True(loaded.World.NamingMandate.Active);
+            True(loaded.World.NaturalCourse.Active);
+        });
+    }
+
     private static void RestoreAppliesClosedTimeCatchUpOnce()
     {
         OracleSimulation simulation = Start();
@@ -202,6 +238,75 @@ internal static class Program
             record.Message.Contains("Creators", StringComparison.OrdinalIgnoreCase)));
     }
 
+    private static void WorldSeedCreatesDeterministicLivingKinds()
+    {
+        OracleSimulation first = Start(104729);
+        OracleSimulation second = Start(104729);
+        OracleSimulation different = Start(104730);
+
+        True(first.State.LivingKinds.Count >= 6);
+        Equal(
+            first.State.LivingKinds.Select(kind => kind.Id.Value).ToArray(),
+            second.State.LivingKinds.Select(kind => kind.Id.Value).ToArray());
+        Equal(
+            first.State.LivingKinds.Select(kind => kind.AncientKind).ToArray(),
+            second.State.LivingKinds.Select(kind => kind.AncientKind).ToArray());
+        False(first.State.LivingKinds.Select(kind => kind.AncientKind).SequenceEqual(
+            different.State.LivingKinds.Select(kind => kind.AncientKind)));
+    }
+
+    private static void AddressChannelsAreAppointed()
+    {
+        OracleSimulation simulation = Start();
+        string[] keys = simulation.State.AddressChannels.Select(channel => $"{channel.FunctionKey}:{channel.Key}").ToArray();
+        Equal(new[] { "F1:oracle", "F2:gaia", "F3:adam", "F4:sun", "F5:moon" }, keys);
+        True(simulation.State.AddressChannels.First(channel => channel.Key == "oracle").AuthoritySummary.Contains("above Gaia", StringComparison.Ordinal));
+    }
+
+    private static void AdamBeginsWithNamingMandate()
+    {
+        OracleSimulation simulation = Start();
+        True(simulation.State.NamingMandate.Active);
+        Equal(simulation.State.LivingKinds.Count, simulation.State.NamingMandate.TotalLivingKinds);
+        Equal(0, simulation.State.NamingMandate.NamedCount);
+        False(simulation.State.NamingMandate.SuitableMateFound);
+        True(simulation.Ledger.WorldRecords.Any(record =>
+            record.Message.Contains("naming the living kinds", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void NaturalCourseRuleIsActive()
+    {
+        OracleSimulation simulation = Start();
+        True(simulation.State.NaturalCourse.Active);
+        True(simulation.State.NaturalCourse.RuleText.Contains("appointed nature", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void PresentingLivingKindNamesIt()
+    {
+        OracleSimulation simulation = Start();
+        LivingKindState? named = simulation.PresentNextLivingKindToAdam("Gaia");
+        True(named is not null);
+        Equal(1, simulation.State.NamingMandate.PresentedCount);
+        Equal(1, simulation.State.NamingMandate.NamedCount);
+        False(simulation.State.NamingMandate.SuitableMateFound);
+        True(simulation.State.LivingKinds[0].AdamName is not null);
+        True(simulation.Ledger.WorldRecords.Any(record =>
+            record.Message.Contains("No suitable mate", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void DirectAddressToAdamDoesNotPuppet()
+    {
+        OracleSimulation simulation = Start();
+        simulation.AddressChannel("adam", "Name what Gaia presents to you.");
+        True(simulation.Ledger.CreatorRecords.Any(record =>
+            record.Message.Contains("addressed Adam", StringComparison.OrdinalIgnoreCase)));
+        True(simulation.Ledger.WorldRecords.Any(record =>
+            record.Message.Contains("Adam heard a direct address", StringComparison.OrdinalIgnoreCase)));
+        False(simulation.Ledger.WorldRecords.Any(record =>
+            record.Message.Contains("obeyed", StringComparison.OrdinalIgnoreCase) ||
+            record.Message.Contains("refused", StringComparison.OrdinalIgnoreCase)));
+    }
+
     private static void InterventionDoesNotForceAdam()
     {
         OracleSimulation simulation = Start();
@@ -229,7 +334,7 @@ internal static class Program
         Equal(sequences.Order().ToArray(), sequences);
     }
 
-    private static void VersionIsCorrect() => Equal("0.1.2", ProjectVersion.Number);
+    private static void VersionIsCorrect() => Equal("0.1.5", ProjectVersion.Number);
 
     private static void WithTemporarySave(Action<OracleSaveStore, string> test)
     {
