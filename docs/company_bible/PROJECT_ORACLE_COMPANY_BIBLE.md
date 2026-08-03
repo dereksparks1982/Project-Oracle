@@ -1,6 +1,6 @@
 # Project Oracle Company Bible
 
-**Version:** v0.1.6  
+**Version:** v0.1.7  
 **Status:** Mandatory and canonical for Project Oracle  
 **Project:** Project Oracle  
 **Owner:** Derek Sparks  

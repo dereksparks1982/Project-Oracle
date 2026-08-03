@@ -4,7 +4,7 @@ set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
 
-expected_version='0.1.6'
+expected_version='0.1.7'
 
 if ! command -v dotnet >/dev/null 2>&1; then
   echo "VALIDATION BLOCKED: Project Oracle v${expected_version} needs the .NET 10 SDK." >&2
@@ -46,11 +46,19 @@ grep -Fq 'PhysicalFunctionKeysSelectAddressChannels' tests/ProjectOracle.Accepta
 grep -Fq 'Version014SaveUpgradesThroughCurrentDefaults' tests/ProjectOracle.AcceptanceTests/Program.cs
 echo "PHASE PASS: physical function-key source check"
 
+echo "PHASE START: deterministic event queue source check"
+grep -Fq 'public sealed record ScheduledWorldEvent' src/ProjectOracle.Core/Events/ScheduledWorldEvent.cs
+grep -Fq 'public sealed record OfferedChoiceState' src/ProjectOracle.Core/Events/OfferedChoiceState.cs
+grep -Fq 'ProcessDueEvents' src/ProjectOracle.Core/Simulation/OracleSimulation.cs
+grep -Fq 'VesselSpeechOffersDeterministicAdamChoices' tests/ProjectOracle.AcceptanceTests/Program.cs
+grep -Fq 'OfferedChoicesSurviveSaveAndRestore' tests/ProjectOracle.AcceptanceTests/Program.cs
+echo "PHASE PASS: deterministic event queue source check"
+
 echo "PHASE START: console smoke test"
 validation_temp="$(mktemp -d)"
 trap 'rm -rf -- "$validation_temp"' EXIT
 smoke_output="$(dotnet run --project src/ProjectOracle.Console/ProjectOracle.Console.csproj --configuration Release --no-build -- --seed 104729 --save "$validation_temp/save.json" --once)"
-grep -Fq 'Project Oracle v0.1.6' <<<"$smoke_output"
+grep -Fq 'Project Oracle v0.1.7' <<<"$smoke_output"
 grep -Fq 'The Garden was formed and filled with ancient living kinds.' <<<"$smoke_output"
 grep -Fq 'World Seed: 104729' <<<"$smoke_output"
 if grep -Fq 'Yala' <<<"$smoke_output"; then
@@ -62,7 +70,7 @@ echo "PHASE PASS: console smoke test"
 echo "PHASE START: live console launcher checks"
 bash -n scripts/run-window.sh
 bash -n scripts/run-live-console.sh
-PROJECT_ORACLE_WINDOW_DRY_RUN=1 ./scripts/run-window.sh | grep -Fq 'Project Oracle v0.1.6 - Live Garden Console'
+PROJECT_ORACLE_WINDOW_DRY_RUN=1 ./scripts/run-window.sh | grep -Fq 'Project Oracle v0.1.7 - Live Garden Console'
 echo "PHASE PASS: live console launcher checks"
 
 echo "VALIDATION PASS: Project Oracle v${expected_version}"

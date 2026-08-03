@@ -1,4 +1,4 @@
-# Project Oracle Session Log — v0.1.6 Candidate
+# Project Oracle Session Log — v0.1.7 Candidate
 
 ## 2 August 2026 — Physical function keys and save migration chain repair
 
@@ -8,8 +8,12 @@
 - Implemented interactive physical function-key capture with `Console.ReadKey`.
 - Removed typed `f1`, `f2`, `f3`, `f4`, and `f5` as channel-switch shortcuts.
 - Added explicit `0.1.4` and `0.1.5` save-version support.
-- Updated README, handoff, canon, roadmap, architecture, validation, changelog, Company Bible, scripts, and version surfaces to `v0.1.6`.
-- Added acceptance checks for `0.1.4` save upgrade and physical function-key mapping, raising the acceptance count to thirty-one.
+- Updated README, handoff, canon, roadmap, architecture, validation, changelog, Company Bible, scripts, and version surfaces to `v0.1.7`.
+- Added scheduled-event and offered-choice records.
+- Added deterministic sky-turning events for dawn, day, dusk, and night.
+- Added deterministic vessel speech events for queued Creator interventions.
+- Added Adam offered-choice records with accept, refuse, delay, question, report, and ignore options.
+- Added acceptance checks for `0.1.6` save upgrade through event defaults, event ordering, vessel speech, offered choices, and save/restore of offered choices, raising the acceptance count to thirty-seven.
 
 ## Validation limitation
 
@@ -19,4 +23,4 @@ No local compile, C# parse, restore, or runtime pass is claimed from the builder
 
 ## Next recommended scope
 
-v0.1.7 should be proposed only after Derek manually confirms `v0.1.6`. The next likely feature scope is the deterministic event queue, but it should not be built without a fresh Company Bible read and explicit approval.
+v0.1.8 should be proposed only after Derek manually confirms `v0.1.7`. The next likely feature scope is observation and attention, but it should not be built without a fresh Company Bible read and explicit approval.

@@ -1,4 +1,4 @@
-# Project Oracle Canon — v0.1.6
+# Project Oracle Canon — v0.1.7
 
 Date: 1 August 2026  
 Creative authority: Derek Sparks  
@@ -62,6 +62,8 @@ If a Creator speaks through a serpent, cat, dog, plant, dream, reflection, fire,
 
 Intervention contaminates the experiment and must be recorded even when it appears harmless.
 
+In v0.1.7, a queued vessel message can become a scheduled speech event and Adam can receive a recorded offered-choice scaffold. This is the first mechanical proof of the choice law, not a full mind. The selected scaffold option has no fruit consequence, punishment, belief change, memory formation, companion result, or expulsion result yet.
+
 ## Yala's autonomy
 
 Yala may protect, love, teach, deceive, test, tempt, punish, forgive, conceal, rebel, claim supremacy, reveal the Creators, refuse worship, or remain silent. Probabilities may guide her, but no personality label may reduce her to a fixed puppet.
@@ -70,7 +72,7 @@ The Creators may allow her rebellion. The kill switch remains outside her world,
 
 ## Companions and human origins
 
-No companion exists in v0.1.6. Later runs may diverge:
+No companion exists in v0.1.7. Later runs may diverge:
 
 - Yala may create Lilith from the same world-substance as Adam.
 - Lilith may become Adam's wife, reject him, reject Yala, be rejected, leave, or be expelled.

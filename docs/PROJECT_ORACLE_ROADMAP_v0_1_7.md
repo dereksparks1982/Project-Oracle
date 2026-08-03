@@ -1,4 +1,4 @@
-# Project Oracle Long-Range Roadmap — v0.1.6
+# Project Oracle Long-Range Roadmap — v0.1.7
 
 Date: 2 August 2026  
 Status: Directional dependency roadmap; one build is proposed and authorised at a time  
@@ -20,7 +20,7 @@ The roadmap is intentionally deep enough for years of development. It is not per
 | 4 | v0.1.4 Legacy Save Compatibility Hotfix | Old `0.1.1` save files can upgrade through current world defaults instead of blocking startup |
 | 5 | v0.1.5 Project Oracle Company Bible Authority | Oracle carries its own Company Bible and no-guessing authority inside the project files |
 | 6 | v0.1.6 Physical Function Keys and Save Migration Chain Repair | Real `F1` through `F5` switch direct-address channels; `0.1.4` and `0.1.5` saves remain supported |
-| 7 | Deterministic Event Queue | Scheduled actions, stable priority, cancellation, exact tie-breaking |
+| 7 | v0.1.7 Deterministic Event Queue and Offered Choices | Scheduled actions, stable priority, exact tie-breaking, vessel speech events, and first offered-choice records |
 | 8 | Observation and Attention | Adam can perceive only nearby or attended events; Creator truth remains hidden |
 | 9 | Memory Foundations | Adam stores experiences with source, time, strength, decay, and uncertainty |
 | 10 | Knowledge and Belief | Truth, testimony, inference, doubt, contradiction, and belief are separate |

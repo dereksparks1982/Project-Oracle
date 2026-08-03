@@ -1,4 +1,4 @@
-# Project Oracle Validation — v0.1.6 Candidate
+# Project Oracle Validation — v0.1.7 Candidate
 
 Date: 2 August 2026
 
@@ -9,12 +9,13 @@ The package validator performs:
 1. .NET 10 SDK presence and major-version check.
 2. Dependency restore.
 3. Release build with all compiler warnings treated as errors.
-4. Thirty-one dependency-free acceptance tests.
+4. Thirty-seven dependency-free acceptance tests.
 5. Project Oracle Company Bible presence and content check.
 6. Physical function-key source check proving the console uses `ReadKey` and does not retain typed `f1` switch cases.
 7. Console smoke test with seed `104729`.
 8. Default World Record secrecy test: Yala's true name must not appear.
 9. Live console launcher script syntax and dry-run check.
+10. Deterministic event-queue source check proving scheduled-event and offered-choice records are present.
 
 ## Acceptance checks
 
@@ -29,6 +30,7 @@ The package validator performs:
 - Atomic saves preserve world time and restore elapsed closed time once.
 - A version `0.1.1` save upgrades through current world defaults.
 - A version `0.1.4` save upgrades through current world defaults.
+- A version `0.1.6` save upgrades through current event defaults.
 - A corrupt primary save can recover the last-good backup.
 - Adam begins confined to the Garden.
 - Yala knows the dormant future-language mandate.
@@ -40,13 +42,18 @@ The package validator performs:
 - Physical function keys select the appointed address channels, while digit keys and F6 do not.
 - Adam begins with the naming mandate active.
 - The Natural Course rule is active.
+- New worlds begin with a scheduled sky event.
+- The event queue processes due events in deterministic order.
 - Presenting a living kind lets Adam name it without finding a suitable mate.
 - Direct address to Adam is recorded without puppeteering his response.
-- A vessel message remains queued without forcing Adam.
+- A vessel message schedules speech without forcing Adam immediately.
+- Vessel speech offers deterministic Adam choices.
+- Offered choices survive save and restore.
 - Creator intervention contamination is recorded.
 - Record sequence order remains stable.
-- Every version surface reports `0.1.6`.
+- Every version surface reports `0.1.7`.
 - The validator checks that the Project Oracle Company Bible exists and preserves the no-guessing and physical-function-key rules.
+- The validator checks that event queue and offered-choice source files are present.
 
 ## Builder environment result
 

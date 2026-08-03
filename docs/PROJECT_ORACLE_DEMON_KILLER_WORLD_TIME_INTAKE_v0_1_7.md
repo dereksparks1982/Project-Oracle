@@ -1,4 +1,4 @@
-# Demon Killer World-Time Intake — Project Oracle v0.1.6
+# Demon Killer World-Time Intake — Project Oracle v0.1.7
 
 Date reviewed: 1 August 2026  
 Source supplied by Derek: `scripts.zip`  
@@ -16,7 +16,7 @@ The archive contained 240 paths and approximately 1.28 MB of scripts. The time a
 
 ## Demon Killer laws carried into Oracle
 
-| Demon Killer law | Oracle v0.1.6 adaptation |
+| Demon Killer law | Oracle v0.1.7 adaptation |
 | --- | --- |
 | `WORLD_SECONDS_PER_REAL_SECOND = 4.0` | Exact integer rate: one real millisecond becomes four world milliseconds |
 | `WORLD_DAYS_PER_REAL_DAY = 4.0` | Four Garden days pass in one real day; each Garden day lasts six real hours |
@@ -26,7 +26,7 @@ The archive contained 240 paths and approximately 1.28 MB of scripts. The time a
 | Same-slot write-back after catch-up | One official save is updated immediately after load/catch-up |
 | Temporary file then rename | Atomic JSON checkpoint commit |
 | Preserve a valid previous primary | Last-good backup retained; a corrupt primary cannot overwrite it |
-| Catch-up lanes are explicit | v0.1.6 applies only world-clock catch-up; future events gain versioned lanes |
+| Catch-up lanes are explicit | v0.1.7 keeps world-clock catch-up and adds the first saved event lane for sky turnings and vessel speech |
 
 ## Oracle-specific additions
 

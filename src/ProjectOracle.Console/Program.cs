@@ -1,6 +1,7 @@
 using ProjectOracle;
 using ProjectOracle.Audit;
 using ProjectOracle.Domain;
+using ProjectOracle.Events;
 using ProjectOracle.Persistence;
 using ProjectOracle.Simulation;
 using System.Text;
@@ -215,6 +216,18 @@ internal static class Program
             return;
         }
 
+        if (command.Equals("events", StringComparison.OrdinalIgnoreCase))
+        {
+            PrintEvents(simulation);
+            return;
+        }
+
+        if (command.Equals("choices", StringComparison.OrdinalIgnoreCase))
+        {
+            PrintChoices(simulation);
+            return;
+        }
+
         if (command.Equals("present next", StringComparison.OrdinalIgnoreCase))
         {
             PresentNextLivingKind(simulation, activeChannel);
@@ -254,7 +267,9 @@ internal static class Program
         System.Console.WriteLine($"Oracle: watching; future language mandate known: {simulation.State.Yala.KnowsFutureLanguageMandate}");
         System.Console.WriteLine($"Living kinds: {simulation.State.LivingKinds.Count}; named by Adam: {naming.NamedCount}/{naming.TotalLivingKinds}; suitable mate found: {naming.SuitableMateFound}");
         System.Console.WriteLine($"Natural course: {(simulation.State.NaturalCourse.Active ? "active" : "inactive")}");
-        System.Console.WriteLine($"Pending Creator interventions: {simulation.Interventions.Count}");
+        System.Console.WriteLine($"Pending events: {simulation.ScheduledEvents.Count(worldEvent => worldEvent.Status == ScheduledWorldEventStatus.Pending)}");
+        System.Console.WriteLine($"Offered choices recorded: {simulation.OfferedChoices.Count}");
+        System.Console.WriteLine($"Creator interventions: {simulation.Interventions.Count}");
         System.Console.WriteLine($"Offline catch-up runs: {simulation.Clock.CatchUpRuns}");
     }
 
@@ -292,6 +307,37 @@ internal static class Program
     {
         System.Console.WriteLine(simulation.State.NaturalCourse.RuleText);
         System.Console.WriteLine("Oracle may rarely deviate. Gaia, Sun, Moon, Adam, and living kinds otherwise follow their planned course.");
+    }
+
+    private static void PrintEvents(OracleSimulation simulation)
+    {
+        System.Console.WriteLine("Scheduled world events:");
+        foreach (ScheduledWorldEvent worldEvent in simulation.ScheduledEvents
+            .OrderBy(worldEvent => worldEvent.ScheduledForWorldMilliseconds)
+            .ThenBy(worldEvent => worldEvent.Priority)
+            .ThenBy(worldEvent => worldEvent.Id))
+        {
+            System.Console.WriteLine(
+                $"{worldEvent.Id:0000} [{worldEvent.Status}] tick {worldEvent.ScheduledForWorldMilliseconds}; priority {worldEvent.Priority}; {worldEvent.Kind}; subject {worldEvent.SubjectId}");
+        }
+    }
+
+    private static void PrintChoices(OracleSimulation simulation)
+    {
+        if (simulation.OfferedChoices.Count == 0)
+        {
+            System.Console.WriteLine("No offered choices have been recorded yet.");
+            return;
+        }
+
+        System.Console.WriteLine("Offered choices:");
+        foreach (OfferedChoiceState choice in simulation.OfferedChoices.OrderBy(choice => choice.Id))
+        {
+            System.Console.WriteLine($"{choice.Id:0000} {choice.ActorId}: {choice.Situation}");
+            System.Console.WriteLine($"Options: {string.Join(", ", choice.Options)}");
+            System.Console.WriteLine($"Selected: {choice.SelectedOption}");
+            System.Console.WriteLine($"Reason: {choice.Reason}");
+        }
     }
 
     private static void PresentNextLivingKind(OracleSimulation simulation, AddressChannelState activeChannel)
@@ -371,6 +417,8 @@ internal static class Program
         System.Console.WriteLine("life                           Show Garden living kinds.");
         System.Console.WriteLine("naming                         Show Adam's naming mandate.");
         System.Console.WriteLine("natural                        Show the Natural Course rule.");
+        System.Console.WriteLine("events                         Show scheduled and completed world events.");
+        System.Console.WriteLine("choices                        Show Adam's offered-choice records.");
         System.Console.WriteLine("present next                   Present the next living kind to Adam for naming.");
         System.Console.WriteLine("save                           Write a checkpoint; the world does not freeze.");
         System.Console.WriteLine("records world                  Show what inhabitants may know.");

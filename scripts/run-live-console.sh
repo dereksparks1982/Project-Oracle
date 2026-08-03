@@ -4,7 +4,7 @@ set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
 
-window_title="Project Oracle v0.1.6 - Live Garden Console"
+window_title="Project Oracle v0.1.7 - Live Garden Console"
 printf '\033]0;%s\007' "$window_title"
 
 if ! command -v dotnet >/dev/null 2>&1; then

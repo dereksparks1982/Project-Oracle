@@ -3,7 +3,7 @@ set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 live_console="$project_root/scripts/run-live-console.sh"
-window_title="Project Oracle v0.1.6 - Live Garden Console"
+window_title="Project Oracle v0.1.7 - Live Garden Console"
 
 fail() {
   echo "Project Oracle could not open a separate Garden console window: $*" >&2

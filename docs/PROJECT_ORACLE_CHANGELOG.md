@@ -1,5 +1,36 @@
 # Project Oracle Changelog
 
+## v0.1.7 — Deterministic Event Queue and Offered Choices — Candidate — 2 August 2026
+
+### Added
+
+- Added Core scheduled-event records with deterministic ordering by world time, priority, and event id.
+- Added offered-choice records for Adam response scaffolding.
+- Added automatic solar turning events for dawn, day, dusk, and night.
+- Added scheduled vessel speech events for queued Creator interventions.
+- Added `events` and `choices` console inspection commands.
+- Added save/restore support for scheduled events and offered choices while preserving older save compatibility.
+- Added acceptance checks for `0.1.6` save upgrade through event defaults, event ordering, vessel speech, offered choices, and persistence.
+
+### Preserved
+
+- Physical `F1` through `F5` direct-address controls remain the only channel controls.
+- Typed `f1`, `f2`, `f3`, `f4`, and `f5` remain ordinary addressed text.
+- `0.1.1` through `0.1.6` saves remain supported.
+- World and Creator records remain separated.
+
+### Not added
+
+- Memory, belief, emotion, full autonomous mind, companion, fruit effect, punishment, expulsion, exterior world, civilisation, model calls, database, graphics, or real plague execution.
+
+### Baseline
+
+Project Oracle v0.1.6 accepted commit `123dbe1`, tag `v0.1.6`.
+
+### Acceptance
+
+Not accepted until Derek installs, validates, runs the console, inspects `events` and `choices`, checks the physical `F1` through `F5` keys still work, and explicitly accepts the build.
+
 ## v0.1.6 — Physical Function Keys and Save Migration Chain Repair — Candidate — 2 August 2026
 
 ### Repaired

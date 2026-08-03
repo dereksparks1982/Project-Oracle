@@ -1,4 +1,4 @@
-# Project Oracle Architecture — v0.1.6
+# Project Oracle Architecture — v0.1.7
 
 ## Decision
 
@@ -38,9 +38,17 @@ This is an initial guardrail, not the final security boundary. Later builds must
 
 `QueueVesselMessage` accepts a vessel description and message, records Creator contamination, and creates a world-observable approach event. It does not make the vessel speak and does not decide Adam's response. The later event scheduler and decision engine will turn the queued request into an offered choice.
 
-`AddressChannel` records direct Creator address to an appointed channel. In v0.1.6 it records the address and contamination, but it does not execute a miracle, force Adam's response, or produce autonomous Oracle/Gaia/Sun/Moon replies.
+`AddressChannel` records direct Creator address to an appointed channel. In v0.1.7 it records the address and contamination, but it does not execute a miracle, force Adam's response, or produce autonomous Oracle/Gaia/Sun/Moon replies.
 
 `PresentNextLivingKindToAdam` is the first narrow naming-mandate action. It presents the next un-named living kind, records Adam's simple deterministic name, and records that no suitable mate was found. This is a scaffold for later event scheduling and decision logic, not a full agency model.
+
+## Event queue boundary
+
+The deterministic event queue lives in `ProjectOracle.Core`. Scheduled events are ordered by scheduled world milliseconds, priority, and event id. The queue is saved and restored with the world snapshot.
+
+`sky.solar.turning` events record dawn, day, dusk, and night without relying on a display loop. `intervention.vessel.speech` events turn queued Creator vessel messages into world-observable speech events after a deterministic delay.
+
+Offered choices are records, not a full mind. Adam currently receives a fixed list of physically possible response options: accept, refuse, delay, question, report, and ignore. The selected option is chosen by a deterministic scaffold derived from the world seed and intervention id, and the Creator Record stores the reason. Memory, belief, emotion, consequence execution, and full autonomous reasoning remain deferred.
 
 ## Direct address console boundary
 
@@ -54,7 +62,7 @@ The input contract is physical `F1` through `F5`. The interactive console uses k
 
 ## Live console boundary
 
-`scripts/run-window.sh` launches Project Oracle in a separate terminal window. `scripts/run-live-console.sh` owns the child terminal session, sets the visible title to `Project Oracle v0.1.6 - Live Garden Console`, keeps the output readable after exit or failure, and blocks accidental second live windows against the same save. `scripts/run.sh` remains the direct terminal fallback and validation entry point.
+`scripts/run-window.sh` launches Project Oracle in a separate terminal window. `scripts/run-live-console.sh` owns the child terminal session, sets the visible title to `Project Oracle v0.1.7 - Live Garden Console`, keeps the output readable after exit or failure, and blocks accidental second live windows against the same save. `scripts/run.sh` remains the direct terminal fallback and validation entry point.
 
 ## Future implementation boundary
 
@@ -63,7 +71,7 @@ The C# prototype is an executable reference, not a permanent implementation cons
 ## Deferred architecture
 
 - Full event replay logs beyond the atomic single-save checkpoint
-- Priority event scheduler
+- Event subscriptions beyond the two current scheduled-event handlers
 - Alternate terminal escape-sequence decoding if a future supported terminal fails to report `ConsoleKey.F1` through `ConsoleKey.F5`
 - Memory, observation, knowledge, belief, and decision systems
 - Yala policy and autonomy

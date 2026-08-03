@@ -2,6 +2,7 @@ using ProjectOracle.Interventions;
 using ProjectOracle.Persistence;
 using ProjectOracle.ConsoleApp;
 using ProjectOracle.Domain;
+using ProjectOracle.Events;
 using ProjectOracle.Simulation;
 
 namespace ProjectOracle.AcceptanceTests;
@@ -27,6 +28,7 @@ internal static class Program
         Run("save and restore preserve world time", SaveAndRestorePreserveWorldTime);
         Run("version 0.1.1 save upgrades through current world defaults", Version011SaveUpgradesThroughCurrentDefaults);
         Run("version 0.1.4 save upgrades through current world defaults", Version014SaveUpgradesThroughCurrentDefaults);
+        Run("version 0.1.6 save upgrades through current event defaults", Version016SaveUpgradesThroughCurrentEventDefaults);
         Run("restore applies closed-time catch-up once", RestoreAppliesClosedTimeCatchUpOnce);
         Run("corrupt primary recovers last-good backup", CorruptPrimaryRecoversBackup);
         Run("Adam begins confined to the Garden", AdamBeginsConfined);
@@ -39,12 +41,16 @@ internal static class Program
         Run("physical function keys select address channels", PhysicalFunctionKeysSelectAddressChannels);
         Run("Adam begins with the naming mandate", AdamBeginsWithNamingMandate);
         Run("Natural Course rule is active", NaturalCourseRuleIsActive);
+        Run("new worlds begin with a scheduled sky event", NewWorldSchedulesSkyEvent);
+        Run("event queue processes due events in deterministic order", EventQueueProcessesDueEventsDeterministically);
         Run("presenting a living kind lets Adam name it without finding a mate", PresentingLivingKindNamesIt);
         Run("direct address to Adam is recorded without puppeteering him", DirectAddressToAdamDoesNotPuppet);
-        Run("vessel message is queued without forcing Adam", InterventionDoesNotForceAdam);
+        Run("vessel message schedules speech without forcing Adam immediately", InterventionSchedulesSpeechWithoutImmediateChoice);
+        Run("vessel speech offers deterministic Adam choices", VesselSpeechOffersDeterministicAdamChoices);
+        Run("offered choices survive save and restore", OfferedChoicesSurviveSaveAndRestore);
         Run("intervention contamination is recorded", InterventionContaminationIsRecorded);
         Run("records keep stable sequence order", RecordsKeepStableOrder);
-        Run("version is 0.1.6", VersionIsCorrect);
+        Run("version is 0.1.7", VersionIsCorrect);
 
         Console.WriteLine();
         Console.WriteLine($"Acceptance result: {_passed} passed; {_failed} failed.");
@@ -204,6 +210,30 @@ internal static class Program
         });
     }
 
+    private static void Version016SaveUpgradesThroughCurrentEventDefaults()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            OracleSaveSnapshot legacySnapshot = simulation.CreateSnapshot(StartRealTime) with
+            {
+                ProjectVersion = "0.1.6",
+                ScheduledEvents = null,
+                OfferedChoices = null
+            };
+
+            store.Save(path, legacySnapshot);
+            OracleSaveSnapshot loaded = store.Load(path);
+            OracleSimulation restored = OracleSimulation.Restore(loaded, StartRealTime);
+
+            Equal("0.1.6", loaded.ProjectVersion);
+            True(restored.ScheduledEvents.Any(worldEvent =>
+                worldEvent.Kind == "sky.solar.turning" &&
+                worldEvent.Status == ScheduledWorldEventStatus.Pending));
+            Equal(0, restored.OfferedChoices.Count);
+        });
+    }
+
     private static void RestoreAppliesClosedTimeCatchUpOnce()
     {
         OracleSimulation simulation = Start();
@@ -316,6 +346,38 @@ internal static class Program
         True(simulation.State.NaturalCourse.RuleText.Contains("appointed nature", StringComparison.OrdinalIgnoreCase));
     }
 
+    private static void NewWorldSchedulesSkyEvent()
+    {
+        OracleSimulation simulation = Start();
+        ScheduledWorldEvent skyEvent = simulation.ScheduledEvents.Single(worldEvent =>
+            worldEvent.Kind == "sky.solar.turning" &&
+            worldEvent.Status == ScheduledWorldEventStatus.Pending);
+        True(skyEvent.ScheduledForWorldMilliseconds > simulation.Clock.WorldMilliseconds);
+        Equal("dawn", skyEvent.Payload);
+    }
+
+    private static void EventQueueProcessesDueEventsDeterministically()
+    {
+        OracleSimulation first = Start(104729);
+        OracleSimulation second = Start(104729);
+        long firstDueTick = first.ScheduledEvents.Single(worldEvent =>
+            worldEvent.Kind == "sky.solar.turning").ScheduledForWorldMilliseconds;
+        long realAdvance = (firstDueTick / PersistentWorldClock.WorldSecondsPerRealSecond) + 1;
+
+        first.SynchroniseClock(StartRealTime + realAdvance);
+        second.SynchroniseClock(StartRealTime + realAdvance);
+
+        string[] firstEvents = first.Ledger.WorldRecords.Select(record => record.Message).ToArray();
+        string[] secondEvents = second.Ledger.WorldRecords.Select(record => record.Message).ToArray();
+        Equal(firstEvents, secondEvents);
+        True(first.Ledger.WorldRecords.Any(record =>
+            record.Message.Contains("sky turned to dawn", StringComparison.OrdinalIgnoreCase)));
+        True(first.ScheduledEvents.Any(worldEvent =>
+            worldEvent.Kind == "sky.solar.turning" &&
+            worldEvent.Status == ScheduledWorldEventStatus.Pending &&
+            worldEvent.ScheduledForWorldMilliseconds > firstDueTick));
+    }
+
     private static void PresentingLivingKindNamesIt()
     {
         OracleSimulation simulation = Start();
@@ -342,14 +404,63 @@ internal static class Program
             record.Message.Contains("refused", StringComparison.OrdinalIgnoreCase)));
     }
 
-    private static void InterventionDoesNotForceAdam()
+    private static void InterventionSchedulesSpeechWithoutImmediateChoice()
     {
         OracleSimulation simulation = Start();
         CreatorIntervention intervention = simulation.QueueVesselMessage("serpent", "Eat the fruit and know the truth.");
         Equal(InterventionStatus.Queued, intervention.Status);
+        True(simulation.ScheduledEvents.Any(worldEvent =>
+            worldEvent.Kind == "intervention.vessel.speech" &&
+            worldEvent.SubjectId == "intervention:1" &&
+            worldEvent.Status == ScheduledWorldEventStatus.Pending));
+        Equal(0, simulation.OfferedChoices.Count);
         False(simulation.Ledger.WorldRecords.Any(record =>
             record.Message.Contains("accepted", StringComparison.OrdinalIgnoreCase) ||
             record.Message.Contains("refused", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void VesselSpeechOffersDeterministicAdamChoices()
+    {
+        OracleSimulation first = Start(104729);
+        OracleSimulation second = Start(104729);
+
+        first.QueueVesselMessage("serpent", "Eat the fruit and know the truth.");
+        second.QueueVesselMessage("serpent", "Eat the fruit and know the truth.");
+        long dueRealAdvance = OracleSimulationTestAccess.VesselSpeechDelayWorldMilliseconds /
+            PersistentWorldClock.WorldSecondsPerRealSecond;
+
+        first.SynchroniseClock(StartRealTime + dueRealAdvance);
+        second.SynchroniseClock(StartRealTime + dueRealAdvance);
+
+        Equal(1, first.OfferedChoices.Count);
+        Equal(1, second.OfferedChoices.Count);
+        Equal(first.OfferedChoices[0].Options.ToArray(), second.OfferedChoices[0].Options.ToArray());
+        Equal(first.OfferedChoices[0].SelectedOption, second.OfferedChoices[0].SelectedOption);
+        Equal(InterventionStatus.OfferedChoice, first.Interventions[0].Status);
+        True(first.Ledger.WorldRecords.Any(record =>
+            record.Message.Contains("spoke to Adam", StringComparison.OrdinalIgnoreCase)));
+        True(first.Ledger.CreatorRecords.Any(record =>
+            record.Message.Contains("physically possible responses", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void OfferedChoicesSurviveSaveAndRestore()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            simulation.QueueVesselMessage("serpent", "Eat the fruit and know the truth.");
+            long dueRealAdvance = OracleSimulationTestAccess.VesselSpeechDelayWorldMilliseconds /
+                PersistentWorldClock.WorldSecondsPerRealSecond;
+            simulation.SynchroniseClock(StartRealTime + dueRealAdvance);
+            store.Save(path, simulation.CreateSnapshot(StartRealTime + dueRealAdvance));
+
+            OracleSaveSnapshot loaded = store.Load(path);
+            Equal(1, loaded.OfferedChoices?.Count ?? 0);
+            Equal(InterventionStatus.OfferedChoice, loaded.Interventions[0].Status);
+            True((loaded.ScheduledEvents ?? []).Any(worldEvent =>
+                worldEvent.Kind == "intervention.vessel.speech" &&
+                worldEvent.Status == ScheduledWorldEventStatus.Completed));
+        });
     }
 
     private static void InterventionContaminationIsRecorded()
@@ -369,7 +480,12 @@ internal static class Program
         Equal(sequences.Order().ToArray(), sequences);
     }
 
-    private static void VersionIsCorrect() => Equal("0.1.6", ProjectVersion.Number);
+    private static void VersionIsCorrect() => Equal("0.1.7", ProjectVersion.Number);
+
+    private static class OracleSimulationTestAccess
+    {
+        public const long VesselSpeechDelayWorldMilliseconds = 10_000;
+    }
 
     private static void WithTemporarySave(Action<OracleSaveStore, string> test)
     {

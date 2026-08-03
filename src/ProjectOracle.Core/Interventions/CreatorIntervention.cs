@@ -10,5 +10,6 @@ public sealed record CreatorIntervention(
 
 public enum InterventionStatus
 {
-    Queued
+    Queued,
+    OfferedChoice
 }

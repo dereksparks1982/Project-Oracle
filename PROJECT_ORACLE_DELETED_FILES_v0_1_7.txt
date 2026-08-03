@@ -1,0 +1,8 @@
+Project Oracle/PROJECT_ORACLE_CHANGED_FILES_v0_1_6.txt
+Project Oracle/PROJECT_ORACLE_DELETED_FILES_v0_1_6.txt
+Project Oracle/docs/PROJECT_ORACLE_ARCHITECTURE_v0_1_6.md
+Project Oracle/docs/PROJECT_ORACLE_CANON_v0_1_6.md
+Project Oracle/docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_6.md
+Project Oracle/docs/PROJECT_ORACLE_ROADMAP_v0_1_6.md
+Project Oracle/docs/PROJECT_ORACLE_SESSION_LOG_v0_1_6.md
+Project Oracle/docs/PROJECT_ORACLE_VALIDATION_v0_1_6.md
