@@ -1,5 +1,104 @@
 # Project Oracle Changelog
 
+## v0.1.10 — Oracle/Yala Identity, Decision Output, and First Brain Planner — Candidate — 3 August 2026
+
+### Repaired
+
+- Corrected Oracle/Yala identity so `<oracle>` answers as Yala, not as a separate witness describing Yala.
+- Made Adam's decision output show offered choices, selected action, and reason.
+- Set the first Garden living-kind set to exactly twelve kinds.
+- Preserved the v0.1.9 Creator-facing creation record and live-time correction.
+
+### Added
+
+- Added an internal deterministic HTN-style brain planner inspired by the MIT-licensed Fluid HTN project.
+- Added saved `ReasonedPlanState` records with goal, situation, decomposition, options, selected action, reason, and source.
+- Made Adam create a brain plan before direct-address response, vessel-speech response, and naming.
+- Added `plans` / `brain` console inspection.
+- Added a retro black-and-green console theme for real terminal sessions.
+- Added accent colours for direct-address prompts, live line, records, commands, Yala/Oracle, Adam, and world powers.
+- Added `NO_COLOR` and redirected-output safety so validation and logs stay plain text.
+- Added `docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_1_10.md` for long-thread continuation.
+
+### Validation
+
+- Increased acceptance coverage to forty-eight checks.
+- Added checks for reasoned brain plans before naming and direct-address choices.
+- Added save/restore coverage for reasoned brain plans.
+- Added source checks for the first brain planner and retro console theme.
+
+### Not added
+
+- No full Yala brain, full Adam memory, belief, emotion, sex, Lilith, Eve, hybrid/monster systems, fruit result, expulsion, exterior world, civilisation, model calls, database, graphics, vendored external planner code, or future implementation transition.
+
+### Baseline
+
+Required accepted baseline remains Project Oracle v0.1.7 unless Derek reports that v0.1.9 was accepted locally before applying this package. Project Oracle v0.1.8 remains rejected manual evidence.
+
+## v0.1.9 — Creation Record and Live Time Correction — Candidate — 3 August 2026
+
+### Repaired
+
+- Corrected the genesis World Record so it begins with the void and Yala before Adam appears.
+- Recorded that the Creators threw Yala into the void to see what she would do with her prison.
+- Recorded that Yala created Sol and the other powers, demi-gods under a demi-god.
+- Added World and Garden as explicit creation-order entries.
+- Recorded the Garden as created just before Adam and the Living Kinds as created after Adam.
+- Removed the confusing static startup `World time:` line above the live display.
+- Reframed `records world` as the Creator-facing world ledger, not Adam's knowledge.
+
+### Preserved
+
+- Live console refresh, terminal title refresh, and the separate Garden console launcher.
+- Physical `F1` through `F5` direct-address controls.
+- Deterministic scheduled events and offered-choice records.
+- Adam's first-knowing rule: he knows that he is, not that he is alive.
+- Yala's overclaim caveat and Creator authority above Yala.
+
+### Validation
+
+- Added acceptance coverage for the exact first World Record categories: Void, Yala, Sol, Powers, World, Green Life, Garden, Adam, Living Kinds, and Mandate.
+- Added acceptance coverage proving the World Record is Creator-facing while Adam's current answer set still does not know the Creators or Yala.
+- Added acceptance coverage proving rejected `0.1.8` saves normalise into the corrected creation order and canonical address channels.
+- Updated console smoke validation to reject the old static startup `World time:` line.
+
+### Baseline
+
+Required accepted baseline is Project Oracle v0.1.7. Project Oracle v0.1.8 passed automated validation but was manually rejected because the creation ledger began too late with Adam/Garden.
+
+## v0.1.8 — Live Oracle Window and World Powers — Candidate — 2 August 2026
+
+### Added
+
+- Added live console refresh while waiting for input, including world time, sky state, active direct-address channel, pending event count, and offered-choice count.
+- Added terminal-title refresh for the live Garden console.
+- Added clearer `run-window.sh` failure reporting when no separate terminal window can open.
+- Added saved `CreationPowerState` records for Yala/Void, Sol, Gaia, Aether, Thalassa, Luna, Green Life, Adam, and Living Kinds.
+- Added Yala authority caveat: she knows the order but may claim she rules all or created all; protected Creator records outrank her claim.
+- Added Oracle first answers for creation order, Sol, Gaia, Aether, Thalassa, Luna, Adam's rank above animals, Yala's overclaim, and Adam's first knowing.
+- Added `creation` / `powers` console inspection.
+- Added `0.1.7` save upgrade coverage for creation powers.
+
+### Preserved
+
+- Project Oracle remains the C# pre-alpha prototype/archive and future implementation reference corpus.
+- Physical `F1` through `F5` remain the only channel controls.
+- Typed `f1`, `f2`, `f3`, `f4`, and `f5` remain ordinary addressed text.
+- World and Creator records remain separated.
+- Default world output does not leak Yala's true name, Spark truth, or Creator-only truth.
+
+### Not added
+
+- Full Yala brain, full Adam mind, observation, memory, belief, emotion, sex, Lilith, Eve, fruit certainty, fruit effects, punishment, expulsion, exterior world, civilisation, model calls, database, graphics, or future implementation transition.
+
+### Baseline
+
+Project Oracle v0.1.7 validated by Derek with thirty-six passing acceptance checks.
+
+### Acceptance
+
+Not accepted until Derek installs, validates, runs the console, confirms the live clock updates in the separate window, checks Oracle creation-order questions under `F1`, and explicitly accepts the build.
+
 ## v0.1.7 — Deterministic Event Queue and Offered Choices — Candidate — 2 August 2026
 
 ### Added

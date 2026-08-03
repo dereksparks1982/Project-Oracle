@@ -1,4 +1,5 @@
 using ProjectOracle.Audit;
+using ProjectOracle.Brain;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
 using ProjectOracle.Interventions;
@@ -15,9 +16,11 @@ public sealed class OracleSimulation
     private readonly List<CreatorIntervention> _interventions = [];
     private readonly List<ScheduledWorldEvent> _scheduledEvents = [];
     private readonly List<OfferedChoiceState> _offeredChoices = [];
+    private readonly List<ReasonedPlanState> _reasonedPlans = [];
     private long _nextInterventionId = 1;
     private long _nextEventId = 1;
     private long _nextChoiceId = 1;
+    private long _nextPlanId = 1;
 
     private OracleSimulation(ulong seed, long realUnixMilliseconds)
     {
@@ -42,9 +45,11 @@ public sealed class OracleSimulation
         _interventions.AddRange(snapshot.Interventions.OrderBy(intervention => intervention.Id));
         _scheduledEvents.AddRange((snapshot.ScheduledEvents ?? []).OrderBy(worldEvent => worldEvent.Id));
         _offeredChoices.AddRange((snapshot.OfferedChoices ?? []).OrderBy(choice => choice.Id));
+        _reasonedPlans.AddRange((snapshot.ReasonedPlans ?? []).OrderBy(plan => plan.Id));
         _nextInterventionId = _interventions.Count == 0 ? 1 : checked(_interventions[^1].Id + 1);
         _nextEventId = _scheduledEvents.Count == 0 ? 1 : checked(_scheduledEvents[^1].Id + 1);
         _nextChoiceId = _offeredChoices.Count == 0 ? 1 : checked(_offeredChoices[^1].Id + 1);
+        _nextPlanId = _reasonedPlans.Count == 0 ? 1 : checked(_reasonedPlans[^1].Id + 1);
     }
 
     public PersistentWorldClock Clock { get; }
@@ -61,6 +66,8 @@ public sealed class OracleSimulation
 
     public IReadOnlyList<OfferedChoiceState> OfferedChoices => _offeredChoices.AsReadOnly();
 
+    public IReadOnlyList<ReasonedPlanState> ReasonedPlans => _reasonedPlans.AsReadOnly();
+
     public static OracleSimulation Start(ulong seed, long realUnixMilliseconds) => new(seed, realUnixMilliseconds);
 
     public static OracleSimulation Restore(OracleSaveSnapshot snapshot, long currentRealUnixMilliseconds)
@@ -72,12 +79,15 @@ public sealed class OracleSimulation
         return simulation;
     }
 
-    public ClockAdvance SynchroniseClock(long currentRealUnixMilliseconds, bool offlineCatchUp = false)
+    public ClockAdvance SynchroniseClock(
+        long currentRealUnixMilliseconds,
+        bool offlineCatchUp = false,
+        bool recordAdvance = true)
     {
         ClockAdvance advance = Clock.Synchronise(currentRealUnixMilliseconds, offlineCatchUp);
         State = State with { WorldMilliseconds = Clock.WorldMilliseconds };
 
-        if (advance.ElapsedRealMilliseconds > 0)
+        if (recordAdvance && advance.ElapsedRealMilliseconds > 0)
         {
             string mode = offlineCatchUp ? "offline catch-up" : "live real-time advance";
             Ledger.RecordCreator(
@@ -169,7 +179,7 @@ public sealed class OracleSimulation
         return intervention;
     }
 
-    public void AddressChannel(string channelKey, string message)
+    public OfferedChoiceState? AddressChannel(string channelKey, string message)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(channelKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
@@ -188,8 +198,20 @@ public sealed class OracleSimulation
             Ledger.RecordWorld(
                 Clock.WorldMilliseconds,
                 "VOICE",
-                "Adam heard a direct address from beyond his ordinary world. His response has not been decided.");
+                "Adam heard a direct address from beyond his ordinary world.");
+            OfferedChoiceState choice = OfferAdamDirectAddressChoice(channel, message.Trim());
+            Ledger.RecordWorld(
+                Clock.WorldMilliseconds,
+                "CHOICE",
+                $"Adam was offered {choice.Options.Count} response options and decided to {choice.SelectedOption}. No consequence beyond the recorded choice exists yet.");
+            Ledger.RecordCreator(
+                Clock.WorldMilliseconds,
+                "OFFERED CHOICE",
+                $"Adam was offered {choice.Options.Count} physically possible responses to the direct address. Selected: {choice.SelectedOption}. Reason: {choice.Reason}");
+            return choice;
         }
+
+        return null;
     }
 
     public LivingKindState? PresentNextLivingKindToAdam(string presenter)
@@ -203,12 +225,22 @@ public sealed class OracleSimulation
         }
 
         LivingKindState current = State.LivingKinds[index];
+        string adamName = CreateAdamName(current, index);
+        string namingReason = CreateAdamNamingReason(current, index);
         LivingKindState named = current with
         {
             PresentedToAdam = true,
             NamedByAdam = true,
-            AdamName = CreateAdamName(current, index)
+            AdamName = adamName
         };
+
+        ReasonedPlanState plan = AddReasonedPlan(OracleBrainPlanner.PlanAdamNaming(
+            _nextPlanId++,
+            Clock.WorldMilliseconds,
+            State.Adam,
+            current,
+            adamName,
+            namingReason));
 
         List<LivingKindState> kinds = State.LivingKinds.ToList();
         kinds[index] = named;
@@ -226,11 +258,11 @@ public sealed class OracleSimulation
         Ledger.RecordWorld(
             Clock.WorldMilliseconds,
             "NAMING",
-            $"{presenter.Trim()} presented a living kind to Adam. Adam named it {named.AdamName} and found no suitable mate.");
+            $"{presenter.Trim()} presented a living kind to Adam. Adam reasoned first, then decided to name it {named.AdamName} because {namingReason} No suitable mate was found.");
         Ledger.RecordCreator(
             Clock.WorldMilliseconds,
             "NAMING",
-            $"Adam named {named.Id} ({named.AncientKind}) as {named.AdamName}. Suitable mate: {named.SuitableMate}.");
+            $"Adam named {named.Id} ({named.AncientKind}) as {named.AdamName}. Brain plan: {plan.Id}. Reason: {namingReason} Suitable mate: {named.SuitableMate}.");
 
         return named;
     }
@@ -252,20 +284,28 @@ public sealed class OracleSimulation
             Ledger.WorldRecords.Concat(Ledger.CreatorRecords).OrderBy(record => record.Sequence).ToArray(),
             _interventions.ToArray(),
             _scheduledEvents.ToArray(),
-            _offeredChoices.ToArray());
+            _offeredChoices.ToArray(),
+            _reasonedPlans.ToArray());
     }
 
     private static WorldState CreateInitialState(ulong seed) => WorldDefaults.CreateInitialState(seed);
 
     private void RecordGenesis()
     {
-        Ledger.RecordWorld(0, "GENESIS", "The Garden was formed and filled with ancient living kinds.");
-        Ledger.RecordWorld(0, "GENESIS", "Adam awoke in the Garden. The Oracle watched in silence.");
+        Ledger.RecordWorld(0, "VOID", "The void existed as Yala's prison before the formed world.");
+        Ledger.RecordWorld(0, "YALA", "The Creators threw Yala into the void to see what she would do with her prison.");
+        Ledger.RecordWorld(0, "SOL", "Yala created Sol, the sun, first light, fire, heat, and counted time.");
+        Ledger.RecordWorld(0, "POWERS", "Yala created the other powers, demi-gods under a demi-god: Gaia, Aether, Thalassa, Luna, and Green Life.");
+        Ledger.RecordWorld(0, "WORLD", "Yala shaped the void-prison into a formed world.");
+        Ledger.RecordWorld(0, "GREEN LIFE", "Plants and green life came into being after the world existed.");
+        Ledger.RecordWorld(0, "GARDEN", "The Garden was created just before Adam as a closed preserve.");
+        Ledger.RecordWorld(0, "ADAM", "Adam was created and placed in the Garden.");
+        Ledger.RecordWorld(0, "LIVING KINDS", "The animals and ancient living forms were created after Adam for the naming mandate.");
         Ledger.RecordWorld(0, "MANDATE", "Adam was given the task of naming the living kinds and finding whether any was a suitable mate.");
-        Ledger.RecordWorld(0, "BOUNDARY", "The Garden boundary was closed.");
 
         Ledger.RecordCreator(0, "GENESIS", $"World Seed: {State.Seed}.");
-        Ledger.RecordCreator(0, "AUTHORITY", "The Creators made Yala. Yala formed the Garden, Gaia, the celestial governors, the living kinds, Adam's body, and Adam's ordinary mind.");
+        Ledger.RecordCreator(0, "AUTHORITY", "Creation order: 0 Void; 1 Yala; 2 Sol; 3 Gaia and Aether; 4 Thalassa; 5 Luna; 6 World; 7 Green Life; 8 Garden; 9 Adam; 10 Living Kinds.");
+        Ledger.RecordCreator(0, "AUTHORITY", State.Yala.AuthorityCaveat);
         Ledger.RecordCreator(0, "AUTHORITY", "Direct address channels are appointed: F1 Oracle, F2 Gaia, F3 Adam, F4 Sun, F5 Moon.");
         Ledger.RecordCreator(0, "NATURAL COURSE", State.NaturalCourse.RuleText);
         Ledger.RecordCreator(0, "SPARK", State.AdamSpark.CreatorDescription);
@@ -392,7 +432,7 @@ public sealed class OracleSimulation
         Ledger.RecordWorld(
             worldEvent.ScheduledForWorldMilliseconds,
             "CHOICE",
-            $"Adam selected the {choice.SelectedOption} response option. No consequence beyond the recorded choice exists yet.");
+            $"Adam was offered {choice.Options.Count} response options and decided to {choice.SelectedOption}. No consequence beyond the recorded choice exists yet.");
         Ledger.RecordCreator(
             Clock.WorldMilliseconds,
             "OFFERED CHOICE",
@@ -404,10 +444,14 @@ public sealed class OracleSimulation
         CreatorIntervention intervention)
     {
         string[] options = ["accept", "refuse", "delay", "question", "report", "ignore"];
-        ulong derivedSeed = State.Seed ^ ((ulong)intervention.Id * 0x9E37_79B9_7F4A_7C15UL);
-        DeterministicRandom choiceRandom = new(derivedSeed);
-        string selected = options[(int)(choiceRandom.NextUInt64() % (ulong)options.Length)];
-        string reason = "Deterministic scaffold choice from world seed, intervention id, and Adam's current confined Garden state; memory and belief are not implemented yet.";
+        ReasonedPlanState plan = AddReasonedPlan(OracleBrainPlanner.PlanAdamVesselSpeech(
+            _nextPlanId++,
+            worldEvent.ScheduledForWorldMilliseconds,
+            State.Seed,
+            State.Adam,
+            intervention.Vessel,
+            intervention.Message,
+            options));
 
         OfferedChoiceState choice = new(
             _nextChoiceId++,
@@ -416,10 +460,44 @@ public sealed class OracleSimulation
             State.Adam.Id.Value,
             $"A {intervention.Vessel} delivered a Creator-supplied message.",
             options,
-            selected,
-            reason);
+            plan.SelectedAction,
+            $"{plan.Reason} Brain plan: {plan.Id}.");
         _offeredChoices.Add(choice);
         return choice;
+    }
+
+    private OfferedChoiceState OfferAdamDirectAddressChoice(AddressChannelState channel, string message)
+    {
+        string[] options = ["listen", "question", "wait", "turn away"];
+        ReasonedPlanState plan = AddReasonedPlan(OracleBrainPlanner.PlanAdamDirectAddress(
+            _nextPlanId++,
+            Clock.WorldMilliseconds,
+            State.Seed,
+            State.Adam,
+            message,
+            options));
+
+        OfferedChoiceState choice = new(
+            _nextChoiceId++,
+            0,
+            Clock.WorldMilliseconds,
+            State.Adam.Id.Value,
+            $"A direct address reached Adam through {channel.Prompt}.",
+            options,
+            plan.SelectedAction,
+            $"{plan.Reason} Brain plan: {plan.Id}.");
+        _offeredChoices.Add(choice);
+        return choice;
+    }
+
+    private ReasonedPlanState AddReasonedPlan(ReasonedPlanState plan)
+    {
+        _reasonedPlans.Add(plan);
+        Ledger.RecordCreator(
+            plan.CreatedAtWorldMilliseconds,
+            "BRAIN PLAN",
+            $"{plan.BrainSystem} created plan {plan.Id} for {plan.ActorId}. Goal: {plan.Goal} Selected: {plan.SelectedAction}. Reason: {plan.Reason}");
+        return plan;
     }
 
     private static long NextSolarTurningAfter(long elapsedWorldMilliseconds)
@@ -455,5 +533,26 @@ public sealed class OracleSimulation
         string[] secondWords = ["walker", "caller", "glider", "crawler", "climber", "grazer", "hunter", "singer", "sleeper"];
         int kindOffset = kind.Id.Value.Sum(character => (int)character);
         return $"{firstWords[index % firstWords.Length]}-{secondWords[kindOffset % secondWords.Length]}";
+    }
+
+    private static string CreateAdamNamingReason(LivingKindState kind, int index)
+    {
+        string[] reasons =
+        [
+            "its steady walk made the Garden ground seem to move with it.",
+            "its call cut through the air before Adam had another word for it.",
+            "its body slipped through water like a living line.",
+            "it broke the earth and vanished under root and stone.",
+            "its hands and eyes troubled Adam with a nearness he could not yet understand.",
+            "its horns and patience made it seem made for grass.",
+            "its silence belonged to the dark before Adam could name fear.",
+            "its many voices rose where water and mud met.",
+            "it slept on stone until the sun warmed it into motion.",
+            "it ran like ash blown low across the plain.",
+            "it reminded Adam of a rough old tree stump that had learned to move.",
+            "it stood near enough to Adam to make him search for a harder name."
+        ];
+
+        return reasons[index % reasons.Length];
     }
 }

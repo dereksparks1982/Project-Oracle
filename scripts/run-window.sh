@@ -3,7 +3,7 @@ set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 live_console="$project_root/scripts/run-live-console.sh"
-window_title="Project Oracle v0.1.7 - Live Garden Console"
+window_title="Project Oracle v0.1.10 - Live Garden Console"
 
 fail() {
   echo "Project Oracle could not open a separate Garden console window: $*" >&2
@@ -21,14 +21,18 @@ if [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
   fail "no graphical display was detected. Run ./scripts/run.sh from a terminal instead."
 fi
 
+launch_terminal() {
+  "$@" || fail "terminal launch command failed: $*"
+}
+
 if command -v gnome-terminal >/dev/null 2>&1; then
-  gnome-terminal -- "$live_console" "$@"
+  launch_terminal gnome-terminal -- "$live_console" "$@"
 elif command -v ptyxis >/dev/null 2>&1; then
-  ptyxis -- "$live_console" "$@"
+  launch_terminal ptyxis -- "$live_console" "$@"
 elif command -v kgx >/dev/null 2>&1; then
-  kgx -- "$live_console" "$@"
+  launch_terminal kgx -- "$live_console" "$@"
 elif command -v x-terminal-emulator >/dev/null 2>&1; then
-  x-terminal-emulator -e "$live_console" "$@"
+  launch_terminal x-terminal-emulator -e "$live_console" "$@"
 else
   fail "no supported terminal app was found. Expected gnome-terminal, ptyxis, kgx, or x-terminal-emulator."
 fi

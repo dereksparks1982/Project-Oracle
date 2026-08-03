@@ -1,4 +1,5 @@
 using ProjectOracle.Audit;
+using ProjectOracle.Brain;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
 using ProjectOracle.Interventions;
@@ -19,4 +20,5 @@ public sealed record OracleSaveSnapshot(
     IReadOnlyList<OracleRecord> Records,
     IReadOnlyList<CreatorIntervention> Interventions,
     IReadOnlyList<ScheduledWorldEvent>? ScheduledEvents = null,
-    IReadOnlyList<OfferedChoiceState>? OfferedChoices = null);
+    IReadOnlyList<OfferedChoiceState>? OfferedChoices = null,
+    IReadOnlyList<ReasonedPlanState>? ReasonedPlans = null);

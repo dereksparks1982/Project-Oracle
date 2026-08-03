@@ -5,7 +5,9 @@ public sealed record YalaState(
     string TrueName,
     string WorldTitle,
     bool KnowsOfCreators,
-    bool KnowsFutureLanguageMandate);
+    bool KnowsFutureLanguageMandate,
+    bool MayClaimSupremeCreator,
+    string AuthorityCaveat);
 
 public sealed record AdamState(
     EntityId Id,
@@ -42,6 +44,14 @@ public sealed record LivingKindState(
     string? AdamName,
     bool SuitableMate);
 
+public sealed record CreationPowerState(
+    int Order,
+    EntityId Id,
+    string Name,
+    string Domain,
+    string AuthoritySummary,
+    bool ReceivesDirectAddress);
+
 public sealed record NamingMandateState(
     bool Active,
     int TotalLivingKinds,
@@ -61,6 +71,7 @@ public sealed record WorldState(
     YalaState Yala,
     AdamState Adam,
     SparkState AdamSpark,
+    IReadOnlyList<CreationPowerState> CreationPowers,
     IReadOnlyList<AddressChannelState> AddressChannels,
     IReadOnlyList<LivingKindState> LivingKinds,
     NamingMandateState NamingMandate,

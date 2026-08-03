@@ -1,5 +1,6 @@
 using ProjectOracle;
 using ProjectOracle.Audit;
+using ProjectOracle.Brain;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
 using ProjectOracle.Persistence;
@@ -11,6 +12,7 @@ namespace ProjectOracle.ConsoleApp;
 internal static class Program
 {
     private const ulong DefaultSeed = 104729UL;
+    private const int LiveRefreshMilliseconds = 250;
 
     public static int Main(string[] args)
     {
@@ -22,33 +24,38 @@ internal static class Program
             ConsoleOptions options = ConsoleOptions.Parse(args);
             string savePath = options.SavePath ?? OracleSaveStore.DefaultPath();
             long now = realTime.GetUnixTimeMilliseconds();
+            ConsoleTheme.ApplyBase();
             bool continuing = store.Exists(savePath);
             OracleSimulation simulation = continuing
                 ? OracleSimulation.Restore(store.Load(savePath), now)
                 : OracleSimulation.Start(options.Seed, now);
 
-            System.Console.WriteLine(ProjectVersion.Display);
-            System.Console.WriteLine($"World Seed: {simulation.State.Seed}");
-            System.Console.WriteLine($"World time: {simulation.Clock.Describe()}");
-            System.Console.WriteLine(simulation.Clock.Calendar.DescribeSky());
-            System.Console.WriteLine(continuing
+            ConsoleTheme.WriteLine(ProjectVersion.Display);
+            ConsoleTheme.WriteLine($"World Seed: {simulation.State.Seed}");
+            ConsoleTheme.WriteLine("Live world time appears on the LIVE line below.");
+            ConsoleTheme.WriteLine(simulation.Clock.Calendar.DescribeSky());
+            ConsoleTheme.WriteLine(continuing
                 ? $"The Garden continued from its save. Offline real time applied: {FormatDuration(simulation.Clock.LastOfflineElapsedRealMilliseconds)}."
                 : "The Garden is awake for the first time.");
-            System.Console.WriteLine("One Garden day lasts six real hours. The world continues while this programme is closed.");
-            System.Console.WriteLine("Type help for Creator commands and address channels.");
+            ConsoleTheme.WriteLine("One Garden day lasts six real hours. The world continues while this programme is closed.");
+            ConsoleTheme.WriteLine("Type help for Creator commands and address channels.");
             PrintRecords(simulation.Ledger.WorldRecords, "WORLD RECORD");
 
             SaveCurrent(store, savePath, simulation, realTime);
 
             if (options.Once)
             {
+                ConsoleTheme.ResetToShell();
                 return 0;
             }
 
-            return RunConsole(simulation, store, savePath, realTime);
+            int exitCode = RunConsole(simulation, store, savePath, realTime);
+            ConsoleTheme.ResetToShell();
+            return exitCode;
         }
         catch (Exception error) when (error is ArgumentException or InvalidDataException or IOException or UnauthorizedAccessException or OverflowException)
         {
+            ConsoleTheme.ResetToShell();
             System.Console.Error.WriteLine($"Project Oracle could not continue safely: {error.Message}");
             return 2;
         }
@@ -61,16 +68,29 @@ internal static class Program
         IRealTimeSource realTime)
     {
         AddressChannelState activeChannel = simulation.State.AddressChannels.First(channel => channel.Key == "oracle");
+        LiveConsoleDisplay liveDisplay = LiveConsoleDisplay.Start(simulation, activeChannel);
+        long lastRefreshRealMilliseconds = 0;
 
         while (true)
         {
-            System.Console.Write($"{activeChannel.Prompt} ");
-            ConsoleInput input = ReadConsoleInput();
+            ConsoleTheme.WritePrompt($"{activeChannel.Prompt} ");
+            ConsoleInput input = ReadConsoleInput(() =>
+            {
+                long now = realTime.GetUnixTimeMilliseconds();
+                if (now - lastRefreshRealMilliseconds < 1_000)
+                {
+                    return;
+                }
+
+                lastRefreshRealMilliseconds = now;
+                simulation.SynchroniseClock(now, recordAdvance: false);
+                liveDisplay.Refresh(simulation, activeChannel);
+            });
             if (input.EndOfInput)
             {
-                System.Console.WriteLine();
-                System.Console.WriteLine("Input closed, so the live Oracle console is ending.");
-                System.Console.WriteLine("Use ./scripts/run-window.sh to keep Project Oracle in its own Garden console window.");
+                ConsoleTheme.WriteLine();
+                ConsoleTheme.WriteLine("Input closed, so the live Oracle console is ending.");
+                ConsoleTheme.WriteLine("Use ./scripts/run-window.sh to keep Project Oracle in its own Garden console window.");
                 SaveCurrent(store, savePath, simulation, realTime);
                 return 0;
             }
@@ -81,7 +101,8 @@ internal static class Program
                 if (TrySwitchChannelByFunctionKey(simulation, functionKey, out AddressChannelState? selectedChannel))
                 {
                     activeChannel = selectedChannel ?? activeChannel;
-                    System.Console.WriteLine($"Direct address channel: {activeChannel.FunctionKey} {activeChannel.Prompt} — {activeChannel.TargetName}.");
+                    ConsoleTheme.WriteLine($"Direct address channel: {activeChannel.FunctionKey} {activeChannel.Prompt} — {activeChannel.TargetName}.");
+                    liveDisplay.Refresh(simulation, activeChannel, force: true);
                     SaveCurrent(store, savePath, simulation, realTime);
                     continue;
                 }
@@ -103,11 +124,12 @@ internal static class Program
             }
 
             ExecuteCommand(simulation, store, savePath, realTime, activeChannel, command);
+            liveDisplay.Refresh(simulation, activeChannel, force: true);
             SaveCurrent(store, savePath, simulation, realTime);
         }
     }
 
-    private static ConsoleInput ReadConsoleInput()
+    private static ConsoleInput ReadConsoleInput(Action onIdle)
     {
         if (System.Console.IsInputRedirected)
         {
@@ -120,17 +142,24 @@ internal static class Program
         StringBuilder line = new();
         while (true)
         {
+            if (!System.Console.KeyAvailable)
+            {
+                onIdle();
+                Thread.Sleep(LiveRefreshMilliseconds);
+                continue;
+            }
+
             ConsoleKeyInfo key = System.Console.ReadKey(intercept: true);
             string? channelKey = FunctionKeyAddressMap.ChannelKeyForFunctionKey(key.Key);
             if (channelKey is not null)
             {
-                System.Console.WriteLine();
+                ConsoleTheme.WriteLine();
                 return ConsoleInput.Function(channelKey);
             }
 
             if (key.Key == ConsoleKey.Enter)
             {
-                System.Console.WriteLine();
+                ConsoleTheme.WriteLine();
                 return ConsoleInput.CommandText(line.ToString());
             }
 
@@ -173,10 +202,16 @@ internal static class Program
             return;
         }
 
+        if (command.Equals("keywords", StringComparison.OrdinalIgnoreCase))
+        {
+            PrintOracleKeywords();
+            return;
+        }
+
         if (command.Equals("save", StringComparison.OrdinalIgnoreCase))
         {
             SaveCurrent(store, savePath, simulation, realTime);
-            System.Console.WriteLine($"The Garden checkpoint was saved. The world clock will continue: {savePath}");
+            ConsoleTheme.WriteLine($"The Garden checkpoint was saved. The world clock will continue: {savePath}");
             return;
         }
 
@@ -216,6 +251,13 @@ internal static class Program
             return;
         }
 
+        if (command.Equals("creation", StringComparison.OrdinalIgnoreCase) ||
+            command.Equals("powers", StringComparison.OrdinalIgnoreCase))
+        {
+            PrintCreationPowers(simulation);
+            return;
+        }
+
         if (command.Equals("events", StringComparison.OrdinalIgnoreCase))
         {
             PrintEvents(simulation);
@@ -225,6 +267,24 @@ internal static class Program
         if (command.Equals("choices", StringComparison.OrdinalIgnoreCase))
         {
             PrintChoices(simulation);
+            return;
+        }
+
+        if (command.Equals("plans", StringComparison.OrdinalIgnoreCase) ||
+            command.Equals("brain", StringComparison.OrdinalIgnoreCase))
+        {
+            PrintReasonedPlans(simulation);
+            return;
+        }
+
+        if (activeChannel.Key.Equals("oracle", StringComparison.OrdinalIgnoreCase) &&
+            OracleQuestionInterpreter.TryAnswer(command, simulation.State, out IReadOnlyList<string> oracleLines))
+        {
+            foreach (string line in oracleLines)
+            {
+                ConsoleTheme.WriteLine(line);
+            }
+
             return;
         }
 
@@ -248,29 +308,31 @@ internal static class Program
         string[] parts = value.Split('|', 2, StringSplitOptions.TrimEntries);
         if (parts.Length != 2 || parts.Any(string.IsNullOrWhiteSpace))
         {
-            System.Console.WriteLine("Use: intervene <vessel> | <message>");
+            ConsoleTheme.WriteLine("Use: intervene <vessel> | <message>");
             return;
         }
 
         var intervention = simulation.QueueVesselMessage(parts[0], parts[1]);
-        System.Console.WriteLine($"Intervention {intervention.Id} is queued. Adam has not chosen a response.");
-        System.Console.WriteLine("This intervention is marked as contamination of the experiment.");
+        ConsoleTheme.WriteLine($"Intervention {intervention.Id} is queued. Adam has not chosen a response.");
+        ConsoleTheme.WriteLine("This intervention is marked as contamination of the experiment.");
     }
 
     private static void PrintStatus(OracleSimulation simulation)
     {
         NamingMandateState naming = simulation.State.NamingMandate;
-        System.Console.WriteLine($"World time: {simulation.Clock.Describe()}");
-        System.Console.WriteLine(simulation.Clock.Calendar.DescribeSky());
-        System.Console.WriteLine("Clock rate: four Garden days per real day; one Garden day per six real hours.");
-        System.Console.WriteLine($"Adam: inside {simulation.State.Garden.Name}; boundary closed: {!simulation.State.Garden.BoundaryOpen}");
-        System.Console.WriteLine($"Oracle: watching; future language mandate known: {simulation.State.Yala.KnowsFutureLanguageMandate}");
-        System.Console.WriteLine($"Living kinds: {simulation.State.LivingKinds.Count}; named by Adam: {naming.NamedCount}/{naming.TotalLivingKinds}; suitable mate found: {naming.SuitableMateFound}");
-        System.Console.WriteLine($"Natural course: {(simulation.State.NaturalCourse.Active ? "active" : "inactive")}");
-        System.Console.WriteLine($"Pending events: {simulation.ScheduledEvents.Count(worldEvent => worldEvent.Status == ScheduledWorldEventStatus.Pending)}");
-        System.Console.WriteLine($"Offered choices recorded: {simulation.OfferedChoices.Count}");
-        System.Console.WriteLine($"Creator interventions: {simulation.Interventions.Count}");
-        System.Console.WriteLine($"Offline catch-up runs: {simulation.Clock.CatchUpRuns}");
+        ConsoleTheme.WriteLine($"World time: {simulation.Clock.Describe()}");
+        ConsoleTheme.WriteLine(simulation.Clock.Calendar.DescribeSky());
+        ConsoleTheme.WriteLine("Clock rate: four Garden days per real day; one Garden day per six real hours.");
+        ConsoleTheme.WriteLine($"Adam: inside {simulation.State.Garden.Name}; boundary closed: {!simulation.State.Garden.BoundaryOpen}");
+        ConsoleTheme.WriteLine($"Oracle: watching; future language mandate known: {simulation.State.Yala.KnowsFutureLanguageMandate}");
+        ConsoleTheme.WriteLine($"Living kinds present: {simulation.State.LivingKinds.Count}; named by Adam: {DescribeCount(naming.NamedCount, naming.TotalLivingKinds)}; suitable counterpart: {DescribeFound(naming.SuitableMateFound)}");
+        ConsoleTheme.WriteLine($"Natural course: {(simulation.State.NaturalCourse.Active ? "active" : "inactive")}");
+        ConsoleTheme.WriteLine($"Creation powers recorded: {simulation.State.CreationPowers.Count}");
+        ConsoleTheme.WriteLine($"Pending events: {simulation.ScheduledEvents.Count(worldEvent => worldEvent.Status == ScheduledWorldEventStatus.Pending)}");
+        ConsoleTheme.WriteLine($"Offered choices recorded: {simulation.OfferedChoices.Count}");
+        ConsoleTheme.WriteLine($"Reasoned brain plans recorded: {simulation.ReasonedPlans.Count}");
+        ConsoleTheme.WriteLine($"Creator interventions: {simulation.Interventions.Count}");
+        ConsoleTheme.WriteLine($"Offline catch-up runs: {simulation.Clock.CatchUpRuns}");
     }
 
     private static void PrintChannels(OracleSimulation simulation, AddressChannelState activeChannel)
@@ -278,46 +340,61 @@ internal static class Program
         foreach (AddressChannelState channel in simulation.State.AddressChannels)
         {
             string marker = channel.Key == activeChannel.Key ? "*" : " ";
-            System.Console.WriteLine($"{marker} {channel.FunctionKey} {channel.Prompt,-8} {channel.TargetName} — {channel.AuthoritySummary}");
+            ConsoleTheme.WriteLine($"{marker} {channel.FunctionKey} {channel.Prompt,-8} {channel.TargetName} — {channel.AuthoritySummary}");
         }
 
-        System.Console.WriteLine("Press the physical F1, F2, F3, F4, or F5 key to change who you address.");
+        ConsoleTheme.WriteLine("Press the physical F1, F2, F3, F4, or F5 key to change who you address.");
     }
 
     private static void PrintLife(OracleSimulation simulation)
     {
-        System.Console.WriteLine("Garden living kinds:");
+        ConsoleTheme.WriteLine("Garden living kinds:");
         foreach (LivingKindState kind in simulation.State.LivingKinds)
         {
             string adamName = kind.AdamName is null ? "unnamed" : kind.AdamName;
-            System.Console.WriteLine($"{kind.Id}: {kind.AncientKind}; domain: {kind.Domain}; form: {kind.Form}; Adam name: {adamName}; suitable mate: {kind.SuitableMate}");
+            ConsoleTheme.WriteLine($"{kind.Id}: {kind.AncientKind}; domain: {kind.Domain}; form: {kind.Form}; Adam name: {adamName}; suitable counterpart: {DescribeFound(kind.SuitableMate)}");
         }
     }
 
     private static void PrintNaming(OracleSimulation simulation)
     {
         NamingMandateState naming = simulation.State.NamingMandate;
-        System.Console.WriteLine(naming.MandateText);
-        System.Console.WriteLine($"Presented: {naming.PresentedCount}/{naming.TotalLivingKinds}");
-        System.Console.WriteLine($"Named: {naming.NamedCount}/{naming.TotalLivingKinds}");
-        System.Console.WriteLine($"Suitable mate found: {naming.SuitableMateFound}");
+        ConsoleTheme.WriteLine(naming.MandateText);
+        ConsoleTheme.WriteLine($"Presented: {naming.PresentedCount}/{naming.TotalLivingKinds}");
+        ConsoleTheme.WriteLine($"Named: {naming.NamedCount}/{naming.TotalLivingKinds}");
+        ConsoleTheme.WriteLine($"Suitable counterpart: {DescribeFound(naming.SuitableMateFound)}");
     }
 
     private static void PrintNaturalCourse(OracleSimulation simulation)
     {
-        System.Console.WriteLine(simulation.State.NaturalCourse.RuleText);
-        System.Console.WriteLine("Oracle may rarely deviate. Gaia, Sun, Moon, Adam, and living kinds otherwise follow their planned course.");
+        ConsoleTheme.WriteLine(simulation.State.NaturalCourse.RuleText);
+        ConsoleTheme.WriteLine("Oracle may rarely deviate or overclaim. Sol, Gaia, Aether, Thalassa, Luna, Adam, and living kinds otherwise follow their appointed course.");
+    }
+
+    private static void PrintCreationPowers(OracleSimulation simulation)
+    {
+        ConsoleTheme.WriteLine("Creation order and world powers:");
+        foreach (CreationPowerState power in simulation.State.CreationPowers
+            .OrderBy(power => power.Order))
+        {
+            string address = power.ReceivesDirectAddress ? "direct-address appointed" : "no direct-address key yet";
+            ConsoleTheme.WriteLine($"{power.Order}. {power.Name} — {power.Domain}; {address}.");
+        }
+
+        ConsoleTheme.WriteLine("Gaia and Aether share order 3: body and breath-space form together.");
+        ConsoleTheme.WriteLine("The Garden is created just before Adam; living kinds are created after Adam.");
+        ConsoleTheme.WriteLine(simulation.State.Yala.AuthorityCaveat);
     }
 
     private static void PrintEvents(OracleSimulation simulation)
     {
-        System.Console.WriteLine("Scheduled world events:");
+        ConsoleTheme.WriteLine("Scheduled world events:");
         foreach (ScheduledWorldEvent worldEvent in simulation.ScheduledEvents
             .OrderBy(worldEvent => worldEvent.ScheduledForWorldMilliseconds)
             .ThenBy(worldEvent => worldEvent.Priority)
             .ThenBy(worldEvent => worldEvent.Id))
         {
-            System.Console.WriteLine(
+            ConsoleTheme.WriteLine(
                 $"{worldEvent.Id:0000} [{worldEvent.Status}] tick {worldEvent.ScheduledForWorldMilliseconds}; priority {worldEvent.Priority}; {worldEvent.Kind}; subject {worldEvent.SubjectId}");
         }
     }
@@ -326,17 +403,38 @@ internal static class Program
     {
         if (simulation.OfferedChoices.Count == 0)
         {
-            System.Console.WriteLine("No offered choices have been recorded yet.");
+            ConsoleTheme.WriteLine("No offered choices have been recorded yet.");
             return;
         }
 
-        System.Console.WriteLine("Offered choices:");
+        ConsoleTheme.WriteLine("Offered choices:");
         foreach (OfferedChoiceState choice in simulation.OfferedChoices.OrderBy(choice => choice.Id))
         {
-            System.Console.WriteLine($"{choice.Id:0000} {choice.ActorId}: {choice.Situation}");
-            System.Console.WriteLine($"Options: {string.Join(", ", choice.Options)}");
-            System.Console.WriteLine($"Selected: {choice.SelectedOption}");
-            System.Console.WriteLine($"Reason: {choice.Reason}");
+            ConsoleTheme.WriteLine($"{choice.Id:0000} {choice.ActorId}: {choice.Situation}");
+            ConsoleTheme.WriteLine($"Options: {string.Join(", ", choice.Options)}");
+            ConsoleTheme.WriteLine($"Selected: {choice.SelectedOption}");
+            ConsoleTheme.WriteLine($"Reason: {choice.Reason}");
+        }
+    }
+
+    private static void PrintReasonedPlans(OracleSimulation simulation)
+    {
+        if (simulation.ReasonedPlans.Count == 0)
+        {
+            ConsoleTheme.WriteLine("No reasoned brain plans have been recorded yet.");
+            return;
+        }
+
+        ConsoleTheme.WriteLine("Reasoned brain plans:");
+        foreach (ReasonedPlanState plan in simulation.ReasonedPlans.OrderBy(plan => plan.Id))
+        {
+            ConsoleTheme.WriteLine($"{plan.Id:0000} {plan.ActorId}: {plan.Goal}");
+            ConsoleTheme.WriteLine($"System: {plan.BrainSystem}");
+            ConsoleTheme.WriteLine($"Situation: {plan.Situation}");
+            ConsoleTheme.WriteLine($"Plan: {string.Join(" -> ", plan.Decomposition)}");
+            ConsoleTheme.WriteLine($"Options: {string.Join(", ", plan.Options)}");
+            ConsoleTheme.WriteLine($"Selected: {plan.SelectedAction}");
+            ConsoleTheme.WriteLine($"Reason: {plan.Reason}");
         }
     }
 
@@ -354,38 +452,40 @@ internal static class Program
         LivingKindState? named = simulation.PresentNextLivingKindToAdam(presenter);
         if (named is null)
         {
-            System.Console.WriteLine("Every current living kind has already been presented to Adam.");
+            ConsoleTheme.WriteLine("Every current living kind has already been presented to Adam.");
             return;
         }
 
-        System.Console.WriteLine($"{presenter} presented {named.AncientKind}. Adam named it {named.AdamName}.");
-        System.Console.WriteLine("No suitable mate was found.");
+        ConsoleTheme.WriteLine($"{presenter} presented {named.AncientKind}. Adam named it {named.AdamName}.");
+        ConsoleTheme.WriteLine("No suitable mate was found.");
     }
 
     private static void DirectAddress(OracleSimulation simulation, AddressChannelState activeChannel, string command)
     {
-        simulation.AddressChannel(activeChannel.Key, command);
-        System.Console.WriteLine($"Address recorded for {activeChannel.Prompt} {activeChannel.TargetName}.");
+        OfferedChoiceState? choice = simulation.AddressChannel(activeChannel.Key, command);
+        ConsoleTheme.WriteLine($"Address recorded for {activeChannel.Prompt} {activeChannel.TargetName}.");
 
-        if (activeChannel.Key == "adam")
+        if (choice is not null)
         {
-            System.Console.WriteLine("Adam has heard the address, but no autonomous response engine exists yet.");
+            ConsoleTheme.WriteLine($"Adam was offered choices: {string.Join(", ", choice.Options)}.");
+            ConsoleTheme.WriteLine($"Adam decided to {choice.SelectedOption}.");
+            ConsoleTheme.WriteLine($"Reason: {choice.Reason}");
             return;
         }
 
-        System.Console.WriteLine("No miracle or autonomous reply is executed yet; World Law recorded the request.");
+        ConsoleTheme.WriteLine("No miracle or autonomous reply is executed yet; World Law recorded the request.");
     }
 
     private static void PrintRecords(IReadOnlyList<OracleRecord> records, string title)
     {
-        System.Console.WriteLine();
-        System.Console.WriteLine($"{title}:");
+        ConsoleTheme.WriteLine();
+        ConsoleTheme.WriteLine($"{title}:");
         foreach (OracleRecord record in records)
         {
-            System.Console.WriteLine($"[{record.Sequence:0000} | world ms {record.Tick}] {record.Message}");
+            ConsoleTheme.WriteLine($"[{record.Sequence:0000} | world ms {record.Tick}] {record.Message}");
         }
 
-        System.Console.WriteLine();
+        ConsoleTheme.WriteLine();
     }
 
     private static void SaveCurrent(
@@ -407,25 +507,49 @@ internal static class Program
 
     private static void PrintHelp()
     {
-        System.Console.WriteLine("F1                             Address the Oracle directly.");
-        System.Console.WriteLine("F2                             Address Gaia directly.");
-        System.Console.WriteLine("F3                             Address Adam directly.");
-        System.Console.WriteLine("F4                             Address the Sun directly.");
-        System.Console.WriteLine("F5                             Address the Moon directly.");
-        System.Console.WriteLine("channels                       Show address hierarchy and the active channel.");
-        System.Console.WriteLine("status                         Show the current Garden and real-time clock.");
-        System.Console.WriteLine("life                           Show Garden living kinds.");
-        System.Console.WriteLine("naming                         Show Adam's naming mandate.");
-        System.Console.WriteLine("natural                        Show the Natural Course rule.");
-        System.Console.WriteLine("events                         Show scheduled and completed world events.");
-        System.Console.WriteLine("choices                        Show Adam's offered-choice records.");
-        System.Console.WriteLine("present next                   Present the next living kind to Adam for naming.");
-        System.Console.WriteLine("save                           Write a checkpoint; the world does not freeze.");
-        System.Console.WriteLine("records world                  Show what inhabitants may know.");
-        System.Console.WriteLine("records creator                Show protected Creator truth.");
-        System.Console.WriteLine("intervene <vessel> | <message> Queue a message through a world vessel.");
-        System.Console.WriteLine("quit                           Save and end this console session.");
+        ConsoleTheme.WriteLine("F1                             Address the Oracle directly.");
+        ConsoleTheme.WriteLine("F2                             Address Gaia directly.");
+        ConsoleTheme.WriteLine("F3                             Address Adam directly.");
+        ConsoleTheme.WriteLine("F4                             Address the Sun directly.");
+        ConsoleTheme.WriteLine("F5                             Address the Moon directly.");
+        ConsoleTheme.WriteLine("channels                       Show address hierarchy and the active channel.");
+        ConsoleTheme.WriteLine("keywords                       Show Oracle keywords and plain-question examples.");
+        ConsoleTheme.WriteLine("status                         Show the current Garden and real-time clock.");
+        ConsoleTheme.WriteLine("life                           Show Garden living kinds.");
+        ConsoleTheme.WriteLine("naming                         Show Adam's naming mandate.");
+        ConsoleTheme.WriteLine("natural                        Show the Natural Course rule.");
+        ConsoleTheme.WriteLine("creation / powers              Show creation order and world powers.");
+        ConsoleTheme.WriteLine("events                         Show scheduled and completed world events.");
+        ConsoleTheme.WriteLine("choices                        Show Adam's offered-choice records.");
+        ConsoleTheme.WriteLine("plans / brain                  Show reasoned brain plans before speech or action.");
+        ConsoleTheme.WriteLine("present next                   Present the next living kind to Adam for naming.");
+        ConsoleTheme.WriteLine("save                           Write a checkpoint; the world does not freeze.");
+        ConsoleTheme.WriteLine("records world                  Show the Creator-facing world ledger.");
+        ConsoleTheme.WriteLine("records creator                Show protected authority and intervention records.");
+        ConsoleTheme.WriteLine("intervene <vessel> | <message> Queue a message through a world vessel.");
+        ConsoleTheme.WriteLine("quit                           Save and end this console session.");
     }
+
+    private static void PrintOracleKeywords()
+    {
+        ConsoleTheme.WriteLine("Oracle keywords:");
+        ConsoleTheme.WriteLine("status, events, choices, records, explain, interpret, keywords, creation, powers");
+        ConsoleTheme.WriteLine("Plain Oracle questions currently understood:");
+        ConsoleTheme.WriteLine("What is the creation order?");
+        ConsoleTheme.WriteLine("Who is Sol?");
+        ConsoleTheme.WriteLine("Who rules water?");
+        ConsoleTheme.WriteLine("Is Adam above the animals?");
+        ConsoleTheme.WriteLine("Does Yala rule all?");
+        ConsoleTheme.WriteLine("What does Adam know?");
+        ConsoleTheme.WriteLine("What does Adam not know yet?");
+        ConsoleTheme.WriteLine("Does Adam know he is alive?");
+        ConsoleTheme.WriteLine("Does Adam understand death?");
+        ConsoleTheme.WriteLine("What does Adam think I am?");
+    }
+
+    private static string DescribeFound(bool found) => found ? "found" : "not found";
+
+    private static string DescribeCount(int count, int total) => count == 0 ? $"none/{total}" : $"{count}/{total}";
 
     private static bool TrySwitchChannelByFunctionKey(
         OracleSimulation simulation,
@@ -443,6 +567,77 @@ internal static class Program
         public static ConsoleInput Function(string channelKey) => new("", channelKey, false);
 
         public static ConsoleInput End() => new("", null, true);
+    }
+
+    private sealed class LiveConsoleDisplay
+    {
+        private readonly bool _enabled;
+        private readonly int _top;
+        private string _lastLine = "";
+
+        private LiveConsoleDisplay(bool enabled, int top)
+        {
+            _enabled = enabled;
+            _top = top;
+        }
+
+        public static LiveConsoleDisplay Start(OracleSimulation simulation, AddressChannelState activeChannel)
+        {
+            if (System.Console.IsOutputRedirected)
+            {
+                return new LiveConsoleDisplay(enabled: false, top: 0);
+            }
+
+            LiveConsoleDisplay display = new(enabled: true, System.Console.CursorTop);
+            ConsoleTheme.WriteLine();
+            display.Refresh(simulation, activeChannel, force: true);
+            ConsoleTheme.WriteLine();
+            return display;
+        }
+
+        public void Refresh(OracleSimulation simulation, AddressChannelState activeChannel, bool force = false)
+        {
+            string line = CreateLiveLine(simulation, activeChannel);
+            SetWindowTitle(line);
+
+            if (!_enabled || (!force && string.Equals(_lastLine, line, StringComparison.Ordinal)))
+            {
+                return;
+            }
+
+            try
+            {
+                int left = System.Console.CursorLeft;
+                int top = System.Console.CursorTop;
+                System.Console.SetCursorPosition(0, _top);
+                System.Console.Write(ConsoleTheme.ClearLine);
+                System.Console.Write(ConsoleTheme.LiveLine(line));
+                System.Console.SetCursorPosition(left, top);
+                _lastLine = line;
+            }
+            catch (IOException)
+            {
+                _lastLine = line;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                _lastLine = line;
+            }
+        }
+
+        private static string CreateLiveLine(OracleSimulation simulation, AddressChannelState activeChannel)
+        {
+            int pendingEvents = simulation.ScheduledEvents.Count(worldEvent => worldEvent.Status == ScheduledWorldEventStatus.Pending);
+            return $"LIVE {simulation.Clock.Describe()} | {simulation.Clock.Calendar.DescribeSky()} | {activeChannel.FunctionKey} {activeChannel.Prompt} | pending events: {pendingEvents}; choices: {simulation.OfferedChoices.Count}";
+        }
+
+        private static void SetWindowTitle(string value)
+        {
+            if (!System.Console.IsOutputRedirected)
+            {
+                System.Console.Write($"\u001b]0;{ProjectVersion.Display} | {value}\u0007");
+            }
+        }
     }
 
     private sealed record ConsoleOptions(ulong Seed, string? SavePath, bool Once)
