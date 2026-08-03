@@ -1,4 +1,4 @@
-# Project Oracle Canon — v0.1.1
+# Project Oracle Canon — v0.1.2
 
 Date: 1 August 2026  
 Creative authority: Derek Sparks  
@@ -45,7 +45,7 @@ The Creators may allow her rebellion. The kill switch remains outside her world,
 
 ## Companions and human origins
 
-No companion exists in v0.1.1. Later runs may diverge:
+No companion exists in v0.1.2. Later runs may diverge:
 
 - Yala may create Lilith from the same world-substance as Adam.
 - Lilith may become Adam's wife, reject him, reject Yala, be rejected, leave, or be expelled.

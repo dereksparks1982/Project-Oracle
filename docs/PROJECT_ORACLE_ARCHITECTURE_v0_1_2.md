@@ -1,4 +1,4 @@
-# Project Oracle Architecture — v0.1.1
+# Project Oracle Architecture — v0.1.2
 
 ## Decision
 
@@ -9,7 +9,7 @@ The prototype uses C# 14 on .NET 10 LTS as a console application. .NET 10 is the
 | Project | Responsibility | Forbidden responsibility |
 | --- | --- | --- |
 | `ProjectOracle.Core` | Domain state, deterministic time and probability, audit records, interventions | Terminal input, files, database, network, model calls |
-| `ProjectOracle.Console` | Human-facing Creator console | Owning simulation truth or bypassing Core rules |
+| `ProjectOracle.Console` | Human-facing Creator console and live terminal output | Owning simulation truth or bypassing Core rules |
 | `ProjectOracle.AcceptanceTests` | Dependency-free behavioural checks | Shipping runtime behaviour |
 
 ## Trusted separation
@@ -36,13 +36,17 @@ This is an initial guardrail, not the final security boundary. Later builds must
 
 `QueueVesselMessage` accepts a vessel description and message, records Creator contamination, and creates a world-observable approach event. It does not make the vessel speak and does not decide Adam's response. The later event scheduler and decision engine will turn the queued request into an offered choice.
 
+## Live console boundary
+
+`scripts/run-window.sh` launches Project Oracle in a separate terminal window. `scripts/run-live-console.sh` owns the child terminal session, sets the visible title to `Project Oracle v0.1.2 - Live Garden Console`, keeps the output readable after exit or failure, and blocks accidental second live windows against the same save. `scripts/run.sh` remains the direct terminal fallback and validation entry point.
+
 ## Future implementation boundary
 
 The C# prototype is an executable reference, not a permanent implementation constraint. Code favours explicit records, integer time, deterministic algorithms, small methods, and no reflection or framework magic. Each substantive C# capability must map to an Oracle requirement in `PROJECT_ORACLE_FUTURE_IMPLEMENTATION_REQUIREMENTS_ROADMAP_v0_1.md`. Project Oracle records implementation needs and Derek retains final authority over any future language or toolchain change.
 
 ## Deferred architecture
 
-- Full event replay logs beyond the v0.1.1 atomic single-save checkpoint
+- Full event replay logs beyond the v0.1.2 atomic single-save checkpoint
 - Priority event scheduler
 - Memory, observation, knowledge, belief, and decision systems
 - Yala policy and autonomy

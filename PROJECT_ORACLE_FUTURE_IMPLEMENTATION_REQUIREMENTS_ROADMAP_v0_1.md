@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-Project Oracle's authorised C#/.NET console prototype is carried forward in v0.1.1 after the failed, unaccepted v0.1.0 installer. The C# prototype is not intended to become the permanent implementation. It is an executable reference that reveals what a serious autonomous-world simulation actually requires from future implementation.
+Project Oracle's authorised C#/.NET console prototype began as accepted v0.1.1 after the failed, unaccepted v0.1.0 installer. Project Oracle v0.1.2 adds the separate live Garden console window. The C# prototype is not intended to become the permanent implementation. It is an executable reference that reveals what a serious autonomous-world simulation actually requires from future implementation.
 
 This register has two purposes:
 
@@ -242,7 +242,7 @@ Derek then decides whether to:
 
 ## 12. Current decision
 
-Project Oracle v0.1.1 is the first installable C#/.NET console prototype candidate after the unaccepted v0.1.0 SDK-pin failure. It provides C# reference evidence for structured records, stable identities, modules, routines, collections, deterministic probability, exact real-time scaling, calendar and celestial state, atomic files, save validation, forward-only catch-up, protected World and Creator records, and behavioural tests.
+Project Oracle v0.1.1 is the first accepted installable C#/.NET console prototype after the unaccepted v0.1.0 SDK-pin failure. Project Oracle v0.1.2 adds the live-window launcher evidence future implementation will eventually need for separate tool surfaces. The accepted C# reference already provides evidence for structured records, stable identities, modules, routines, collections, deterministic probability, exact real-time scaling, calendar and celestial state, atomic files, save validation, forward-only catch-up, protected World and Creator records, and behavioural tests.
 
 These C# capabilities expose or exercise OR-FI-001 through OR-FI-006, OR-FI-010, OR-FI-012, OR-FI-014, OR-FI-020, OR-FI-022, OR-FI-026, OR-FI-030, OR-FI-031, OR-FI-035, OR-FI-036, OR-FI-040, OR-FI-041, OR-FI-042, OR-FI-050, OR-FI-052, OR-FI-053, OR-FI-080, OR-FI-082, and OR-FI-083. They remain **Recorded**, not Accepted or Ported, until Derek assesses an exact accepted tag and owns any resulting language work.
 

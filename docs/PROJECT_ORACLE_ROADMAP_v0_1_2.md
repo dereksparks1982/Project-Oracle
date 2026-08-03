@@ -1,4 +1,4 @@
-# Project Oracle Long-Range Roadmap — v0.1.1
+# Project Oracle Long-Range Roadmap — v0.1.2
 
 Date: 1 August 2026  
 Status: Directional dependency roadmap; one build is proposed and authorised at a time  
@@ -15,7 +15,8 @@ The roadmap is intentionally deep enough for years of development. It is not per
 | Order | Planned build | Outcome |
 | --- | --- | --- |
 | 1 | v0.1.1 First Light SDK Roll-Forward Repair | Seed; perpetual 4× real-time clock; Year 1 epoch; solar/lunar phases; atomic save and offline catch-up; Adam; Yala; Spark; protected records; Creator intervention queue; tests; compatible .NET 10 SDK roll-forward |
-| 2 | Deterministic Event Queue | Scheduled actions, stable priority, cancellation, exact tie-breaking |
+| 2 | v0.1.2 Separate Live Garden Console Window | Oracle runs in its own live Garden console window while the working terminal stays free |
+| 3 | Deterministic Event Queue | Scheduled actions, stable priority, cancellation, exact tie-breaking |
 | 3 | Observation and Attention | Adam can perceive only nearby or attended events; Creator truth remains hidden |
 | 4 | Memory Foundations | Adam stores experiences with source, time, strength, decay, and uncertainty |
 | 5 | Knowledge and Belief | Truth, testimony, inference, doubt, contradiction, and belief are separate |

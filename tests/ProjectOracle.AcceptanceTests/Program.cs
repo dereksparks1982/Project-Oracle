@@ -33,7 +33,7 @@ internal static class Program
         Run("vessel message is queued without forcing Adam", InterventionDoesNotForceAdam);
         Run("intervention contamination is recorded", InterventionContaminationIsRecorded);
         Run("records keep stable sequence order", RecordsKeepStableOrder);
-        Run("version is 0.1.1", VersionIsCorrect);
+        Run("version is 0.1.2", VersionIsCorrect);
 
         Console.WriteLine();
         Console.WriteLine($"Acceptance result: {_passed} passed; {_failed} failed.");
@@ -229,7 +229,7 @@ internal static class Program
         Equal(sequences.Order().ToArray(), sequences);
     }
 
-    private static void VersionIsCorrect() => Equal("0.1.1", ProjectVersion.Number);
+    private static void VersionIsCorrect() => Equal("0.1.2", ProjectVersion.Number);
 
     private static void WithTemporarySave(Action<OracleSaveStore, string> test)
     {

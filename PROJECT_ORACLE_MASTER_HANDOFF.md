@@ -1,8 +1,8 @@
 # Project Oracle — Cumulative Master Handoff
 
 Date: 2 August 2026  
-Current candidate: v0.1.1 — First Light SDK Roll-Forward Repair  
-Accepted baseline: Concept Build 0 documentation  
+Current candidate: v0.1.2 — Separate Live Garden Console Window  
+Accepted baseline: v0.1.1 — commit `ce58375`, tag `v0.1.1`  
 Creator and final creative authority: Derek Sparks  
 Technical collaborator: ChatGPT / Codex
 
@@ -12,9 +12,9 @@ Read, end to end:
 
 1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx` from Concept Build 0.
 2. This cumulative handoff.
-3. `docs/PROJECT_ORACLE_CANON_v0_1_1.md`.
-4. `docs/PROJECT_ORACLE_ROADMAP_v0_1_1.md`.
-5. `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_1.md`.
+3. `docs/PROJECT_ORACLE_CANON_v0_1_2.md`.
+4. `docs/PROJECT_ORACLE_ROADMAP_v0_1_2.md`.
+5. `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_2.md`.
 6. The complete current DK LAB Company Bible.
 
 Do not propose or build from memory. Do not change code until Derek approves an exact scope.
@@ -59,10 +59,16 @@ Project Oracle is a standalone autonomous-world simulation, artificial-life expe
 2. **Trusted experiment monitor:** outside the world, factual, auditable, and without Yala's agenda.
 3. **Possible external language-tooling system:** separate language-tooling concept governed only by the future Project Oracle implementation.
 
-## v0.1.1 implementation
+## v0.1.2 implementation
 
 The candidate is a C# 14 / .NET 10 console scaffold. It provides:
 
+- separate live Garden console launch through `scripts/run-window.sh`;
+- a terminal child runner through `scripts/run-live-console.sh`;
+- live Oracle display isolation from the working terminal;
+- single-instance protection for the live Garden console;
+- exit/crash hold so the console remains readable;
+- explicit EOF/non-interactive-input messaging;
 - deterministic 64-bit seed and frozen probability generator;
 - perpetual integer-millisecond Garden time at four world seconds per real second;
 - one six-real-hour Garden day and four Garden days per real day;
@@ -73,7 +79,7 @@ The candidate is a C# 14 / .NET 10 console scaffold. It provides:
 - Adam, Yala, Garden, and protected Spark initial state;
 - separate World and Creator records;
 - queued vessel messages with contamination evidence;
-- an interactive terminal;
+- an interactive Creator console;
 - twenty-two acceptance checks;
 - a long-range roadmap and future implementation requirements register.
 
@@ -89,15 +95,25 @@ quit
 
 An intervention does not yet make Adam decide. Autonomous choice is explicitly deferred.
 
-## Repair carried from failed v0.1.0
+## Accepted base carried from v0.1.1
+
+Project Oracle v0.1.1 was installed and validated by Derek on 2 August 2026, then committed and tagged:
+
+```text
+ce58375 (HEAD -> main, tag: v0.1.1) Accept Project Oracle v0.1.1
+```
+
+Derek's install-side validation passed restore, warnings-as-errors build, twenty-two acceptance tests, and console smoke test under .NET SDK `10.0.110`.
+
+## Failure evidence carried from v0.1.0
 
 Project Oracle v0.1.0 was not accepted. Derek's install reached validation, then failed because `global.json` required .NET SDK `10.0.302` while his system had a valid installed .NET 10 SDK, `10.0.110`. The installer rolled back to Concept Build 0 as designed.
 
-Project Oracle v0.1.1 carries the same First Light scaffold forward from Concept Build 0 and changes the SDK pin to .NET `10.0.100` with `rollForward` set to `latestFeature`, allowing compatible .NET 10 SDKs instead of a single unavailable patch band.
+Project Oracle v0.1.1 repaired that SDK pin by using .NET `10.0.100` with `rollForward` set to `latestFeature`, allowing compatible .NET 10 SDKs instead of a single unavailable patch band.
 
 ## Explicit exclusions
 
-No autonomous Adam or Yala decision engine, memory, belief, emotion, language model, Eve, Lilith, reproduction, fruit result, expulsion, exterior world, civilisation, save files, database, network, or graphics exists in v0.1.1.
+No autonomous Adam or Yala decision engine, memory, belief, emotion, language model, Eve, Lilith, reproduction, fruit result, expulsion, exterior world, civilisation, database, network, or graphics exists in v0.1.2.
 
 ## Language and platform
 
@@ -109,11 +125,11 @@ No autonomous Adam or Yala decision engine, memory, belief, emotion, language mo
 
 ## Changed paths
 
-See `PROJECT_ORACLE_CHANGED_FILES_v0_1_1.txt` in the package for the exact payload inventory.
+See `PROJECT_ORACLE_CHANGED_FILES_v0_1_2.txt` in the package for the exact payload inventory.
 
 ## Validation
 
-The build treats warnings as errors and includes a one-command validator. Builder-side validation is recorded in `docs/PROJECT_ORACLE_VALIDATION_v0_1_1.md`; Derek's install-side validation remains the acceptance gate.
+The build treats warnings as errors and includes a one-command validator. Builder-side validation is recorded in `docs/PROJECT_ORACLE_VALIDATION_v0_1_2.md`; Derek's install-side validation remains the acceptance gate.
 
 ```bash
 cd "$HOME/DKLab/Projects/Project Oracle" && ./scripts/validate.sh
@@ -129,11 +145,11 @@ cd "$HOME/DKLab/Projects/Project Oracle" && ./scripts/validate.sh
 
 ## Rollback
 
-Until v0.1.1 is accepted, the rollback point is the unchanged Concept Build 0 project folder. The apply script backs up every replaced path and removes every newly installed v0.1.1 path if installation validation fails.
+Until v0.1.2 is accepted, the rollback point is accepted Project Oracle v0.1.1 commit/tag `ce58375` / `v0.1.1`. The apply script backs up every replaced path, restores deleted versioned paths, and removes every newly installed v0.1.2 path if installation validation fails.
 
 ## Recommended next build
 
-**v0.1.2 — Deterministic Event Queue and Offered Choices**
+**v0.1.3 — Deterministic Event Queue and Offered Choices**
 
 Proposed scope only:
 

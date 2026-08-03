@@ -1,31 +1,26 @@
 # Project Oracle Changelog
 
-## v0.1.1 — First Light SDK Roll-Forward Repair — Candidate — 2 August 2026
-
-### Repaired
-
-- Carried the failed v0.1.0 First Light scaffold forward from Concept Build 0 as the next unused numeric version.
-- Changed `global.json` from a strict unavailable SDK patch requirement to .NET `10.0.100` with `rollForward` set to `latestFeature`.
-- Updated installer, validator, tests, README, version surfaces, changed-file inventory, validation record, and handoff to report `0.1.1`.
-
-### Failure evidence preserved
-
-- Project Oracle v0.1.0 was not accepted. Derek's install failed during validation because the project demanded SDK `10.0.302` while the machine had .NET 10 SDK `10.0.110`. The installer rollback restored Concept Build 0.
+## v0.1.2 — Separate Live Garden Console Window — Candidate — 2 August 2026
 
 ### Added
 
-- C# 14 / .NET 10 solution with Core, Console, and dependency-free AcceptanceTests projects.
-- Frozen 64-bit deterministic random generator and integer-millisecond simulation clock.
-- Four-Garden-days-per-real-day progression with exact six-real-hour days.
-- Atomic single save, last-good backup, forward-only offline catch-up, and backwards-clock protection.
-- Year 1 / Month 1 / Day 1 / 01:01:01 epoch with solar and lunar phases.
-- Audited Demon Killer world-time intake record documenting inherited laws and rejected game-specific baggage.
-- Stable entity identities for the Garden, Yala, and Adam.
-- Canonical initial state: Yala made the world and Adam; the Creators placed the protected Spark.
-- Separate World and Creator records with stable sequence numbers.
-- Dormant future-language mandate known to Yala.
-- Audited Creator vessel-message queue that does not force Adam's response.
-- Interactive Creator console, validation script, architecture record, canon record, long-range roadmap, and cumulative handoff.
+- Added `scripts/run-window.sh` to open Project Oracle in a separate live Garden console window.
+- Added `scripts/run-live-console.sh` for the terminal-window child process, window-title setup, single-instance guard, and exit hold.
+- The separate console window becomes the live Project Oracle display for startup, records, command output, warnings, errors, and exit status.
+- The working terminal returns immediately after launching the Garden window.
+- Added terminal detection for `gnome-terminal`, `ptyxis`, `kgx`, and `x-terminal-emulator`.
+- Added a dry-run launcher validation path used by `scripts/validate.sh`.
+
+### Repaired
+
+- `scripts/run.sh` now reports non-interactive input clearly instead of letting the Oracle prompt appear and disappear silently.
+- The console prints an explicit message if standard input closes while the live prompt is waiting.
+- Version surfaces, README, validator, tests, changed/deleted-file records, validation record, and handoff now report `0.1.2`.
+
+### Preserved
+
+- Project Oracle v0.1.1 remains the accepted base.
+- The v0.1.0 SDK-pin failure evidence remains preserved in the handoff history.
 
 ### Not added
 
@@ -33,7 +28,7 @@
 
 ### Baseline
 
-Concept Build 0 documentation package.
+Accepted Project Oracle v0.1.1 commit/tag.
 
 ### Acceptance
 

@@ -63,6 +63,9 @@ internal static class Program
             string? input = System.Console.ReadLine();
             if (input is null)
             {
+                System.Console.WriteLine();
+                System.Console.WriteLine("Input closed, so the live Oracle console is ending.");
+                System.Console.WriteLine("Use ./scripts/run-window.sh to keep Project Oracle in its own Garden console window.");
                 SaveCurrent(store, savePath, simulation, realTime);
                 return 0;
             }

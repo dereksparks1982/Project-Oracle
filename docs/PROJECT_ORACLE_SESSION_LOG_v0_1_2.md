@@ -1,11 +1,13 @@
-# Project Oracle Session Log — v0.1.1 Candidate
+# Project Oracle Session Log — v0.1.2 Candidate
 
-## 2 August 2026 — v0.1.1 repair
+## 2 August 2026 — v0.1.2 live console window
 
 - Read the Project Oracle origin document, cumulative handoff, canon, roadmap, Demon Killer world-time intake, validation record, and canonical DK LAB Company Bible before repair work.
-- Preserved the v0.1.0 failed-install evidence: the package reached validation and rolled back because `global.json` required SDK `10.0.302` while Derek's machine had .NET 10 SDK `10.0.110`.
-- Updated `global.json` to SDK `10.0.100` with `rollForward` set to `latestFeature` so compatible .NET 10 SDKs can validate the project.
-- Advanced Project Oracle package/version surfaces to v0.1.1 because v0.1.0 was not accepted and failed package numbers are not reused.
+- Recorded Derek's accepted `v0.1.1` base: commit `ce58375`, tag `v0.1.1`, .NET SDK `10.0.110`, twenty-two acceptance checks passed.
+- Added a separate live Garden console window launcher so Oracle input and output do not share Derek's working terminal.
+- Added an internal live-console runner that sets the window title, protects against two concurrent Garden windows, holds the window open after exit or failure, and reports missing .NET clearly.
+- Updated `run.sh` and the C# console loop so non-interactive input closure is reported plainly instead of silently returning to Bash after `oracle>`.
+- Advanced Project Oracle package/version surfaces to v0.1.2 as the next unused numeric version.
 
 Date: 1 August 2026
 
@@ -31,7 +33,7 @@ During the build Derek supplied Demon Killer's `scripts.zip` and established the
 - Built the Core, Console, and AcceptanceTests projects.
 - Added the persistent calendar, solar/lunar state, atomic save, backup recovery, Creator/World record separation, and intervention queue.
 - Added canon, architecture, Demon Killer intake, validation, changelog, cumulative handoff, and long-range roadmap records.
-- Updated the Oracle future-implementation requirements register with v0.1.1 reference evidence without changing future implementation syntax.
+- Updated the Oracle future-implementation requirements register with v0.1.2 reference evidence without changing future implementation syntax.
 
 ## Validation limitation
 
@@ -41,4 +43,4 @@ A temporary C# Tree-sitter parser supplied through ast-grep successfully parsed 
 
 ## Next recommended scope
 
-v0.1.2 should add the deterministic event queue and minimal offered-choice engine described in the cumulative handoff. It should not yet add memory, belief, Eve, Lilith, reproduction, expulsion, or civilisation.
+v0.1.3 should add the deterministic event queue and minimal offered-choice engine described in the cumulative handoff. It should not yet add memory, belief, Eve, Lilith, reproduction, expulsion, or civilisation.
