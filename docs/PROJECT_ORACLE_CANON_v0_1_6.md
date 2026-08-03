@@ -1,4 +1,4 @@
-# Project Oracle Canon — v0.1.5
+# Project Oracle Canon — v0.1.6
 
 Date: 1 August 2026  
 Creative authority: Derek Sparks  
@@ -38,7 +38,7 @@ The Creator console does not make the human user speak through the Oracle. The C
 
 Direct address is an intervention and contaminates the experiment. It may be recorded before any autonomous response engine exists. Addressing Adam must not puppet his choices.
 
-The canonical control law means the physical `F1`, `F2`, `F3`, `F4`, and `F5` keys. Typed fallback aliases may exist for compatibility, but they are not the full intended interface.
+The canonical control law means the physical `F1`, `F2`, `F3`, `F4`, and `F5` keys. Typed aliases such as `f1` are not address controls and must not be presented as compatibility substitutes.
 
 ## Natural Course rule
 
@@ -70,7 +70,7 @@ The Creators may allow her rebellion. The kill switch remains outside her world,
 
 ## Companions and human origins
 
-No companion exists in v0.1.5. Later runs may diverge:
+No companion exists in v0.1.6. Later runs may diverge:
 
 - Yala may create Lilith from the same world-substance as Adam.
 - Lilith may become Adam's wife, reject him, reject Yala, be rejected, leave, or be expelled.

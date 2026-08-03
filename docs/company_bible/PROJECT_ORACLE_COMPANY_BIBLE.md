@@ -1,6 +1,6 @@
 # Project Oracle Company Bible
 
-**Version:** v0.1.5  
+**Version:** v0.1.6  
 **Status:** Mandatory and canonical for Project Oracle  
 **Project:** Project Oracle  
 **Owner:** Derek Sparks  
@@ -137,7 +137,7 @@ The intended direct-address map is:
 | `F4` | `<sun>` | the Sun |
 | `F5` | `<moon>` | the Moon |
 
-Physical function keys mean physical function keys. Typed aliases such as `f1` may exist only as fallback commands and must not be described as the same thing.
+Physical function keys mean physical function keys. Typed aliases such as `f1` are not direct-address controls and must not be described as fallback equivalents.
 
 Addressing Adam must not puppet Adam. Addressing Gaia, Sun, Moon, or the Oracle must still pass through world law, records, and implemented authority.
 

@@ -1,4 +1,4 @@
-# Project Oracle Architecture — v0.1.5
+# Project Oracle Architecture — v0.1.6
 
 ## Decision
 
@@ -38,7 +38,7 @@ This is an initial guardrail, not the final security boundary. Later builds must
 
 `QueueVesselMessage` accepts a vessel description and message, records Creator contamination, and creates a world-observable approach event. It does not make the vessel speak and does not decide Adam's response. The later event scheduler and decision engine will turn the queued request into an offered choice.
 
-`AddressChannel` records direct Creator address to an appointed channel. In v0.1.5 it records the address and contamination, but it does not execute a miracle, force Adam's response, or produce autonomous Oracle/Gaia/Sun/Moon replies.
+`AddressChannel` records direct Creator address to an appointed channel. In v0.1.6 it records the address and contamination, but it does not execute a miracle, force Adam's response, or produce autonomous Oracle/Gaia/Sun/Moon replies.
 
 `PresentNextLivingKindToAdam` is the first narrow naming-mandate action. It presents the next un-named living kind, records Adam's simple deterministic name, and records that no suitable mate was found. This is a scaffold for later event scheduling and decision logic, not a full agency model.
 
@@ -46,7 +46,7 @@ This is an initial guardrail, not the final security boundary. Later builds must
 
 The console keeps an active address channel with prompts such as `<oracle>`, `<gaia>`, and `<adam>`. The prompt means the Creators are addressing that being or power directly; it never means the user is speaking through that channel.
 
-The intended input contract is physical `F1` through `F5`. v0.1.5 still implements only typed fallback commands, `f1` through `f5`, and `channel <name>`. A future repair must capture real terminal function keys instead of treating typed aliases as equivalent. Ordinary commands still work from any channel.
+The input contract is physical `F1` through `F5`. The interactive console uses key capture so pressing `F1`, `F2`, `F3`, `F4`, or `F5` switches address channels immediately without Enter. Typed `f1`, `f2`, `f3`, `f4`, and `f5` are ordinary text addressed to the current channel, not channel controls. Ordinary typed commands still work from any channel.
 
 ## Company Bible boundary
 
@@ -54,7 +54,7 @@ The intended input contract is physical `F1` through `F5`. v0.1.5 still implemen
 
 ## Live console boundary
 
-`scripts/run-window.sh` launches Project Oracle in a separate terminal window. `scripts/run-live-console.sh` owns the child terminal session, sets the visible title to `Project Oracle v0.1.5 - Live Garden Console`, keeps the output readable after exit or failure, and blocks accidental second live windows against the same save. `scripts/run.sh` remains the direct terminal fallback and validation entry point.
+`scripts/run-window.sh` launches Project Oracle in a separate terminal window. `scripts/run-live-console.sh` owns the child terminal session, sets the visible title to `Project Oracle v0.1.6 - Live Garden Console`, keeps the output readable after exit or failure, and blocks accidental second live windows against the same save. `scripts/run.sh` remains the direct terminal fallback and validation entry point.
 
 ## Future implementation boundary
 
@@ -64,7 +64,7 @@ The C# prototype is an executable reference, not a permanent implementation cons
 
 - Full event replay logs beyond the atomic single-save checkpoint
 - Priority event scheduler
-- Physical function-key capture in the terminal loop
+- Alternate terminal escape-sequence decoding if a future supported terminal fails to report `ConsoleKey.F1` through `ConsoleKey.F5`
 - Memory, observation, knowledge, belief, and decision systems
 - Yala policy and autonomy
 - Adam agency

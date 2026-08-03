@@ -1,8 +1,8 @@
 # Project Oracle — Cumulative Master Handoff
 
 Date: 2 August 2026  
-Current candidate: v0.1.5 — Project Oracle Company Bible Authority  
-Required baseline: Project Oracle v0.1.4 installed candidate files  
+Current candidate: v0.1.6 — Physical Function Keys and Save Migration Chain Repair  
+Required baseline: Project Oracle v0.1.5 accepted commit `34fd05c`, tag `v0.1.5`, branch `main`, clean tree  
 Creator and final creative authority: Derek Sparks  
 Technical collaborator: ChatGPT / Codex
 
@@ -13,9 +13,9 @@ Read, end to end:
 1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx` from Concept Build 0.
 2. This cumulative handoff.
 3. `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`.
-4. `docs/PROJECT_ORACLE_CANON_v0_1_5.md`.
-5. `docs/PROJECT_ORACLE_ROADMAP_v0_1_5.md`.
-6. `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_5.md`.
+4. `docs/PROJECT_ORACLE_CANON_v0_1_6.md`.
+5. `docs/PROJECT_ORACLE_ROADMAP_v0_1_6.md`.
+6. `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_6.md`.
 7. Any explicitly authorised external technical authority only when it is directly relevant to the current work.
 
 Do not propose or build from memory. Do not change code until Derek approves an exact scope.
@@ -64,7 +64,7 @@ Project Oracle is a standalone autonomous-world simulation, artificial-life expe
 2. **Trusted experiment monitor:** outside the world, factual, auditable, and without Yala's agenda.
 3. **Possible external language-tooling system:** separate language-tooling concept governed only by the future Project Oracle implementation.
 
-## v0.1.5 implementation
+## v0.1.6 implementation
 
 The candidate is a C# 14 / .NET 10 console scaffold. It provides:
 
@@ -90,12 +90,12 @@ The candidate is a C# 14 / .NET 10 console scaffold. It provides:
 - Adam's active naming mandate and first `present next` scaffold;
 - the Natural Course rule;
 - an interactive Creator console;
-- compatibility loading for save versions `0.1.1`, `0.1.2`, and `0.1.3`;
-- twenty-nine acceptance checks;
+- compatibility loading for save versions `0.1.1`, `0.1.2`, `0.1.3`, `0.1.4`, `0.1.5`, and current `0.1.6`;
+- thirty-one acceptance checks;
 - a long-range roadmap and future implementation requirements register;
 - Project Oracle's own canonical Company Bible at `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`;
 - a project law that Codex must check the Oracle Company Bible before guessing;
-- explicit preservation of the distinction between physical function keys and typed fallback aliases.
+- physical `F1` through `F5` channel capture in the interactive console.
 
 The console accepts:
 
@@ -105,12 +105,7 @@ channels
 life
 naming
 natural
-f1
-f2
-f3
-f4
-f5
-channel <name>
+physical F1 through F5 to switch address channels
 present next
 records world
 records creator
@@ -122,27 +117,37 @@ The prompt shows who is being directly addressed from the Creator layer. It does
 
 An intervention or direct address does not yet make Adam decide. Autonomous choice is explicitly deferred.
 
-The intended direct-address controls are physical `F1` through `F5`. v0.1.5 still has only typed fallback aliases and `channel <name>` in the console loop. Raw terminal function-key capture remains excluded until an explicit repair build.
+The direct-address controls are physical `F1` through `F5`. Typed `f1`, `f2`, `f3`, `f4`, and `f5` are ordinary addressed text, not channel controls.
 
-## v0.1.5 authority repair
+## v0.1.6 repair
 
-Derek corrected the workflow: Project Oracle must carry its own Company Bible inside the Oracle files, and Codex must reference it whenever it thinks it is acceptable to guess.
+Derek reported two failed behaviours after `v0.1.5` was committed: saves written as version `0.1.4` could not load under `v0.1.5`, and the direct-address interface still treated typed aliases as a substitute for physical function keys.
 
-This build adds that file and makes it the project-specific authority.
+This build repairs the save migration chain and implements physical function-key channel capture. It also removes typed channel shortcuts from the console contract so the mistake cannot hide behind substitute wording.
 
-This build also records the raw `F1` misunderstanding plainly. A physical `F1` key is not equivalent to typing `f1`.
+Project Oracle's Company Bible remains the project-specific authority. The external technical authority remains relevant only for future implementation authority, syntax, packaging, or migration work.
+
+## Accepted base carried from v0.1.5
+
+Project Oracle v0.1.5 was validated, accepted, committed, and tagged by Derek on 2 August 2026:
+
+```text
+34fd05c (HEAD -> main, tag: v0.1.5) Accept Project Oracle v0.1.5
+```
+
+It added Project Oracle's own Company Bible, but manual run inspection after the commit exposed the `0.1.4` save rejection and the missing physical function-key input.
 
 ## Superseded v0.1.4 candidate
 
 Project Oracle v0.1.4 installed and validated on Derek's machine with twenty-nine passing acceptance checks, but it did not carry a Project Oracle Company Bible and still documented typed `f1` aliases in a way that could be mistaken for physical function-key support.
 
-Accept v0.1.5 instead after validation and manual inspection.
+Accept v0.1.6 instead after validation and manual inspection.
 
 ## Superseded v0.1.3 candidate
 
 Project Oracle v0.1.3 installed and validated on Derek's machine with twenty-eight passing acceptance checks, but the live console later refused to continue because both the primary save and last-good backup were still save version `0.1.1`.
 
-Project Oracle v0.1.3 should not be accepted as the final checkpoint if this hotfix is applied. Accept v0.1.5 instead after validation and manual inspection.
+Project Oracle v0.1.3 should not be accepted as the final checkpoint if this hotfix is applied. Accept v0.1.6 instead after validation and manual inspection.
 
 ## Accepted base carried from v0.1.2
 
@@ -166,7 +171,7 @@ Project Oracle v0.1.1 repaired that SDK pin by using .NET `10.0.100` with `rollF
 
 ## Explicit exclusions
 
-No autonomous Adam, Gaia, Sun, Moon, or Yala decision engine, memory, belief, emotion, language model, Eve, Lilith, reproduction, fruit result, expulsion, exterior world, civilisation, database, network, graphics, raw terminal function-key capture implementation, event queue, or real plague execution exists in v0.1.5.
+No autonomous Adam, Gaia, Sun, Moon, or Yala decision engine, memory, belief, emotion, language model, Eve, Lilith, reproduction, fruit result, expulsion, exterior world, civilisation, database, network, graphics, typed function-key fallback controls, event queue, or real plague execution exists in v0.1.6.
 
 ## Language and platform
 
@@ -178,11 +183,11 @@ No autonomous Adam, Gaia, Sun, Moon, or Yala decision engine, memory, belief, em
 
 ## Changed paths
 
-See `PROJECT_ORACLE_CHANGED_FILES_v0_1_5.txt` in the package for the exact payload inventory.
+See `PROJECT_ORACLE_CHANGED_FILES_v0_1_6.txt` in the package for the exact payload inventory.
 
 ## Validation
 
-The build treats warnings as errors and includes a one-command validator. Builder-side validation is recorded in `docs/PROJECT_ORACLE_VALIDATION_v0_1_5.md`; Derek's install-side validation remains the acceptance gate.
+The build treats warnings as errors and includes a one-command validator. Builder-side validation is recorded in `docs/PROJECT_ORACLE_VALIDATION_v0_1_6.md`; Derek's install-side validation remains the acceptance gate.
 
 ```bash
 cd "$HOME/DKLab/Projects/Project Oracle" && ./scripts/validate.sh
@@ -195,28 +200,17 @@ cd "$HOME/DKLab/Projects/Project Oracle" && ./scripts/validate.sh
 - Audience filtering is an application guardrail, not yet a process-level security boundary.
 - The expanded genesis hierarchy is now encoded as the default initial state; alternate genesis patterns require an explicit future build.
 - Creator console address channels are intentionally narrow and not yet a general natural-language interface.
-- Typed `f1` through `f5` and `channel <name>` are supported only as fallbacks; physical function-key capture is the intended control law and is not yet implemented.
+- Some terminal hosts may fail to report `ConsoleKey.F1` through `ConsoleKey.F5`; if Derek's actual terminal does that, repair the terminal key-decoding path in a later numbered build without restoring typed `f1` aliases.
 
 ## Rollback
 
-Until v0.1.5 is accepted, the rollback point is the current v0.1.4 candidate working tree. The apply script backs up every replaced path and removes every newly installed v0.1.5 path if installation validation fails.
+Until v0.1.6 is accepted, the rollback point is the accepted `v0.1.5` tree at commit `34fd05c`. The apply script backs up every replaced path and removes every newly installed v0.1.6 path if installation validation fails.
 
 ## Recommended next build
 
-**v0.1.6 — Physical Function-Key Channel Capture**
+**v0.1.7 — Deterministic Event Queue and Offered Choices**
 
-Proposed scope only:
-
-- make real physical `F1` through `F5` select `<oracle>`, `<gaia>`, `<adam>`, `<sun>`, and `<moon>` in the live console;
-- preserve typed `f1` through `f5` only as fallback commands;
-- add validation that distinguishes physical function-key handling from typed aliases where the terminal allows it;
-- do not add event queue, memory, belief, Eve, Lilith, reproduction, expulsion, or civilisation yet.
-
-After that repair, the deterministic event queue becomes the next feature build.
-
-**Later — Deterministic Event Queue and Offered Choices**
-
-Proposed scope only:
+Proposed scope only after Derek manually accepts v0.1.6:
 
 - stable priority queue with deterministic tie-breaking;
 - queued Creator vessel message becomes an observable speech event;

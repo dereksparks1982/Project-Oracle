@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/ProjectOracle.Core/ProjectOracle.Core.csproj" />
+    <ProjectReference Include="../../src/ProjectOracle.Console/ProjectOracle.Console.csproj" />
   </ItemGroup>
 </Project>

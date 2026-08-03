@@ -3,6 +3,7 @@ using ProjectOracle.Audit;
 using ProjectOracle.Domain;
 using ProjectOracle.Persistence;
 using ProjectOracle.Simulation;
+using System.Text;
 
 namespace ProjectOracle.ConsoleApp;
 
@@ -63,8 +64,8 @@ internal static class Program
         while (true)
         {
             System.Console.Write($"{activeChannel.Prompt} ");
-            string? input = System.Console.ReadLine();
-            if (input is null)
+            ConsoleInput input = ReadConsoleInput();
+            if (input.EndOfInput)
             {
                 System.Console.WriteLine();
                 System.Console.WriteLine("Input closed, so the live Oracle console is ending.");
@@ -73,7 +74,19 @@ internal static class Program
                 return 0;
             }
 
-            string command = input.Trim();
+            if (input.FunctionKey is { } functionKey)
+            {
+                simulation.SynchroniseClock(realTime.GetUnixTimeMilliseconds());
+                if (TrySwitchChannelByFunctionKey(simulation, functionKey, out AddressChannelState? selectedChannel))
+                {
+                    activeChannel = selectedChannel ?? activeChannel;
+                    System.Console.WriteLine($"Direct address channel: {activeChannel.FunctionKey} {activeChannel.Prompt} — {activeChannel.TargetName}.");
+                    SaveCurrent(store, savePath, simulation, realTime);
+                    continue;
+                }
+            }
+
+            string command = input.Command.Trim();
             if (command.Length == 0)
             {
                 continue;
@@ -88,16 +101,54 @@ internal static class Program
                 return 0;
             }
 
-            if (TrySwitchChannel(simulation, command, out AddressChannelState? selectedChannel))
+            ExecuteCommand(simulation, store, savePath, realTime, activeChannel, command);
+            SaveCurrent(store, savePath, simulation, realTime);
+        }
+    }
+
+    private static ConsoleInput ReadConsoleInput()
+    {
+        if (System.Console.IsInputRedirected)
+        {
+            string? redirected = System.Console.ReadLine();
+            return redirected is null
+                ? ConsoleInput.End()
+                : ConsoleInput.CommandText(redirected);
+        }
+
+        StringBuilder line = new();
+        while (true)
+        {
+            ConsoleKeyInfo key = System.Console.ReadKey(intercept: true);
+            string? channelKey = FunctionKeyAddressMap.ChannelKeyForFunctionKey(key.Key);
+            if (channelKey is not null)
             {
-                activeChannel = selectedChannel ?? activeChannel;
-                System.Console.WriteLine($"Direct address channel: {activeChannel.FunctionKey} {activeChannel.Prompt} — {activeChannel.TargetName}.");
-                SaveCurrent(store, savePath, simulation, realTime);
+                System.Console.WriteLine();
+                return ConsoleInput.Function(channelKey);
+            }
+
+            if (key.Key == ConsoleKey.Enter)
+            {
+                System.Console.WriteLine();
+                return ConsoleInput.CommandText(line.ToString());
+            }
+
+            if (key.Key == ConsoleKey.Backspace)
+            {
+                if (line.Length > 0)
+                {
+                    line.Remove(line.Length - 1, 1);
+                    System.Console.Write("\b \b");
+                }
+
                 continue;
             }
 
-            ExecuteCommand(simulation, store, savePath, realTime, activeChannel, command);
-            SaveCurrent(store, savePath, simulation, realTime);
+            if (!char.IsControl(key.KeyChar))
+            {
+                line.Append(key.KeyChar);
+                System.Console.Write(key.KeyChar);
+            }
         }
     }
 
@@ -215,7 +266,7 @@ internal static class Program
             System.Console.WriteLine($"{marker} {channel.FunctionKey} {channel.Prompt,-8} {channel.TargetName} — {channel.AuthoritySummary}");
         }
 
-        System.Console.WriteLine("Use f1, f2, f3, f4, f5 or channel <name> to change who you address.");
+        System.Console.WriteLine("Press the physical F1, F2, F3, F4, or F5 key to change who you address.");
     }
 
     private static void PrintLife(OracleSimulation simulation)
@@ -310,11 +361,11 @@ internal static class Program
 
     private static void PrintHelp()
     {
-        System.Console.WriteLine("f1 / channel oracle            Address the Oracle directly.");
-        System.Console.WriteLine("f2 / channel gaia              Address Gaia directly.");
-        System.Console.WriteLine("f3 / channel adam              Address Adam directly.");
-        System.Console.WriteLine("f4 / channel sun               Address the Sun directly.");
-        System.Console.WriteLine("f5 / channel moon              Address the Moon directly.");
+        System.Console.WriteLine("F1                             Address the Oracle directly.");
+        System.Console.WriteLine("F2                             Address Gaia directly.");
+        System.Console.WriteLine("F3                             Address Adam directly.");
+        System.Console.WriteLine("F4                             Address the Sun directly.");
+        System.Console.WriteLine("F5                             Address the Moon directly.");
         System.Console.WriteLine("channels                       Show address hierarchy and the active channel.");
         System.Console.WriteLine("status                         Show the current Garden and real-time clock.");
         System.Console.WriteLine("life                           Show Garden living kinds.");
@@ -328,30 +379,22 @@ internal static class Program
         System.Console.WriteLine("quit                           Save and end this console session.");
     }
 
-    private static bool TrySwitchChannel(
+    private static bool TrySwitchChannelByFunctionKey(
         OracleSimulation simulation,
-        string command,
+        string channelKey,
         out AddressChannelState? selectedChannel)
     {
-        selectedChannel = null;
-        string trimmed = command.Trim();
-        string key = trimmed switch
-        {
-            "f1" or "F1" or "\u001bOP" or "\u001b[11~" or "oracle" or "Oracle" or "<oracle>" => "oracle",
-            "f2" or "F2" or "\u001bOQ" or "\u001b[12~" or "gaia" or "Gaia" or "<gaia>" => "gaia",
-            "f3" or "F3" or "\u001bOR" or "\u001b[13~" or "adam" or "Adam" or "<adam>" => "adam",
-            "f4" or "F4" or "\u001bOS" or "\u001b[14~" or "sun" or "Sun" or "<sun>" => "sun",
-            "f5" or "F5" or "\u001b[15~" or "moon" or "Moon" or "<moon>" => "moon",
-            _ => ""
-        };
-
-        if (key.Length == 0 && command.StartsWith("channel ", StringComparison.OrdinalIgnoreCase))
-        {
-            key = command[8..].Trim().ToLowerInvariant();
-        }
-
-        selectedChannel = simulation.State.AddressChannels.FirstOrDefault(channel => channel.Key == key);
+        selectedChannel = simulation.State.AddressChannels.FirstOrDefault(channel => channel.Key == channelKey);
         return selectedChannel is not null;
+    }
+
+    private sealed record ConsoleInput(string Command, string? FunctionKey, bool EndOfInput)
+    {
+        public static ConsoleInput CommandText(string command) => new(command, null, false);
+
+        public static ConsoleInput Function(string channelKey) => new("", channelKey, false);
+
+        public static ConsoleInput End() => new("", null, true);
     }
 
     private sealed record ConsoleOptions(ulong Seed, string? SavePath, bool Once)

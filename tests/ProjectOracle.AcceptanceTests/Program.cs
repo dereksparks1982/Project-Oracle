@@ -1,5 +1,6 @@
 using ProjectOracle.Interventions;
 using ProjectOracle.Persistence;
+using ProjectOracle.ConsoleApp;
 using ProjectOracle.Domain;
 using ProjectOracle.Simulation;
 
@@ -25,6 +26,7 @@ internal static class Program
         Run("offline catch-up is recorded", OfflineCatchUpIsRecorded);
         Run("save and restore preserve world time", SaveAndRestorePreserveWorldTime);
         Run("version 0.1.1 save upgrades through current world defaults", Version011SaveUpgradesThroughCurrentDefaults);
+        Run("version 0.1.4 save upgrades through current world defaults", Version014SaveUpgradesThroughCurrentDefaults);
         Run("restore applies closed-time catch-up once", RestoreAppliesClosedTimeCatchUpOnce);
         Run("corrupt primary recovers last-good backup", CorruptPrimaryRecoversBackup);
         Run("Adam begins confined to the Garden", AdamBeginsConfined);
@@ -34,6 +36,7 @@ internal static class Program
         Run("Creator truth stays out of world records", CreatorTruthDoesNotLeak);
         Run("world seed creates deterministic living kinds", WorldSeedCreatesDeterministicLivingKinds);
         Run("address channels follow the appointed hierarchy", AddressChannelsAreAppointed);
+        Run("physical function keys select address channels", PhysicalFunctionKeysSelectAddressChannels);
         Run("Adam begins with the naming mandate", AdamBeginsWithNamingMandate);
         Run("Natural Course rule is active", NaturalCourseRuleIsActive);
         Run("presenting a living kind lets Adam name it without finding a mate", PresentingLivingKindNamesIt);
@@ -41,7 +44,7 @@ internal static class Program
         Run("vessel message is queued without forcing Adam", InterventionDoesNotForceAdam);
         Run("intervention contamination is recorded", InterventionContaminationIsRecorded);
         Run("records keep stable sequence order", RecordsKeepStableOrder);
-        Run("version is 0.1.5", VersionIsCorrect);
+        Run("version is 0.1.6", VersionIsCorrect);
 
         Console.WriteLine();
         Console.WriteLine($"Acceptance result: {_passed} passed; {_failed} failed.");
@@ -180,6 +183,27 @@ internal static class Program
         });
     }
 
+    private static void Version014SaveUpgradesThroughCurrentDefaults()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            OracleSaveSnapshot legacySnapshot = simulation.CreateSnapshot(StartRealTime) with
+            {
+                ProjectVersion = "0.1.4"
+            };
+
+            store.Save(path, legacySnapshot);
+            OracleSaveSnapshot loaded = store.Load(path);
+
+            Equal("0.1.4", loaded.ProjectVersion);
+            True(loaded.World.AddressChannels.Count > 0);
+            True(loaded.World.LivingKinds.Count > 0);
+            True(loaded.World.NamingMandate.Active);
+            True(loaded.World.NaturalCourse.Active);
+        });
+    }
+
     private static void RestoreAppliesClosedTimeCatchUpOnce()
     {
         OracleSimulation simulation = Start();
@@ -263,6 +287,17 @@ internal static class Program
         True(simulation.State.AddressChannels.First(channel => channel.Key == "oracle").AuthoritySummary.Contains("above Gaia", StringComparison.Ordinal));
     }
 
+    private static void PhysicalFunctionKeysSelectAddressChannels()
+    {
+        Equal("oracle", FunctionKeyAddressMap.ChannelKeyForFunctionKey(ConsoleKey.F1));
+        Equal("gaia", FunctionKeyAddressMap.ChannelKeyForFunctionKey(ConsoleKey.F2));
+        Equal("adam", FunctionKeyAddressMap.ChannelKeyForFunctionKey(ConsoleKey.F3));
+        Equal("sun", FunctionKeyAddressMap.ChannelKeyForFunctionKey(ConsoleKey.F4));
+        Equal("moon", FunctionKeyAddressMap.ChannelKeyForFunctionKey(ConsoleKey.F5));
+        Equal<string?>(null, FunctionKeyAddressMap.ChannelKeyForFunctionKey(ConsoleKey.D1));
+        Equal<string?>(null, FunctionKeyAddressMap.ChannelKeyForFunctionKey(ConsoleKey.F6));
+    }
+
     private static void AdamBeginsWithNamingMandate()
     {
         OracleSimulation simulation = Start();
@@ -334,7 +369,7 @@ internal static class Program
         Equal(sequences.Order().ToArray(), sequences);
     }
 
-    private static void VersionIsCorrect() => Equal("0.1.5", ProjectVersion.Number);
+    private static void VersionIsCorrect() => Equal("0.1.6", ProjectVersion.Number);
 
     private static void WithTemporarySave(Action<OracleSaveStore, string> test)
     {

@@ -1,4 +1,4 @@
-# Project Oracle Long-Range Roadmap — v0.1.5
+# Project Oracle Long-Range Roadmap — v0.1.6
 
 Date: 2 August 2026  
 Status: Directional dependency roadmap; one build is proposed and authorised at a time  
@@ -19,7 +19,7 @@ The roadmap is intentionally deep enough for years of development. It is not per
 | 3 | v0.1.3 Direct Address Channels, Living Kinds, and Natural Course | Creator console can address Oracle, Gaia, Adam, Sun, and Moon; the Garden starts with seed-based ancient living kinds and Adam's naming mandate |
 | 4 | v0.1.4 Legacy Save Compatibility Hotfix | Old `0.1.1` save files can upgrade through current world defaults instead of blocking startup |
 | 5 | v0.1.5 Project Oracle Company Bible Authority | Oracle carries its own Company Bible and no-guessing authority inside the project files |
-| 6 | Physical Function-Key Channel Capture | Real `F1` through `F5` switch direct-address channels; typed aliases remain fallbacks |
+| 6 | v0.1.6 Physical Function Keys and Save Migration Chain Repair | Real `F1` through `F5` switch direct-address channels; `0.1.4` and `0.1.5` saves remain supported |
 | 7 | Deterministic Event Queue | Scheduled actions, stable priority, cancellation, exact tie-breaking |
 | 8 | Observation and Attention | Adam can perceive only nearby or attended events; Creator truth remains hidden |
 | 9 | Memory Foundations | Adam stores experiences with source, time, strength, decay, and uncertainty |
