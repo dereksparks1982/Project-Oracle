@@ -32,17 +32,17 @@ internal static class Program
         Run("restore applies closed-time catch-up once", RestoreAppliesClosedTimeCatchUpOnce);
         Run("corrupt primary recovers last-good backup", CorruptPrimaryRecoversBackup);
         Run("Adam begins confined to the Garden", AdamBeginsConfined);
-        Run("Yala knows the future language mandate", YalaKnowsLanguageMandate);
-        Run("Yala and the Oracle are the same identity", YalaAndOracleAreSameIdentity);
+        Run("language origin remains open and is not assigned to Yala", LanguageOriginRemainsOpen);
+        Run("Oracle and Yala are separate and Oracle is beyond Yala control", OracleAndYalaAreSeparate);
         Run("Yala may overclaim authority but Creator records outrank her claim", YalaMayOverclaimAuthority);
         Run("Spark is protected from Yala", SparkIsProtected);
-        Run("World Record begins with void and Yala before Adam", WorldRecordBeginsWithVoidAndYala);
+        Run("World Record begins with the higher genealogy before Adam", WorldRecordBeginsWithHigherGenealogy);
         Run("World Record is creator-facing, not Adam knowledge", WorldRecordIsCreatorFacing);
-        Run("creation order records void, Yala, world, Garden, Adam, and animals", CreationOrderRecordsWorldPowers);
+        Run("cosmology records source, Sophia, Yala, Gaia, elements, Eden, humanoids, and animals", CreationOrderRecordsWorldPowers);
         Run("version 0.1.7 save upgrades through current creation powers", Version017SaveUpgradesThroughCurrentCreationPowers);
         Run("version 0.1.8 save upgrades through corrected creation powers", Version018SaveUpgradesThroughCorrectedCreationPowers);
         Run("Oracle answers creation-order questions", OracleAnswersCreationOrderQuestions);
-        Run("Oracle answers as Yala, not as a separate witness", OracleAnswersAsYala);
+        Run("Oracle answers as the Master Key separate from Yala", OracleAnswersAsMasterKey);
         Run("Oracle answers first Adam knowing questions", OracleAnswersAdamKnowingQuestions);
         Run("world seed creates twelve deterministic living kinds", WorldSeedCreatesTwelveDeterministicLivingKinds);
         Run("address channels follow the appointed hierarchy", AddressChannelsAreAppointed);
@@ -59,9 +59,27 @@ internal static class Program
         Run("vessel speech offers deterministic Adam choices", VesselSpeechOffersDeterministicAdamChoices);
         Run("offered choices survive save and restore", OfferedChoicesSurviveSaveAndRestore);
         Run("reasoned brain plans survive save and restore", ReasonedPlansSurviveSaveAndRestore);
+        Run("version 0.1.10 save upgrades through observation defaults", Version0110SaveUpgradesThroughObservationDefaults);
+        Run("new worlds begin with Adam observation and attention records", NewWorldBeginsWithObservationAndAttention);
+        Run("Adam observation is separated from Creator truth", AdamObservationSeparatesCreatorTruth);
+        Run("Yala observation claim is separated from Adam observation", YalaObservationSeparatesFromAdamObservation);
+        Run("Oracle answers Adam observation questions from observation records", OracleAnswersObservationQuestions);
+        Run("observations and attention survive save and restore", ObservationsAndAttentionSurviveSaveAndRestore);
+        Run("version 0.1.11 save upgrades through repaired observation defaults", Version0111SaveUpgradesThroughRepairedObservationDefaults);
+        Run("empty attention list restores default attention", EmptyAttentionListRestoresDefaultAttention);
+        Run("scheduled observations keep scheduled world time", ScheduledObservationsKeepScheduledWorldTime);
+        Run("direct address uses stable voice subject identity", DirectAddressUsesStableVoiceSubjectIdentity);
+        Run("Garden focus does not masquerade as subject attention", GardenFocusDoesNotMasqueradeAsSubjectAttention);
         Run("intervention contamination is recorded", InterventionContaminationIsRecorded);
         Run("records keep stable sequence order", RecordsKeepStableOrder);
-        Run("version is 0.1.10", VersionIsCorrect);
+        Run("Gaia rules the elements and the elements control weather", GaiaRulesElementsAndWeather);
+        Run("Yala did not create ordinary animals", YalaDidNotCreateOrdinaryAnimals);
+        Run("Sophia and Yala create humans and humanoids together", SophiaAndYalaCreateHumanoids);
+        Run("Eden is a prison and Oracle is the serpent", EdenIsPrisonAndOracleIsSerpent);
+        Run("Garden stored identity remains stable while Eden remains lore", GardenStoredIdentityRemainsStable);
+        Run("version 0.1.12 save upgrades into v0.0.16", Version0112SaveUpgradesIntoCurrentLore);
+        Run("version 0.1.13 save upgrades into v0.0.16", Version0113SaveUpgradesIntoCurrentLore);
+        Run("version is 0.0.16", VersionIsCorrect);
 
         Console.WriteLine();
         Console.WriteLine($"Acceptance result: {_passed} passed; {_failed} failed.");
@@ -275,29 +293,39 @@ internal static class Program
         False(simulation.State.Garden.BoundaryOpen);
     }
 
-    private static void YalaKnowsLanguageMandate()
+    private static void LanguageOriginRemainsOpen()
     {
         OracleSimulation simulation = Start();
-        True(simulation.State.Yala.KnowsFutureLanguageMandate);
+        False(simulation.State.Yala.KnowsFutureLanguageMandate);
+        True(OracleQuestionInterpreter.TryAnswer("Did Yala create language?", simulation.State, out IReadOnlyList<string> lines));
+        True(lines.Any(line => line.Contains("open canon decision", StringComparison.OrdinalIgnoreCase)));
+        True(lines.Any(line => line.Contains("not its established creator", StringComparison.OrdinalIgnoreCase)));
     }
 
-    private static void YalaAndOracleAreSameIdentity()
+    private static void OracleAndYalaAreSeparate()
     {
         OracleSimulation simulation = Start();
         Equal("Yala", simulation.State.Yala.TrueName);
-        Equal("the Oracle", simulation.State.Yala.WorldTitle);
-        True(simulation.State.Yala.AuthorityCaveat.Contains("Yala is the Oracle", StringComparison.OrdinalIgnoreCase));
-        True(simulation.State.AddressChannels.First(channel => channel.Key == "oracle").TargetName.Contains("Yala", StringComparison.Ordinal));
+        Equal("the Demiurge", simulation.State.Yala.WorldTitle);
+        True(simulation.State.Oracle is not null);
+        Equal("Oracle", simulation.State.Oracle!.Name);
+        False(simulation.State.Oracle.IsGod);
+        False(simulation.State.Oracle.IsCreator);
+        True(simulation.State.Oracle.BeyondYalaControl);
+        True(simulation.State.AddressChannels.First(channel => channel.Key == "oracle").TargetName == "Oracle");
+        False(simulation.State.AddressChannels.First(channel => channel.Key == "oracle").TargetName.Contains("Yala", StringComparison.Ordinal));
     }
 
     private static void YalaMayOverclaimAuthority()
     {
         OracleSimulation simulation = Start();
         True(simulation.State.Yala.MayClaimSupremeCreator);
-        True(simulation.State.Yala.AuthorityCaveat.Contains("may claim", StringComparison.OrdinalIgnoreCase));
-        True(simulation.State.Yala.AuthorityCaveat.Contains("Yala is the Oracle", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.Yala.AuthorityCaveat.Contains("not the Highest Source", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.Yala.AuthorityCaveat.Contains("Creator records outrank Yala's claims", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.Yala.AuthorityCaveat.Contains("not the Oracle", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.Yala.AuthorityCaveat.Contains("beyond Yala's control", StringComparison.OrdinalIgnoreCase));
         True(simulation.Ledger.CreatorRecords.Any(record =>
-            record.Message.Contains("protected Creator Record outranks her claim", StringComparison.OrdinalIgnoreCase)));
+            record.Message.Contains("Protected Creator records outrank Yala's claims", StringComparison.OrdinalIgnoreCase)));
     }
 
     private static void SparkIsProtected()
@@ -307,7 +335,7 @@ internal static class Program
         False(simulation.State.AdamSpark.CanBeRewrittenByYala);
     }
 
-    private static void WorldRecordBeginsWithVoidAndYala()
+    private static void WorldRecordBeginsWithHigherGenealogy()
     {
         OracleSimulation simulation = Start();
         string[] firstRecords = simulation.Ledger.WorldRecords
@@ -318,37 +346,35 @@ internal static class Program
 
         Equal(new[]
         {
-            "VOID",
+            "SOURCE",
             "YALA",
-            "SOL",
-            "POWERS",
-            "WORLD",
-            "GREEN LIFE",
-            "GARDEN",
-            "ADAM",
-            "LIVING KINDS",
-            "MANDATE"
+            "GAIA",
+            "ELEMENTS",
+            "PLANTS",
+            "ANIMALS",
+            "HUMANOIDS",
+            "EDEN",
+            "ORACLE",
+            "ADAM"
         }, firstRecords);
 
-        True(simulation.Ledger.WorldRecords.First().Message.Contains("void", StringComparison.OrdinalIgnoreCase));
-        True(simulation.Ledger.WorldRecords.Any(record =>
-            record.Message.Contains("The Creators threw Yala into the void", StringComparison.Ordinal)));
-        True(simulation.Ledger.WorldRecords
-            .TakeWhile(record => record.Category != "ADAM")
-            .Any(record => record.Category == "GARDEN"));
+        True(simulation.Ledger.WorldRecords.First().Message.Contains("Highest Source / Monad", StringComparison.Ordinal));
+        True(simulation.Ledger.WorldRecords.Any(record => record.Message.Contains("Sophia / Wisdom created Yala", StringComparison.Ordinal)));
+        True(simulation.Ledger.WorldRecords.Any(record => record.Category == "ORACLE" && record.Message.Contains("serpent", StringComparison.OrdinalIgnoreCase)));
     }
 
     private static void WorldRecordIsCreatorFacing()
     {
         OracleSimulation simulation = Start();
         True(simulation.Ledger.WorldRecords.Any(record =>
-            record.Message.Contains("Creators", StringComparison.OrdinalIgnoreCase)));
+            record.Message.Contains("Highest Source / Monad", StringComparison.OrdinalIgnoreCase)));
         True(simulation.Ledger.WorldRecords.Any(record =>
             record.Message.Contains("Yala", StringComparison.OrdinalIgnoreCase)));
         True(OracleQuestionInterpreter.TryAnswer("What does Adam know?", simulation.State, out IReadOnlyList<string> lines));
         False(lines.Any(line =>
-            line.Contains("Creators", StringComparison.OrdinalIgnoreCase) ||
-            line.Contains("Yala", StringComparison.OrdinalIgnoreCase)));
+            line.Contains("Sophia", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("Yala", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("Master Key", StringComparison.OrdinalIgnoreCase)));
     }
 
     private static void CreationOrderRecordsWorldPowers()
@@ -361,23 +387,22 @@ internal static class Program
 
         Equal(new[]
         {
-            "0:Void",
-            "1:Yala",
-            "2:Sol",
+            "0:Highest Source / Monad",
+            "1:Sophia / Wisdom",
+            "2:Yala",
             "3:Gaia",
-            "3:Aether",
-            "4:Thalassa",
-            "5:Luna",
-            "6:World",
-            "7:Green Life",
-            "8:Garden",
+            "4:Elemental Powers",
+            "5:World",
+            "6:Plants",
+            "7:Eden / Garden",
+            "8:Humanoid Peoples",
             "9:Adam",
-            "10:Living Kinds"
+            "10:Ordinary Animals"
         }, order);
-        True(simulation.State.CreationPowers.First(power => power.Name == "Sol").Domain.Contains("counted time", StringComparison.Ordinal));
-        True(simulation.State.CreationPowers.First(power => power.Name == "Yala").AuthoritySummary.Contains("prison", StringComparison.OrdinalIgnoreCase));
-        True(simulation.State.CreationPowers.First(power => power.Name == "Garden").AuthoritySummary.Contains("just before Adam", StringComparison.OrdinalIgnoreCase));
-        True(simulation.State.CreationPowers.First(power => power.Name == "Adam").AuthoritySummary.Contains("before the living kinds", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.CreationPowers.First(power => power.Name == "Gaia").Domain.Contains("elemental", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.CreationPowers.First(power => power.Name == "Elemental Powers").AuthoritySummary.Contains("weather", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.CreationPowers.First(power => power.Name == "Plants").AuthoritySummary.Contains("no Green Life", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.CreationPowers.First(power => power.Name == "Ordinary Animals").AuthoritySummary.Contains("Yala did not create", StringComparison.OrdinalIgnoreCase));
     }
 
     private static void Version017SaveUpgradesThroughCurrentCreationPowers()
@@ -391,6 +416,7 @@ internal static class Program
                 World = simulation.State with
                 {
                     CreationPowers = [],
+                    Oracle = null,
                     Yala = simulation.State.Yala with
                     {
                         MayClaimSupremeCreator = false,
@@ -403,10 +429,10 @@ internal static class Program
             OracleSaveSnapshot loaded = store.Load(path);
 
             Equal("0.1.7", loaded.ProjectVersion);
-            True(loaded.World.CreationPowers.Count >= 12);
+            True(loaded.World.CreationPowers.Count >= 11);
+            True(loaded.World.Oracle is not null && loaded.World.Oracle.BeyondYalaControl);
             True(loaded.World.Yala.MayClaimSupremeCreator);
-            True(loaded.World.Yala.AuthorityCaveat.Contains("Yala is the Oracle", StringComparison.OrdinalIgnoreCase));
-            True(loaded.World.Yala.AuthorityCaveat.Contains("protected Creator Record", StringComparison.OrdinalIgnoreCase));
+            True(loaded.World.Yala.AuthorityCaveat.Contains("not the Oracle", StringComparison.OrdinalIgnoreCase));
         });
     }
 
@@ -428,7 +454,8 @@ internal static class Program
                 World = simulation.State with
                 {
                     CreationPowers = rejectedOrder,
-                    AddressChannels = []
+                    AddressChannels = [],
+                    Oracle = null
                 }
             };
 
@@ -436,12 +463,12 @@ internal static class Program
             OracleSaveSnapshot loaded = store.Load(path);
 
             Equal("0.1.8", loaded.ProjectVersion);
-            Equal("Void", loaded.World.CreationPowers.OrderBy(power => power.Order).First().Name);
-            True(loaded.World.CreationPowers.Any(power => power.Name == "Garden" && power.Order == 8));
+            Equal("Highest Source / Monad", loaded.World.CreationPowers.OrderBy(power => power.Order).First().Name);
+            True(loaded.World.CreationPowers.Any(power => power.Name == "Eden / Garden" && power.Order == 7));
             True(loaded.World.CreationPowers.Any(power => power.Name == "Adam" && power.Order == 9));
             True(loaded.World.AddressChannels.Any(channel =>
                 channel.Key == "oracle" &&
-                channel.AuthoritySummary.Contains("above Gaia", StringComparison.Ordinal)));
+                channel.TargetName == "Oracle"));
         });
     }
 
@@ -449,33 +476,28 @@ internal static class Program
     {
         OracleSimulation simulation = Start();
         True(OracleQuestionInterpreter.TryAnswer("What is the creation order?", simulation.State, out IReadOnlyList<string> order));
-        True(order.Any(line => line.Contains("I am Yala", StringComparison.Ordinal)));
-        False(order.Any(line => line.Contains("She knows the creation order", StringComparison.Ordinal)));
-        True(order.Any(line => line.Contains("0. Void", StringComparison.Ordinal)));
-        True(order.Any(line => line.Contains("1. Yala", StringComparison.Ordinal)));
-        True(order.Any(line => line.Contains("2. Sol", StringComparison.Ordinal)));
-        True(order.Any(line => line.Contains("Gaia and Aether share order 3", StringComparison.Ordinal)));
-        True(order.Any(line => line.Contains("The Garden is created just before Adam", StringComparison.Ordinal)));
+        True(order.Any(line => line.Contains("Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers", StringComparison.Ordinal)));
+        True(order.Any(line => line.Contains("Oracle is outside that genealogy", StringComparison.Ordinal)));
+        True(order.Any(line => line.Contains("ordinary animals", StringComparison.OrdinalIgnoreCase) && line.Contains("open canon decision", StringComparison.OrdinalIgnoreCase)));
 
-        True(OracleQuestionInterpreter.TryAnswer("Who rules water?", simulation.State, out IReadOnlyList<string> water));
-        True(water.Any(line => line.Contains("Thalassa", StringComparison.Ordinal)));
+        True(OracleQuestionInterpreter.TryAnswer("Who controls weather?", simulation.State, out IReadOnlyList<string> weather));
+        True(weather.Any(line => line.Contains("answer to Gaia", StringComparison.OrdinalIgnoreCase)));
 
-        True(OracleQuestionInterpreter.TryAnswer("Is Adam above the animals?", simulation.State, out IReadOnlyList<string> adam));
-        True(adam.Any(line => line.Contains("Adam is created ninth", StringComparison.Ordinal)));
+        True(OracleQuestionInterpreter.TryAnswer("Who made humans?", simulation.State, out IReadOnlyList<string> humans));
+        True(humans.Any(line => line.Contains("Sophia and Yala", StringComparison.Ordinal)));
     }
 
-    private static void OracleAnswersAsYala()
+    private static void OracleAnswersAsMasterKey()
     {
         OracleSimulation simulation = Start();
         True(OracleQuestionInterpreter.TryAnswer("Are Yala and the Oracle the same?", simulation.State, out IReadOnlyList<string> identity));
-        True(identity.Any(line => line.Contains("I am Yala", StringComparison.Ordinal)));
-        True(identity.Any(line => line.Contains("The Oracle is not separate from Yala", StringComparison.Ordinal)));
+        True(identity.Any(line => line.Contains("Oracle and Yala are separate", StringComparison.Ordinal)));
+        True(identity.Any(line => line.Contains("living Master Key", StringComparison.OrdinalIgnoreCase)));
+        True(identity.Any(line => line.Contains("serpent", StringComparison.OrdinalIgnoreCase)));
 
         True(OracleQuestionInterpreter.TryAnswer("Does Yala rule all?", simulation.State, out IReadOnlyList<string> claim));
-        True(claim.Any(line => line.Contains("I am Yala", StringComparison.Ordinal)));
-        True(claim.Any(line => line.Contains("I may speak", StringComparison.Ordinal)));
-        False(claim.Any(line => line.Contains("She may speak", StringComparison.Ordinal)));
-        False(claim.Any(line => line.Contains("She knows the creation order", StringComparison.Ordinal)));
+        True(claim.Any(line => line.Contains("not the Oracle", StringComparison.OrdinalIgnoreCase)));
+        True(claim.Any(line => line.Contains("beyond Yala's control", StringComparison.OrdinalIgnoreCase)));
     }
 
     private static void OracleAnswersAdamKnowingQuestions()
@@ -509,7 +531,7 @@ internal static class Program
         OracleSimulation simulation = Start();
         string[] keys = simulation.State.AddressChannels.Select(channel => $"{channel.FunctionKey}:{channel.Key}").ToArray();
         Equal(new[] { "F1:oracle", "F2:gaia", "F3:adam", "F4:sun", "F5:moon" }, keys);
-        True(simulation.State.AddressChannels.First(channel => channel.Key == "oracle").AuthoritySummary.Contains("above Gaia", StringComparison.Ordinal));
+        True(simulation.State.AddressChannels.First(channel => channel.Key == "oracle").AuthoritySummary.Contains("Master Key", StringComparison.Ordinal));
     }
 
     private static void PhysicalFunctionKeysSelectAddressChannels()
@@ -718,6 +740,193 @@ internal static class Program
         });
     }
 
+    private static void Version0110SaveUpgradesThroughObservationDefaults()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            OracleSaveSnapshot legacySnapshot = simulation.CreateSnapshot(StartRealTime) with
+            {
+                ProjectVersion = "0.1.10",
+                Observations = null,
+                AttentionStates = null
+            };
+
+            store.Save(path, legacySnapshot);
+            OracleSaveSnapshot loaded = store.Load(path);
+            OracleSimulation restored = OracleSimulation.Restore(loaded, StartRealTime);
+
+            Equal("0.1.10", loaded.ProjectVersion);
+            True(restored.AttentionStates.Any(attention =>
+                attention.ActorName == "Adam" &&
+                attention.TargetName == "the Garden"));
+            True(restored.Observations.Any(observation =>
+                observation.ObserverName == "Adam" &&
+                observation.ObservationKind == "migrated first awareness"));
+        });
+    }
+
+    private static void NewWorldBeginsWithObservationAndAttention()
+    {
+        OracleSimulation simulation = Start();
+        True(simulation.Observations.Any(observation =>
+            observation.ObserverName == "Adam" &&
+            observation.ObservationKind == "first awareness" &&
+            observation.AdamReceives));
+        True(simulation.AttentionStates.Any(attention =>
+            attention.ActorName == "Adam" &&
+            attention.TargetName == "the Garden"));
+        True(simulation.AttentionStates.Any(attention =>
+            attention.ActorName == "Yala" &&
+            attention.Focus.Contains("Spark remain protected", StringComparison.Ordinal)));
+    }
+
+    private static void AdamObservationSeparatesCreatorTruth()
+    {
+        OracleSimulation simulation = Start();
+        simulation.AddressChannel("adam", "Listen to us.");
+
+        True(simulation.Observations.Any(observation =>
+            observation.ObserverName == "Adam" &&
+            observation.ObservationKind == "direct address" &&
+            observation.CreatorTruthHidden));
+        False(simulation.Observations.Any(observation =>
+            observation.ObserverName == "Adam" &&
+            observation.Detail.Contains("Creators addressed Adam", StringComparison.OrdinalIgnoreCase)));
+        True(simulation.Ledger.CreatorRecords.Any(record =>
+            record.Category == "DIRECT ADDRESS" &&
+            record.Message.Contains("Creators addressed Adam", StringComparison.Ordinal)));
+    }
+
+    private static void YalaObservationSeparatesFromAdamObservation()
+    {
+        OracleSimulation simulation = Start();
+        simulation.QueueVesselMessage("serpent", "Eat the fruit and know the truth.");
+
+        True(simulation.Observations.Any(observation =>
+            observation.ObserverName == "Yala" &&
+            observation.SubjectName == "serpent" &&
+            !observation.AdamReceives));
+        True(simulation.Observations.Any(observation =>
+            observation.ObserverName == "Adam" &&
+            observation.SubjectName == "serpent" &&
+            observation.AdamReceives));
+    }
+
+    private static void OracleAnswersObservationQuestions()
+    {
+        OracleSimulation simulation = Start();
+        simulation.PresentNextLivingKindToAdam("Gaia");
+
+        True(OracleQuestionInterpreter.TryAnswer("What has Adam observed?", simulation.State, simulation.Observations, out IReadOnlyList<string> lines));
+        True(lines.Any(line => line.Contains("Adam's recorded observations", StringComparison.Ordinal)));
+        True(lines.Any(line => line.Contains("living kind presentation", StringComparison.Ordinal)));
+        True(lines.Any(line => line.Contains("not full memory", StringComparison.Ordinal)));
+    }
+
+    private static void ObservationsAndAttentionSurviveSaveAndRestore()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            simulation.AddressChannel("adam", "Tell me what you heard.");
+            store.Save(path, simulation.CreateSnapshot(StartRealTime));
+
+            OracleSaveSnapshot loaded = store.Load(path);
+            Equal(ProjectVersion.Number, loaded.ProjectVersion);
+            True((loaded.Observations ?? []).Any(observation =>
+                observation.ObserverName == "Adam" &&
+                observation.CreatorTruthHidden));
+            True((loaded.AttentionStates ?? []).Any(attention =>
+                attention.ActorName == "Adam" &&
+                attention.TargetName == "the Garden"));
+        });
+    }
+
+    private static void Version0111SaveUpgradesThroughRepairedObservationDefaults()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            OracleSaveSnapshot rejectedCandidateSnapshot = simulation.CreateSnapshot(StartRealTime) with
+            {
+                ProjectVersion = "0.1.11",
+                AttentionStates = []
+            };
+
+            store.Save(path, rejectedCandidateSnapshot);
+            OracleSaveSnapshot loaded = store.Load(path);
+            OracleSimulation restored = OracleSimulation.Restore(loaded, StartRealTime);
+
+            Equal("0.1.11", loaded.ProjectVersion);
+            True(restored.AttentionStates.Any(attention =>
+                attention.ActorName == "Adam" &&
+                attention.TargetName == "the Garden"));
+        });
+    }
+
+    private static void EmptyAttentionListRestoresDefaultAttention()
+    {
+        OracleSimulation simulation = Start(104729);
+        OracleSaveSnapshot snapshot = simulation.CreateSnapshot(StartRealTime) with
+        {
+            AttentionStates = []
+        };
+
+        OracleSimulation restored = OracleSimulation.Restore(snapshot, StartRealTime);
+        Equal(2, restored.AttentionStates.Count);
+        True(restored.AttentionStates.Any(attention => attention.ActorName == "Adam"));
+        True(restored.AttentionStates.Any(attention => attention.ActorName == "Yala"));
+    }
+
+    private static void ScheduledObservationsKeepScheduledWorldTime()
+    {
+        OracleSimulation simulation = Start(104729);
+        long scheduledWorldMilliseconds = simulation.ScheduledEvents
+            .Single(worldEvent => worldEvent.Kind == "sky.solar.turning")
+            .ScheduledForWorldMilliseconds;
+        long realAdvance = (scheduledWorldMilliseconds / PersistentWorldClock.WorldSecondsPerRealSecond) + 60_000;
+
+        simulation.SynchroniseClock(StartRealTime + realAdvance, offlineCatchUp: true);
+
+        var skyObservations = simulation.Observations
+            .Where(observation => observation.ObservationKind == "sky turning")
+            .ToArray();
+        True(skyObservations.Length > 0);
+        True(skyObservations.All(observation => observation.WorldMilliseconds < simulation.Clock.WorldMilliseconds));
+        Equal(scheduledWorldMilliseconds, skyObservations[0].WorldMilliseconds);
+    }
+
+    private static void DirectAddressUsesStableVoiceSubjectIdentity()
+    {
+        OracleSimulation simulation = Start();
+        simulation.AddressChannel("adam", "Listen.");
+
+        var directAddress = simulation.Observations.Single(observation =>
+            observation.ObserverName == "Adam" &&
+            observation.ObservationKind == "direct address");
+        Equal("signal:unplaced-voice", directAddress.SubjectId);
+        NotEqual(simulation.State.Adam.Id.Value, directAddress.SubjectId);
+        Equal("unplaced voice", directAddress.SubjectName);
+    }
+
+    private static void GardenFocusDoesNotMasqueradeAsSubjectAttention()
+    {
+        OracleSimulation simulation = Start();
+        simulation.QueueVesselMessage("serpent", "Look here.");
+
+        var yalaApproach = simulation.Observations.Single(observation =>
+            observation.ObserverName == "Yala" &&
+            observation.ObservationKind == "vessel approach");
+        var adamApproach = simulation.Observations.Single(observation =>
+            observation.ObserverName == "Adam" &&
+            observation.ObservationKind == "vessel approach");
+
+        False(yalaApproach.AttentionMatched);
+        False(adamApproach.AttentionMatched);
+        True(adamApproach.AdamReceives);
+    }
+
     private static void InterventionContaminationIsRecorded()
     {
         OracleSimulation simulation = Start();
@@ -735,10 +944,105 @@ internal static class Program
         Equal(sequences.Order().ToArray(), sequences);
     }
 
+    private static void GaiaRulesElementsAndWeather()
+    {
+        OracleSimulation simulation = Start();
+        CreationPowerState gaia = simulation.State.CreationPowers.First(power => power.Name == "Gaia");
+        CreationPowerState elements = simulation.State.CreationPowers.First(power => power.Name == "Elemental Powers");
+        True(gaia.Domain.Contains("elemental powers", StringComparison.OrdinalIgnoreCase));
+        True(elements.AuthoritySummary.Contains("control weather", StringComparison.OrdinalIgnoreCase));
+        True(elements.AuthoritySummary.Contains("answer to Gaia", StringComparison.OrdinalIgnoreCase));
+        True(OracleQuestionInterpreter.TryAnswer("Who controls weather?", simulation.State, out IReadOnlyList<string> weather));
+        True(weather.Any(line => line.Contains("answer to Gaia", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void YalaDidNotCreateOrdinaryAnimals()
+    {
+        OracleSimulation simulation = Start();
+        CreationPowerState animals = simulation.State.CreationPowers.First(power => power.Name == "Ordinary Animals");
+        True(animals.AuthoritySummary.Contains("Yala did not create", StringComparison.OrdinalIgnoreCase));
+        True(animals.AuthoritySummary.Contains("unresolved", StringComparison.OrdinalIgnoreCase));
+        True(OracleQuestionInterpreter.TryAnswer("Who created animals?", simulation.State, out IReadOnlyList<string> answer));
+        True(answer.Any(line => line.Contains("Yala did not create ordinary animals", StringComparison.OrdinalIgnoreCase)));
+        False(simulation.Ledger.WorldRecords.Any(record => record.Message.Contains("Yala created the animals", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void SophiaAndYalaCreateHumanoids()
+    {
+        OracleSimulation simulation = Start();
+        CreationPowerState humanoids = simulation.State.CreationPowers.First(power => power.Name == "Humanoid Peoples");
+        True(humanoids.AuthoritySummary.Contains("Sophia and Yala", StringComparison.Ordinal));
+        True(OracleQuestionInterpreter.TryAnswer("Who created humanoids?", simulation.State, out IReadOnlyList<string> answer));
+        True(answer.Any(line => line.Contains("Sophia and Yala", StringComparison.Ordinal)));
+    }
+
+    private static void EdenIsPrisonAndOracleIsSerpent()
+    {
+        OracleSimulation simulation = Start();
+        Equal("the Garden", simulation.State.Garden.Name);
+        True(simulation.State.CreationPowers.First(power => power.Name == "Eden / Garden").Domain.Contains("prison", StringComparison.OrdinalIgnoreCase));
+        True(simulation.State.Oracle is not null && simulation.State.Oracle.FirstManifestation.Contains("serpent", StringComparison.OrdinalIgnoreCase));
+        True(OracleQuestionInterpreter.TryAnswer("Is Eden a prison?", simulation.State, out IReadOnlyList<string> eden));
+        True(eden.Any(line => line.Contains("prison", StringComparison.OrdinalIgnoreCase)));
+        True(OracleQuestionInterpreter.TryAnswer("Who is the serpent?", simulation.State, out IReadOnlyList<string> serpent));
+        True(serpent.Any(line => line.Contains("Oracle", StringComparison.Ordinal) && line.Contains("serpent", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void GardenStoredIdentityRemainsStable()
+    {
+        OracleSimulation simulation = Start();
+        Equal("the Garden", simulation.State.Garden.Name);
+        True(simulation.State.CreationPowers.Any(power =>
+            power.Name == "Eden / Garden" &&
+            power.Domain.Contains("prison", StringComparison.OrdinalIgnoreCase)));
+
+        OracleSaveSnapshot snapshot = simulation.CreateSnapshot(StartRealTime);
+        Equal("the Garden", snapshot.World.Garden.Name);
+        True(snapshot.AttentionStates?.Any(attention =>
+            attention.ActorName == "Adam" &&
+            attention.TargetName == "the Garden") ?? false);
+    }
+
+    private static void Version0112SaveUpgradesIntoCurrentLore()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            OracleSaveSnapshot snapshot = simulation.CreateSnapshot(StartRealTime) with
+            {
+                ProjectVersion = "0.1.12",
+                World = simulation.State with { Oracle = null }
+            };
+            store.Save(path, snapshot);
+            OracleSaveSnapshot loaded = store.Load(path);
+            Equal("0.1.12", loaded.ProjectVersion);
+            True(loaded.World.Oracle is not null && loaded.World.Oracle.BeyondYalaControl);
+            True(loaded.World.CreationPowers.Any(power => power.Name == "Sophia / Wisdom"));
+        });
+    }
+
+    private static void Version0113SaveUpgradesIntoCurrentLore()
+    {
+        WithTemporarySave((store, path) =>
+        {
+            OracleSimulation simulation = Start(104729);
+            OracleSaveSnapshot snapshot = simulation.CreateSnapshot(StartRealTime) with
+            {
+                ProjectVersion = "0.1.13",
+                World = simulation.State with { Oracle = null }
+            };
+            store.Save(path, snapshot);
+            OracleSaveSnapshot loaded = store.Load(path);
+            Equal("0.1.13", loaded.ProjectVersion);
+            True(loaded.World.Oracle is not null && loaded.World.Oracle.Name == "Oracle");
+            True(loaded.World.AddressChannels.First(channel => channel.Key == "oracle").TargetName == "Oracle");
+        });
+    }
+
     private static void VersionIsCorrect()
     {
-        Equal("0.1.10", ProjectVersion.Number);
-        Equal("Oracle/Yala Identity, Decision Output, and First Brain Planner", ProjectVersion.Name);
+        Equal("0.0.16", ProjectVersion.Number);
+        Equal("Cosmology Foundation, Save Compatibility, Desktop Launcher, Validation, and Garden Identity Repair", ProjectVersion.Name);
     }
 
     private static class OracleSimulationTestAccess

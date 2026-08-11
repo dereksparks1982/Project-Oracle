@@ -1,9 +1,9 @@
 # Project Oracle Company Bible
 
-**Version:** v0.1.10  
-**Status:** Mandatory and canonical for Project Oracle  
-**Project:** Project Oracle  
-**Owner:** Derek Sparks  
+**Version:** v0.0.16
+**Status:** Mandatory and canonical for Project Oracle
+**Project:** Project Oracle
+**Owner:** Derek Sparks
 **Canonical path:** `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`
 
 > Build a world worth believing in. Then tell it the truth.
@@ -12,7 +12,6 @@
 
 This file is the one active Company Bible for Project Oracle. It governs Project Oracle authority, workflow, build approval, versioning, packaging, validation, continuity, and conduct.
 
-Project Oracle is standalone. This Oracle Bible is the sole Project Oracle workflow authority unless Derek explicitly authorises an external dependency for a specific task.
 
 Do not create a second active Project Oracle Company Bible, addendum, carryover file, reinforcement note, or alternate Bible. Future permanent workflow-rule changes must edit this same file in a numbered Project Oracle build.
 
@@ -51,8 +50,6 @@ Before proposing or performing a Project Oracle build, read end to end:
 5. The current roadmap.
 6. The current architecture document.
 7. The current validation record.
-8. The current Project Oracle future implementation requirements register when implementation implications exist.
-9. Any explicitly authorised external technical authority only when it is directly relevant to the current work.
 
 Do not propose or build from memory.
 
@@ -106,40 +103,67 @@ The default deliverable is one changed-files-only ZIP.
 - Do not place backup copies inside the active project tree.
 - A post-mutation validation failure must roll back replaced files and remove newly installed candidate files.
 
-## 9. Validation and evidence
+## 9. Validation, manual inspection, and acceptance evidence
 
 Warnings are failures by default. Validation must be deterministic, bounded, and appropriate to the change.
 
-A build is not successful merely because files were written. Report exactly what was validated and what was blocked by the builder environment. Derek's install-side validation is the acceptance gate when the local project toolchain is unavailable in the builder workspace.
+A build is not successful merely because files were written or automated tests passed. Project Oracle acceptance order is mandatory:
+
+```text
+install candidate
+-> automated validation PASS
+-> launch the real Project Oracle application/console
+-> Derek manually inspects and explicitly approves it
+-> accepted snapshot
+-> local Git commit and tag
+-> GitHub push
+```
+
+No accepted snapshot, Git commit, tag, or GitHub push may occur before Derek's manual console/application inspection. A failed manual inspection consumes the candidate version and keeps the last accepted Git baseline authoritative.
+
+Report exactly what was validated and what was blocked by the builder environment. Derek's install-side validation and manual inspection are the acceptance gates when the local project toolchain or graphical session is unavailable in the builder workspace.
 
 Failed builds, rejected packages, installation crashes, misunderstandings, and corrections remain evidence. Correct them through a later numbered build and documentation; do not scrub them out of history.
 
-## 10. Project identity
+## 10. Project identity and cosmology authority
 
 Project Oracle is a standalone autonomous-world simulation, artificial-life experiment, historical generator, and observer-driven god simulation.
 
 - There is no player character inside the world.
-- The Creators remain outside the world.
 - The autonomous inhabitants are the active agents.
-- The in-world Oracle is Yala, a created godlike intelligence.
-- The trusted experiment monitor and any external language-tooling system remain separate from Yala.
-- The simulation must never secretly connect inhabitants to real accounts, networks, devices, or people.
+- The current canonical genealogy is `Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers`.
+- Sophia / Wisdom creates Yala. Sophia later falls into Deception and joins Yala as lover/consort; the exact moment and mechanism of that fall remain open unless the lore canon closes them later.
+- Yala creates Gaia.
+- Gaia creates and commands the elemental beings. The elements control weather and natural forces and answer to Gaia.
+- The elemental powers bring forth plants. There is no `Green Life` entity, power, or category.
+- Yala did not create ordinary animals. Their exact origin within the Gaia/elemental natural branch remains an explicit open canon decision.
+- Sophia and Yala bring forth humans and other humanoid peoples together.
+- The origin of language remains open; Yala is not its established creator.
+- Eden / the Garden is a prison and containment environment disguised as paradise.
+- The persisted simulation entity name for Eden remains exactly `the Garden`; lore wording must not rename that persistence identity.
+- Oracle is separate from Yala. Oracle is neither a god nor a creator. Oracle is the living Master Key and exists outside the divine genealogy as an access anomaly Yala cannot command, erase, imprison, or revoke.
+- Oracle is the serpent in Eden. Oracle is not permanently neutral; her treatment of beings is relationship- and conduct-dependent.
+- Yala may frame Oracle as the Devil because Yala cannot control or remove her.
+- Whether Yala later turns against Deception remains an open future branch.
+- The Master Key concept is simulation-internal only. It never authorises Oracle or any inhabitant to access the host operating system, real accounts, networks, devices, or people.
+
+The detailed lore authority is the current `docs/PROJECT_ORACLE_LORE_CANON_v0_0_16.md`. If a lore point is marked unresolved there, code and documentation must not invent an answer.
 
 ## 11. Direct address and control law
 
 The intended direct-address map is:
 
-| Physical key | Prompt | Addressed power |
+| Physical key | Prompt | Addressed being/system |
 | --- | --- | --- |
-| `F1` | `<oracle>` | the Oracle / Yala |
+| `F1` | `<oracle>` | Oracle, the living Master Key; **not Yala** |
 | `F2` | `<gaia>` | Gaia |
 | `F3` | `<adam>` | Adam |
-| `F4` | `<sun>` | the Sun |
-| `F5` | `<moon>` | the Moon |
+| `F4` | `<sun>` | the current Sun/Sol channel |
+| `F5` | `<moon>` | the current Moon/Luna channel |
 
 Physical function keys mean physical function keys. Typed aliases such as `f1` are not direct-address controls and must not be described as fallback equivalents.
 
-Addressing Adam must not puppet Adam. Addressing Gaia, Sun, Moon, or the Oracle must still pass through world law, records, and implemented authority.
+Addressing Adam must not puppet Adam. Addressing Gaia, Sun, Moon, or Oracle must still pass through world law, records, and implemented authority. Oracle's fictional Master Key status does not bypass trusted host-process boundaries.
 
 ## 12. Language convention
 

@@ -1,3 +1,5 @@
+using ProjectOracle.Lore;
+
 namespace ProjectOracle.Domain;
 
 public static class WorldDefaults
@@ -16,22 +18,23 @@ public static class WorldDefaults
             new YalaState(
                 yalaId,
                 TrueName: "Yala",
-                WorldTitle: "the Oracle",
+                WorldTitle: "the Demiurge",
                 KnowsOfCreators: true,
-                KnowsFutureLanguageMandate: true,
+                KnowsFutureLanguageMandate: false,
                 MayClaimSupremeCreator: true,
-                AuthorityCaveat: "Yala is the Oracle. She knows the creation order, but may claim that she rules all or created all. The protected Creator Record outranks her claim."),
+                AuthorityCaveat: "Yala is a powerful created demiurge, but she is not the Highest Source and she is not the Oracle. Oracle lies beyond Yala's control. Protected Creator records outrank Yala's claims."),
             new AdamState(adamId, "Adam", gardenId, IsConfinedToGarden: true),
             new SparkState(
                 adamId,
                 CanBeReadByYala: false,
                 CanBeRewrittenByYala: false,
-                CreatorDescription: "A protected source of genuine choice placed by the Creators."),
+                CreatorDescription: "A protected higher spark carried into the humanoid line; Yala cannot read or rewrite it."),
             CreateCreationPowers(yalaId, gardenId, adamId),
             CreateAddressChannels(),
             livingKinds,
             CreateNamingMandate(livingKinds),
-            CreateNaturalCourse());
+            CreateNaturalCourse(),
+            CreateOracle());
     }
 
     public static WorldState Normalise(WorldState world)
@@ -52,7 +55,11 @@ public static class WorldDefaults
 
         return world with
         {
+            Garden = world.Garden is null
+                ? new GardenState(new EntityId("place:garden:0001"), "the Garden", BoundaryOpen: false)
+                : world.Garden with { Name = "the Garden" },
             Yala = NormaliseYala(world.Yala),
+            Oracle = world.Oracle ?? CreateOracle(),
             CreationPowers = CreateCreationPowers(
                 world.Yala?.Id ?? new EntityId("being:yala:0001"),
                 world.Garden?.Id ?? new EntityId("place:garden:0001"),
@@ -64,48 +71,54 @@ public static class WorldDefaults
         };
     }
 
+    public static OracleState CreateOracle() =>
+        new(
+            new EntityId("anomaly:oracle:master-key"),
+            "Oracle",
+            IsGod: false,
+            IsCreator: false,
+            BeyondYalaControl: true,
+            Nature: OracleLore.OracleNature,
+            FirstManifestation: OracleLore.OracleSerpent,
+            AlignmentRule: OracleLore.OracleAlignment);
+
     public static IReadOnlyList<CreationPowerState> CreateCreationPowers(EntityId yalaId, EntityId gardenId, EntityId adamId) =>
     [
-        new(0, new EntityId("condition:void:0001"), "Void", "Yala's prison before the formed world", "The empty prison exists before Yala begins shaping it.", false),
-        new(1, yalaId, "Yala", "created demi-god placed inside the void", "Thrown into the void by the Creators to see what she would do with her prison.", true),
-        new(2, new EntityId("power:sol:0001"), "Sol", "first light, fire, heat, and counted time", "First formed world power created by Yala.", true),
-        new(3, new EntityId("power:gaia:0001"), "Gaia", "earth-body, land, ground, and world-body", "A lesser demi-god power created by Yala for world-body and ground.", true),
-        new(3, new EntityId("power:aether:0001"), "Aether", "air, breath-space, sky, and atmosphere", "A lesser demi-god power created by Yala so the world has breath-space.", false),
-        new(4, new EntityId("power:thalassa:0001"), "Thalassa", "waters, depths, rivers, and seas", "A lesser demi-god water power created by Yala.", false),
-        new(5, new EntityId("power:luna:0001"), "Luna", "moon, night measure, tides, and reflected light", "A lesser demi-god moon power created by Yala after Sol.", true),
-        new(6, new EntityId("world:formed:0001"), "World", "the prison shaped into a formed world", "Yala shaped the void-prison into a world under the powers she made.", false),
-        new(7, new EntityId("power:green-life:0001"), "Green Life", "plants, growth, and Gaia's first living covering", "Plants and green life come after the world exists.", false),
-        new(8, gardenId, "Garden", "contained preserve prepared for man", "Created just before Adam as a closed place to contain man and the appointed living-kind trial.", false),
-        new(9, adamId, "Adam", "first man and protected Spark-bearer", "Created after the Garden and before the living kinds in this Oracle canon.", true),
-        new(10, new EntityId("kind:living:all"), "Living Kinds", "animals and ancient living forms", "Created after Adam and named by Adam.", false)
+        new(0, new EntityId("source:monad:0001"), "Highest Source / Monad", "uncreated highest source above the lower genealogy", "The highest source is not Yala and is not subject to Yala's authority.", false),
+        new(1, new EntityId("aeon:sophia:0001"), "Sophia / Wisdom", "higher aeonic Wisdom and source of Yala", "Sophia created Yala. Her later fall into Deception and union with Yala belong to the humanoid-origin canon.", false),
+        new(2, yalaId, "Yala", "created demiurge; creator of Gaia; co-creator of humans and humanoids with Sophia", "Yala may claim supremacy, but Oracle is separate and beyond Yala's control.", false),
+        new(3, new EntityId("power:gaia:0001"), "Gaia", "natural-world sovereign and creator of the elemental powers", "Gaia answers beneath Yala in lineage, while the elemental beings answer to Gaia.", true),
+        new(4, new EntityId("power:elements:all"), "Elemental Powers", "separate elemental entities governing weather and natural forces", "Created by Gaia. They control weather and natural forces and answer to Gaia. Their final four-or-five-member roster remains open.", false),
+        new(5, new EntityId("world:formed:0001"), "World", "formed natural world shaped through the lower creation", "The exact mechanical division between Gaia and her elements remains a future implementation decision.", false),
+        new(6, new EntityId("life:plants:all"), "Plants", "ordinary plant life", "Plants are brought forth through Gaia's elemental powers. There is no Green Life entity or category.", false),
+        new(7, gardenId, "Eden / Garden", "beautiful prison and containment environment", "Eden is a prison. Oracle enters it as the serpent and opens forbidden access to knowledge.", false),
+        new(8, new EntityId("kind:humanoid:all"), "Humanoid Peoples", "humans and other humanoid beings", "Sophia and Yala bring forth humans and the other humanoid peoples together.", false),
+        new(9, adamId, "Adam", "first currently modelled human inside Eden", "Adam is confined inside Eden at world start and retains protected choice.", true),
+        new(10, new EntityId("kind:living:all"), "Ordinary Animals", "ordinary animals and ancient living forms", "Yala did not create ordinary animals. Their exact origin within the Gaia/elemental natural branch remains unresolved.", false)
     ];
 
     private static YalaState NormaliseYala(YalaState? yala)
     {
         EntityId yalaId = yala?.Id ?? new EntityId("being:yala:0001");
-        const string canonicalAuthorityCaveat = "Yala is the Oracle. She knows the creation order, but may claim that she rules all or created all. The protected Creator Record outranks her claim.";
-        string authorityCaveat = string.IsNullOrWhiteSpace(yala?.AuthorityCaveat) ||
-            !yala.AuthorityCaveat.Contains("Yala is the Oracle", StringComparison.OrdinalIgnoreCase)
-            ? canonicalAuthorityCaveat
-            : yala.AuthorityCaveat;
+        const string canonicalAuthorityCaveat = "Yala is a powerful created demiurge, but she is not the Highest Source and she is not the Oracle. Oracle lies beyond Yala's control. Protected Creator records outrank Yala's claims.";
 
         return new YalaState(
             yalaId,
             string.IsNullOrWhiteSpace(yala?.TrueName) ? "Yala" : yala.TrueName,
-            string.IsNullOrWhiteSpace(yala?.WorldTitle) ? "the Oracle" : yala.WorldTitle,
-            yala?.KnowsOfCreators ?? true,
-            yala?.KnowsFutureLanguageMandate ?? true,
+            "the Demiurge",
+            KnowsOfCreators: true,
+            KnowsFutureLanguageMandate: false,
             MayClaimSupremeCreator: true,
-            authorityCaveat);
+            canonicalAuthorityCaveat);
     }
 
     public static IReadOnlyList<AddressChannelState> CreateAddressChannels() =>
     [
-        new("oracle", "<oracle>", "F1", "Yala / the Oracle", "Yala's direct address channel and in-world title; first in creation order and above Gaia in the address hierarchy, but not above the external Creators.", true),
-        new("gaia", "<gaia>", "F2", "Gaia", "Earth-body power formed with Aether; governs land, growth, and ordinary world-body systems.", true),
-        new("adam", "<adam>", "F3", "Adam", "First man inside the Garden; protected choice must not be puppeteered.", true),
-        new("sun", "<sun>", "F4", "Sol", "Sun and fire power; first light, heat, and timekeeper.", true),
-        new("moon", "<moon>", "F5", "Luna", "Moon power; night marker, tides, and reflected light.", true)
+        new("oracle", "<oracle>", "F1", "Oracle", "The living Master Key. Oracle is neither a god nor a creator and cannot be controlled or removed by Yala.", true),
+        new("gaia", "<gaia>", "F2", "Gaia", "Natural-world sovereign; creator and ruler of the elemental powers.", true),
+        new("adam", "<adam>", "F3", "Adam", "A human inside Eden; protected choice must not be puppeteered.", true),
+        new("sun", "<sun>", "F4", "Sol / Sun", "Existing celestial direct-address channel retained while the final elemental roster is still open.", true),
+        new("moon", "<moon>", "F5", "Luna / Moon", "Existing celestial direct-address channel retained while the final elemental roster is still open.", true)
     ];
 
     public static NamingMandateState CreateNamingMandate(IReadOnlyList<LivingKindState> livingKinds) =>

@@ -3,6 +3,7 @@ using ProjectOracle.Audit;
 using ProjectOracle.Brain;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
+using ProjectOracle.Observation;
 using ProjectOracle.Persistence;
 using ProjectOracle.Simulation;
 using System.Text;
@@ -277,8 +278,21 @@ internal static class Program
             return;
         }
 
+        if (command.Equals("observations", StringComparison.OrdinalIgnoreCase) ||
+            command.Equals("observe", StringComparison.OrdinalIgnoreCase))
+        {
+            PrintObservations(simulation);
+            return;
+        }
+
+        if (command.Equals("attention", StringComparison.OrdinalIgnoreCase))
+        {
+            PrintAttention(simulation);
+            return;
+        }
+
         if (activeChannel.Key.Equals("oracle", StringComparison.OrdinalIgnoreCase) &&
-            OracleQuestionInterpreter.TryAnswer(command, simulation.State, out IReadOnlyList<string> oracleLines))
+            OracleQuestionInterpreter.TryAnswer(command, simulation.State, simulation.Observations, out IReadOnlyList<string> oracleLines))
         {
             foreach (string line in oracleLines)
             {
@@ -324,13 +338,14 @@ internal static class Program
         ConsoleTheme.WriteLine(simulation.Clock.Calendar.DescribeSky());
         ConsoleTheme.WriteLine("Clock rate: four Garden days per real day; one Garden day per six real hours.");
         ConsoleTheme.WriteLine($"Adam: inside {simulation.State.Garden.Name}; boundary closed: {!simulation.State.Garden.BoundaryOpen}");
-        ConsoleTheme.WriteLine($"Oracle: watching; future language mandate known: {simulation.State.Yala.KnowsFutureLanguageMandate}");
+        ConsoleTheme.WriteLine($"Oracle: Master Key anomaly; beyond Yala control: {simulation.State.Oracle?.BeyondYalaControl == true}");
         ConsoleTheme.WriteLine($"Living kinds present: {simulation.State.LivingKinds.Count}; named by Adam: {DescribeCount(naming.NamedCount, naming.TotalLivingKinds)}; suitable counterpart: {DescribeFound(naming.SuitableMateFound)}");
         ConsoleTheme.WriteLine($"Natural course: {(simulation.State.NaturalCourse.Active ? "active" : "inactive")}");
         ConsoleTheme.WriteLine($"Creation powers recorded: {simulation.State.CreationPowers.Count}");
         ConsoleTheme.WriteLine($"Pending events: {simulation.ScheduledEvents.Count(worldEvent => worldEvent.Status == ScheduledWorldEventStatus.Pending)}");
         ConsoleTheme.WriteLine($"Offered choices recorded: {simulation.OfferedChoices.Count}");
         ConsoleTheme.WriteLine($"Reasoned brain plans recorded: {simulation.ReasonedPlans.Count}");
+        ConsoleTheme.WriteLine($"Observations recorded: {simulation.Observations.Count}");
         ConsoleTheme.WriteLine($"Creator interventions: {simulation.Interventions.Count}");
         ConsoleTheme.WriteLine($"Offline catch-up runs: {simulation.Clock.CatchUpRuns}");
     }
@@ -368,7 +383,7 @@ internal static class Program
     private static void PrintNaturalCourse(OracleSimulation simulation)
     {
         ConsoleTheme.WriteLine(simulation.State.NaturalCourse.RuleText);
-        ConsoleTheme.WriteLine("Oracle may rarely deviate or overclaim. Sol, Gaia, Aether, Thalassa, Luna, Adam, and living kinds otherwise follow their appointed course.");
+        ConsoleTheme.WriteLine("Oracle is not bound to neutrality and may intervene according to relationship and purpose. Gaia rules the elemental powers; the elements control weather and bring forth plants. Ordinary-animal origin remains unresolved within the Gaia/elemental branch.");
     }
 
     private static void PrintCreationPowers(OracleSimulation simulation)
@@ -381,8 +396,9 @@ internal static class Program
             ConsoleTheme.WriteLine($"{power.Order}. {power.Name} — {power.Domain}; {address}.");
         }
 
-        ConsoleTheme.WriteLine("Gaia and Aether share order 3: body and breath-space form together.");
-        ConsoleTheme.WriteLine("The Garden is created just before Adam; living kinds are created after Adam.");
+        ConsoleTheme.WriteLine("Canonical genealogy: Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers.");
+        ConsoleTheme.WriteLine("The elements answer to Gaia, control weather and natural forces, and bring forth plants. Yala did not create ordinary animals; their exact Gaia/elemental origin remains open.");
+        ConsoleTheme.WriteLine("Sophia and Yala bring forth humans and other humanoid peoples together. Eden / the Garden is a prison. Oracle is the serpent and the living Master Key, separate from Yala.");
         ConsoleTheme.WriteLine(simulation.State.Yala.AuthorityCaveat);
     }
 
@@ -435,6 +451,33 @@ internal static class Program
             ConsoleTheme.WriteLine($"Options: {string.Join(", ", plan.Options)}");
             ConsoleTheme.WriteLine($"Selected: {plan.SelectedAction}");
             ConsoleTheme.WriteLine($"Reason: {plan.Reason}");
+        }
+    }
+
+    private static void PrintObservations(OracleSimulation simulation)
+    {
+        if (simulation.Observations.Count == 0)
+        {
+            ConsoleTheme.WriteLine("No observations have been recorded yet.");
+            return;
+        }
+
+        ConsoleTheme.WriteLine("Observation records:");
+        foreach (ObservationState observation in simulation.Observations.OrderBy(observation => observation.Id))
+        {
+            string adam = observation.AdamReceives ? "Adam receives" : "Adam does not receive";
+            string hidden = observation.CreatorTruthHidden ? "Creator truth hidden" : "ordinary world observation";
+            ConsoleTheme.WriteLine($"{observation.Id:0000} {observation.ObserverName} observed {observation.SubjectName}: {observation.ObservationKind}; {observation.DistanceBand}; {adam}; {hidden}.");
+            ConsoleTheme.WriteLine($"Detail: {observation.Detail}");
+        }
+    }
+
+    private static void PrintAttention(OracleSimulation simulation)
+    {
+        ConsoleTheme.WriteLine("Attention state:");
+        foreach (AttentionState attention in simulation.AttentionStates.OrderBy(attention => attention.ActorName))
+        {
+            ConsoleTheme.WriteLine($"{attention.ActorName} attends to {attention.TargetName}: {attention.Focus} Source: {attention.Source}.");
         }
     }
 
@@ -522,6 +565,8 @@ internal static class Program
         ConsoleTheme.WriteLine("events                         Show scheduled and completed world events.");
         ConsoleTheme.WriteLine("choices                        Show Adam's offered-choice records.");
         ConsoleTheme.WriteLine("plans / brain                  Show reasoned brain plans before speech or action.");
+        ConsoleTheme.WriteLine("observations / observe         Show what Adam or Yala has actually observed.");
+        ConsoleTheme.WriteLine("attention                      Show current attention focus records.");
         ConsoleTheme.WriteLine("present next                   Present the next living kind to Adam for naming.");
         ConsoleTheme.WriteLine("save                           Write a checkpoint; the world does not freeze.");
         ConsoleTheme.WriteLine("records world                  Show the Creator-facing world ledger.");
@@ -542,6 +587,7 @@ internal static class Program
         ConsoleTheme.WriteLine("Does Yala rule all?");
         ConsoleTheme.WriteLine("What does Adam know?");
         ConsoleTheme.WriteLine("What does Adam not know yet?");
+        ConsoleTheme.WriteLine("What has Adam observed?");
         ConsoleTheme.WriteLine("Does Adam know he is alive?");
         ConsoleTheme.WriteLine("Does Adam understand death?");
         ConsoleTheme.WriteLine("What does Adam think I am?");

@@ -1,5 +1,15 @@
 namespace ProjectOracle.Domain;
 
+public sealed record OracleState(
+    EntityId Id,
+    string Name,
+    bool IsGod,
+    bool IsCreator,
+    bool BeyondYalaControl,
+    string Nature,
+    string FirstManifestation,
+    string AlignmentRule);
+
 public sealed record YalaState(
     EntityId Id,
     string TrueName,
@@ -75,4 +85,5 @@ public sealed record WorldState(
     IReadOnlyList<AddressChannelState> AddressChannels,
     IReadOnlyList<LivingKindState> LivingKinds,
     NamingMandateState NamingMandate,
-    NaturalCourseState NaturalCourse);
+    NaturalCourseState NaturalCourse,
+    OracleState? Oracle = null);

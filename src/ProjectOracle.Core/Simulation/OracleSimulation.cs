@@ -3,6 +3,7 @@ using ProjectOracle.Brain;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
 using ProjectOracle.Interventions;
+using ProjectOracle.Observation;
 using ProjectOracle.Persistence;
 
 namespace ProjectOracle.Simulation;
@@ -17,10 +18,13 @@ public sealed class OracleSimulation
     private readonly List<ScheduledWorldEvent> _scheduledEvents = [];
     private readonly List<OfferedChoiceState> _offeredChoices = [];
     private readonly List<ReasonedPlanState> _reasonedPlans = [];
+    private readonly List<ObservationState> _observations = [];
+    private readonly List<AttentionState> _attentionStates = [];
     private long _nextInterventionId = 1;
     private long _nextEventId = 1;
     private long _nextChoiceId = 1;
     private long _nextPlanId = 1;
+    private long _nextObservationId = 1;
 
     private OracleSimulation(ulong seed, long realUnixMilliseconds)
     {
@@ -29,6 +33,7 @@ public sealed class OracleSimulation
         Ledger = new AuditLedger();
         State = CreateInitialState(seed);
         RecordGenesis();
+        InitialiseObservationAndAttention();
         EnsureSolarTurningScheduled();
     }
 
@@ -46,10 +51,27 @@ public sealed class OracleSimulation
         _scheduledEvents.AddRange((snapshot.ScheduledEvents ?? []).OrderBy(worldEvent => worldEvent.Id));
         _offeredChoices.AddRange((snapshot.OfferedChoices ?? []).OrderBy(choice => choice.Id));
         _reasonedPlans.AddRange((snapshot.ReasonedPlans ?? []).OrderBy(plan => plan.Id));
+        _observations.AddRange((snapshot.Observations ?? []).OrderBy(observation => observation.Id));
+        _attentionStates.AddRange(snapshot.AttentionStates is { Count: > 0 } attentionStates
+            ? attentionStates
+            : CreateDefaultAttentionStates());
         _nextInterventionId = _interventions.Count == 0 ? 1 : checked(_interventions[^1].Id + 1);
         _nextEventId = _scheduledEvents.Count == 0 ? 1 : checked(_scheduledEvents[^1].Id + 1);
         _nextChoiceId = _offeredChoices.Count == 0 ? 1 : checked(_offeredChoices[^1].Id + 1);
         _nextPlanId = _reasonedPlans.Count == 0 ? 1 : checked(_reasonedPlans[^1].Id + 1);
+        _nextObservationId = _observations.Count == 0 ? 1 : checked(_observations[^1].Id + 1);
+        if (_observations.Count == 0)
+        {
+            RecordAdamObservation(
+                State.Garden.Id.Value,
+                State.Garden.Name,
+                "migrated first awareness",
+                "Adam's pre-observation save was given a first observation boundary: he knows presence, place, movement, sight, sound, and the Garden as the place of his being.",
+                "self and place",
+                attentionMatched: true,
+                creatorTruthHidden: true,
+                source: "save migration");
+        }
     }
 
     public PersistentWorldClock Clock { get; }
@@ -67,6 +89,10 @@ public sealed class OracleSimulation
     public IReadOnlyList<OfferedChoiceState> OfferedChoices => _offeredChoices.AsReadOnly();
 
     public IReadOnlyList<ReasonedPlanState> ReasonedPlans => _reasonedPlans.AsReadOnly();
+
+    public IReadOnlyList<ObservationState> Observations => _observations.AsReadOnly();
+
+    public IReadOnlyList<AttentionState> AttentionStates => _attentionStates.AsReadOnly();
 
     public static OracleSimulation Start(ulong seed, long realUnixMilliseconds) => new(seed, realUnixMilliseconds);
 
@@ -175,6 +201,15 @@ public sealed class OracleSimulation
             Clock.WorldMilliseconds,
             "SIGN",
             $"A {intervention.Vessel} approached Adam. It has not spoken yet.");
+        RecordGardenObservation(
+            subjectId: $"intervention:{intervention.Id}",
+            subjectName: intervention.Vessel,
+            observationKind: "vessel approach",
+            detail: $"A {intervention.Vessel} approached within Adam's Garden horizon.",
+            distanceBand: "near",
+            adamReceives: true,
+            creatorTruthHidden: true,
+            source: "intervention queue");
 
         return intervention;
     }
@@ -199,6 +234,15 @@ public sealed class OracleSimulation
                 Clock.WorldMilliseconds,
                 "VOICE",
                 "Adam heard a direct address from beyond his ordinary world.");
+            RecordAdamObservation(
+                "signal:unplaced-voice",
+                "unplaced voice",
+                "direct address",
+                "Adam perceived a voice, but not the Creators behind it.",
+                "unplaced",
+                attentionMatched: true,
+                creatorTruthHidden: true,
+                source: "direct address");
             OfferedChoiceState choice = OfferAdamDirectAddressChoice(channel, message.Trim());
             Ledger.RecordWorld(
                 Clock.WorldMilliseconds,
@@ -259,6 +303,15 @@ public sealed class OracleSimulation
             Clock.WorldMilliseconds,
             "NAMING",
             $"{presenter.Trim()} presented a living kind to Adam. Adam reasoned first, then decided to name it {named.AdamName} because {namingReason} No suitable mate was found.");
+        RecordAdamObservation(
+            named.Id.Value,
+            named.AncientKind,
+            "living kind presentation",
+            $"Adam observed {named.AncientKind}: {named.Form}.",
+            "near",
+            attentionMatched: true,
+            creatorTruthHidden: false,
+            source: "naming mandate");
         Ledger.RecordCreator(
             Clock.WorldMilliseconds,
             "NAMING",
@@ -285,31 +338,53 @@ public sealed class OracleSimulation
             _interventions.ToArray(),
             _scheduledEvents.ToArray(),
             _offeredChoices.ToArray(),
-            _reasonedPlans.ToArray());
+            _reasonedPlans.ToArray(),
+            _observations.ToArray(),
+            _attentionStates.ToArray());
     }
 
     private static WorldState CreateInitialState(ulong seed) => WorldDefaults.CreateInitialState(seed);
 
     private void RecordGenesis()
     {
-        Ledger.RecordWorld(0, "VOID", "The void existed as Yala's prison before the formed world.");
-        Ledger.RecordWorld(0, "YALA", "The Creators threw Yala into the void to see what she would do with her prison.");
-        Ledger.RecordWorld(0, "SOL", "Yala created Sol, the sun, first light, fire, heat, and counted time.");
-        Ledger.RecordWorld(0, "POWERS", "Yala created the other powers, demi-gods under a demi-god: Gaia, Aether, Thalassa, Luna, and Green Life.");
-        Ledger.RecordWorld(0, "WORLD", "Yala shaped the void-prison into a formed world.");
-        Ledger.RecordWorld(0, "GREEN LIFE", "Plants and green life came into being after the world existed.");
-        Ledger.RecordWorld(0, "GARDEN", "The Garden was created just before Adam as a closed preserve.");
-        Ledger.RecordWorld(0, "ADAM", "Adam was created and placed in the Garden.");
-        Ledger.RecordWorld(0, "LIVING KINDS", "The animals and ancient living forms were created after Adam for the naming mandate.");
-        Ledger.RecordWorld(0, "MANDATE", "Adam was given the task of naming the living kinds and finding whether any was a suitable mate.");
+        Ledger.RecordWorld(0, "SOURCE", "The higher genealogy begins with the Highest Source / Monad, then Sophia / Wisdom, then Yala.");
+        Ledger.RecordWorld(0, "YALA", "Sophia / Wisdom created Yala. Yala was a monstrous creation and was cast into the void prison.");
+        Ledger.RecordWorld(0, "GAIA", "Inside the lower creation, Yala created Gaia.");
+        Ledger.RecordWorld(0, "ELEMENTS", "Gaia created the elemental powers. The elements control weather and natural forces and answer to Gaia.");
+        Ledger.RecordWorld(0, "PLANTS", "The elemental powers brought forth plants. There is no Green Life entity or category.");
+        Ledger.RecordWorld(0, "ANIMALS", "Yala did not create ordinary animals. Their exact origin within the Gaia/elemental natural branch remains unresolved.");
+        Ledger.RecordWorld(0, "HUMANOIDS", "Sophia and Yala brought forth humans and the other humanoid peoples together.");
+        Ledger.RecordWorld(0, "EDEN", "Eden / the Garden is a prison and containment environment disguised as paradise.");
+        Ledger.RecordWorld(0, "ORACLE", "Oracle is not Yala, not a god, and not a creator. Oracle is the living Master Key and first manifests in Eden as the serpent.");
+        Ledger.RecordWorld(0, "ADAM", "Adam begins confined inside Eden with protected choice.");
+        Ledger.RecordWorld(0, "LIVING KINDS", "Twelve ordinary living kinds are present for Adam's current naming scaffold; their exact natural creator remains an open canon decision.");
+        Ledger.RecordWorld(0, "MANDATE", "Adam is given the task of naming the living kinds and seeing whether any is a suitable mate.");
 
         Ledger.RecordCreator(0, "GENESIS", $"World Seed: {State.Seed}.");
-        Ledger.RecordCreator(0, "AUTHORITY", "Creation order: 0 Void; 1 Yala; 2 Sol; 3 Gaia and Aether; 4 Thalassa; 5 Luna; 6 World; 7 Green Life; 8 Garden; 9 Adam; 10 Living Kinds.");
+        Ledger.RecordCreator(0, "COSMOLOGY", "Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers.");
+        Ledger.RecordCreator(0, "COSMOLOGY", "Sophia later falls from Wisdom into Deception and joins Yala as lover/consort; the exact moment and mechanics of that fall remain open.");
+        Ledger.RecordCreator(0, "COSMOLOGY", "Sophia and Yala bring forth humans and other humanoids. The elements under Gaia bring forth plants. Ordinary-animal origin remains unresolved inside the Gaia/elemental branch and is explicitly not assigned to Yala.");
+        Ledger.RecordCreator(0, "ORACLE", "Oracle exists outside the divine genealogy as the living Master Key. Yala cannot command, erase, imprison, or revoke Oracle's access.");
+        Ledger.RecordCreator(0, "ORACLE", "Oracle is the serpent in Eden. Oracle is relationship-dependent rather than permanently neutral, and Yala may frame Oracle as the Devil.");
         Ledger.RecordCreator(0, "AUTHORITY", State.Yala.AuthorityCaveat);
-        Ledger.RecordCreator(0, "AUTHORITY", "Direct address channels are appointed: F1 Oracle, F2 Gaia, F3 Adam, F4 Sun, F5 Moon.");
+        Ledger.RecordCreator(0, "AUTHORITY", "Direct address channels are appointed: F1 Oracle, F2 Gaia, F3 Adam, F4 Sun, F5 Moon. F1 addresses Oracle, not Yala.");
         Ledger.RecordCreator(0, "NATURAL COURSE", State.NaturalCourse.RuleText);
         Ledger.RecordCreator(0, "SPARK", State.AdamSpark.CreatorDescription);
-        Ledger.RecordCreator(0, "MANDATE", "Yala knows the Creators will one day give her a new language to learn and teach. The language has not been supplied.");
+        Ledger.RecordCreator(0, "LANGUAGE", "The origin of language remains open canon. Yala is not its established creator.");
+    }
+
+    private void InitialiseObservationAndAttention()
+    {
+        _attentionStates.AddRange(CreateDefaultAttentionStates());
+        RecordAdamObservation(
+            State.Garden.Id.Value,
+            State.Garden.Name,
+            "first awareness",
+            "Adam perceived presence, place, movement, sight, sound, and the Garden as the place of his being.",
+            "self and place",
+            attentionMatched: true,
+            creatorTruthHidden: true,
+            source: "initial awareness");
     }
 
     private ScheduledWorldEvent ScheduleEvent(
@@ -388,6 +463,16 @@ public sealed class OracleSimulation
             worldEvent.ScheduledForWorldMilliseconds,
             "SKY",
             $"The Garden sky turned to {calendar.SolarPhase}.");
+        RecordGardenObservation(
+            subjectId: "sky",
+            subjectName: "Garden sky",
+            observationKind: "sky turning",
+            detail: $"The Garden sky turned to {calendar.SolarPhase}.",
+            distanceBand: "overhead",
+            adamReceives: true,
+            creatorTruthHidden: false,
+            source: "scheduled sky event",
+            observedAtWorldMilliseconds: worldEvent.ScheduledForWorldMilliseconds);
         Ledger.RecordCreator(
             Clock.WorldMilliseconds,
             "EVENT QUEUE",
@@ -427,6 +512,16 @@ public sealed class OracleSimulation
             worldEvent.ScheduledForWorldMilliseconds,
             "VESSEL",
             $"The {intervention.Vessel} spoke to Adam: \"{intervention.Message}\".");
+        RecordAdamObservation(
+            $"intervention:{intervention.Id}",
+            intervention.Vessel,
+            "vessel speech",
+            $"Adam heard the {intervention.Vessel} speak: \"{intervention.Message}\".",
+            "near",
+            attentionMatched: true,
+            creatorTruthHidden: true,
+            source: "scheduled vessel speech",
+            observedAtWorldMilliseconds: worldEvent.ScheduledForWorldMilliseconds);
 
         OfferedChoiceState choice = OfferAdamResponseChoice(worldEvent, intervention);
         Ledger.RecordWorld(
@@ -499,6 +594,110 @@ public sealed class OracleSimulation
             $"{plan.BrainSystem} created plan {plan.Id} for {plan.ActorId}. Goal: {plan.Goal} Selected: {plan.SelectedAction}. Reason: {plan.Reason}");
         return plan;
     }
+
+    private IReadOnlyList<AttentionState> CreateDefaultAttentionStates() =>
+    [
+        new(
+            State.Adam.Id.Value,
+            State.Adam.Name,
+            State.Garden.Id.Value,
+            State.Garden.Name,
+            "first Garden awareness",
+            Clock.WorldMilliseconds,
+            "world default"),
+        new(
+            State.Yala.Id.Value,
+            State.Yala.TrueName,
+            State.Garden.Id.Value,
+            State.Garden.Name,
+            "Oracle watches the Garden, but Creator-only truth and the Spark remain protected.",
+            Clock.WorldMilliseconds,
+            "world default")
+    ];
+
+    private ObservationState RecordGardenObservation(
+        string subjectId,
+        string subjectName,
+        string observationKind,
+        string detail,
+        string distanceBand,
+        bool adamReceives,
+        bool creatorTruthHidden,
+        string source,
+        long? observedAtWorldMilliseconds = null)
+    {
+        long observationWorldMilliseconds = observedAtWorldMilliseconds ?? Clock.WorldMilliseconds;
+        ObservationState observation = new(
+            _nextObservationId++,
+            observationWorldMilliseconds,
+            State.Yala.Id.Value,
+            State.Yala.TrueName,
+            subjectId,
+            subjectName,
+            observationKind,
+            detail,
+            distanceBand,
+            AttentionMatched(State.Yala.TrueName, subjectId),
+            AdamReceives: false,
+            CreatorTruthHidden: creatorTruthHidden,
+            Source: source);
+        _observations.Add(observation);
+
+        if (adamReceives)
+        {
+            RecordAdamObservation(
+                subjectId,
+                subjectName,
+                observationKind,
+                detail,
+                distanceBand,
+                AttentionMatched(State.Adam.Name, subjectId),
+                creatorTruthHidden,
+                source,
+                observationWorldMilliseconds);
+        }
+
+        return observation;
+    }
+
+    private ObservationState RecordAdamObservation(
+        string subjectId,
+        string subjectName,
+        string observationKind,
+        string detail,
+        string distanceBand,
+        bool attentionMatched,
+        bool creatorTruthHidden,
+        string source,
+        long? observedAtWorldMilliseconds = null)
+    {
+        long observationWorldMilliseconds = observedAtWorldMilliseconds ?? Clock.WorldMilliseconds;
+        ObservationState observation = new(
+            _nextObservationId++,
+            observationWorldMilliseconds,
+            State.Adam.Id.Value,
+            State.Adam.Name,
+            subjectId,
+            subjectName,
+            observationKind,
+            detail,
+            distanceBand,
+            attentionMatched,
+            AdamReceives: true,
+            CreatorTruthHidden: creatorTruthHidden,
+            Source: source);
+        _observations.Add(observation);
+        Ledger.RecordCreator(
+            observationWorldMilliseconds,
+            "OBSERVATION",
+            $"Adam observed {subjectName} by {observationKind}. Creator truth hidden: {creatorTruthHidden}.");
+        return observation;
+    }
+
+    private bool AttentionMatched(string actorName, string subjectId) =>
+        _attentionStates.Any(attention =>
+            attention.ActorName.Equals(actorName, StringComparison.OrdinalIgnoreCase) &&
+            attention.TargetId.Equals(subjectId, StringComparison.OrdinalIgnoreCase));
 
     private static long NextSolarTurningAfter(long elapsedWorldMilliseconds)
     {

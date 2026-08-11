@@ -6,7 +6,7 @@ namespace ProjectOracle.Brain;
 public static class OracleBrainPlanner
 {
     public const string SystemName = "Oracle HTN Brain v0.1";
-    public const string Source = "Internal deterministic HTN-style planner inspired by Fluid HTN concepts; no external planner code is vendored in v0.1.10.";
+    public const string Source = "Internal deterministic HTN-style planner inspired by Fluid HTN concepts; no external planner code is vendored in v0.0.16.";
 
     public static ReasonedPlanState PlanAdamDirectAddress(
         long planId,

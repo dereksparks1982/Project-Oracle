@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Project Oracle
+Comment=Open the Project Oracle live Garden console
+Exec=PROJECT_ORACLE_EXEC_PLACEHOLDER
+Icon=utilities-terminal
+Terminal=false
+Categories=Game;
+StartupNotify=true
+Keywords=Oracle;Simulation;Garden;

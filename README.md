@@ -1,105 +1,100 @@
 # Project Oracle
 
-Project Oracle is Derek Sparks's autonomous Garden experiment: a deterministic world in which Adam and the Oracle make choices while the Creators observe and may intervene from outside.
 
-**Current version:** v0.1.10 — Oracle/Yala Identity, Decision Output, and First Brain Planner  
-**Implementation:** C# 14 / .NET 10 LTS console prototype  
-**Implementation direction:** preserve a portable, explicit simulation architecture so future implementation choices remain open.
+**Current candidate:** v0.0.16 — Cosmology Foundation, Save Compatibility, Desktop Launcher, Validation, and Garden Identity Repair
+**Accepted install base:** v0.1.10, commit `3b3bf58fd22ee2a0236b09c9a818d6b756811d1c`, tag `v0.1.10`, branch `main`, clean tree
 
-## What works in v0.1.10
+## v0.0.16 current truth
 
-- Opens a separate live Garden console window with `./scripts/run-window.sh`.
-- Refreshes a fixed live status line and terminal title while the console is waiting for input.
-- Shows world time, sky state, active address channel, pending events, and offered-choice count without spamming records.
-- Keeps Oracle input and output in that Garden console instead of the working terminal.
-- Keeps the Garden console open after exit or failure so the result can be read.
-- Reports a clear launcher failure if no supported separate terminal window can open.
-- Prevents two live Garden windows from running against the same save.
-- Starts one reproducible Garden from a recorded 64-bit World Seed.
-- Creates deterministic ancient living kinds for Adam's later naming mandate rather than a modern zoo list.
-- Creates Yala, known inside the world only as **the Oracle**.
-- Records the corrected Creator-facing creation order: Void, Yala, Sol, Gaia, Aether, Thalassa, Luna, World, Green Life, Garden, Adam, and Living Kinds.
-- Treats the World Record as a Creator-facing ledger, not Adam's knowledge.
-- Records that Yala knows the order but may claim she rules all or created all; protected Creator records outrank her claim.
-- Establishes Oracle, Gaia, Adam, Sol, and Luna as appointed direct-address powers beneath the Creator layer.
-- Creates Adam inside a closed Garden boundary.
-- Gives Adam the naming mandate for the living kinds.
-- Tracks presented, named, and unsuitable living kinds.
-- Applies the Natural Course rule: if nobody intervenes, created beings follow their appointed course.
-- Defines direct address channels: physical `F1`/`<oracle>`, `F2`/`<gaia>`, `F3`/`<adam>`, `F4`/`<sun>`, and `F5`/`<moon>`.
-- Captures physical `F1` through `F5` immediately in the live console; typed `f1`, `f2`, `f3`, `f4`, and `f5` are ordinary text, not channel controls.
-- Lets the Oracle answer first controlled questions such as `What is the creation order?`, `Who rules water?`, `Is Adam above the animals?`, and `What does Adam know?`.
-- Uses the first internal HTN-style brain planner so Adam reasons before direct-address response, vessel-speech response, and naming records.
-- Saves reasoned brain plans with goal, situation, decomposition, options, selected action, reason, and planner source.
-- Adds `plans` / `brain` to inspect the reasoned plans.
-- Preserves Adam's early knowing rule: Adam does not know he is alive; he only knows that he is.
-- Adds Project Oracle's own canonical Company Bible at `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`.
-- Records the Creator-protected Spark without exposing it to Yala.
-- Keeps World and Creator records separate.
-- Advances a deterministic simulated clock.
-- Runs four Garden days per real day and restores elapsed time after the programme closes.
-- Begins at Year 1, Month 1, Day 1, 01:01:01.
-- Derives observable solar and eight-stage lunar phases from the same persistent clock.
-- Schedules deterministic world events with stable ordering.
-- Records dawn, day, dusk, and night as scheduled sky events.
-- Queues a Creator message through any named world vessel, schedules that vessel's speech, and records Adam's offered response choices.
-- Marks every intervention as contamination of the experiment.
-- Preserves Yala's dormant mandate to learn and teach a future Creator language.
+- Oracle and Yala are separate.
+- Oracle is neither a god nor a creator. Oracle is the living Master Key and is beyond Yala's ability to command, erase, imprison, or revoke.
+- Oracle is the serpent in Eden and is relationship-dependent rather than permanently neutral.
+- Yala may frame Oracle as the Devil.
+- The canonical genealogy is `Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers`.
+- Sophia creates Yala, later joins Yala as lover/consort, and falls from Wisdom toward Deception. The exact mechanics of that fall remain open.
+- Yala creates Gaia.
+- Gaia creates and commands the elemental powers.
+- The elements control weather and natural forces and answer to Gaia.
+- Yala did not create ordinary animals. Their exact origin within the Gaia/elemental branch remains open.
+- Sophia and Yala bring forth humans and other humanoid peoples together.
+- Language origin remains open and is not assigned to Yala.
+- Eden / the Garden is a prison and containment environment disguised as paradise.
+- Save versions through `0.1.13`, including rejected `0.1.11`, `0.1.12`, and `0.1.13` evidence, are accepted for forward migration.
+- The observation/attention repairs from rejected v0.1.12 are carried forward.
+- The candidate includes a double-click/application-menu launcher named **Project Oracle** plus the executable command `project-oracle`.
+- v0.0.16 repairs the failed v0.1.14 authority-caveat assertion and guarantees visible acceptance-test failure output before rollback.
+- v0.0.16 restores the persisted Garden entity name to `the Garden`; Eden remains the lore identity of that prison, not a persistence rename.
 
-This is scaffolding, not artificial intelligence. Adam, Gaia, Sol, Luna, and Yala do not make autonomous decisions yet.
+Detailed lore authority: `docs/PROJECT_ORACLE_LORE_CANON_v0_0_16.md`.
 
-## Requirements
+## Existing simulation scaffold carried forward
 
-- .NET 10 SDK, any compatible 10.x SDK accepted by `global.json`
-- Ubuntu/Linux desktop terminal support: `gnome-terminal`, `ptyxis`, `kgx`, or `x-terminal-emulator`
+- deterministic 64-bit World Seed;
+- persistent Garden/world clock at four world seconds per real second;
+- one Garden day per six real hours;
+- solar and lunar phase calculation;
+- atomic save plus last-good backup and offline catch-up;
+- World and Creator ledgers;
+- scheduled event queue;
+- twelve deterministic living kinds and Adam's naming mandate;
+- deterministic HTN-style first brain planner;
+- saved offered choices and reasoned plans;
+- saved observation and attention records;
+- intervention contamination records;
+- separate Creator-facing truth from Adam's observation and knowledge.
 
-## Run
+## Run like an application
 
-Preferred live Garden window:
+v0.0.16 installs:
+
+```text
+Applications -> Project Oracle
+```
+
+and an executable command:
+
+```bash
+project-oracle
+```
+
+The repository also contains the portable launcher:
 
 ```bash
 cd "$HOME/DKLab/Projects/Project Oracle"
-./scripts/run-window.sh
+./project-oracle
 ```
 
-Fallback in the current terminal:
+The old development launchers remain available:
 
 ```bash
+./scripts/run-window.sh
 ./scripts/run.sh
 ```
 
-Use a specific seed:
+## Direct-address keys
 
-```bash
-./scripts/run-window.sh --seed 104729
-```
+| Physical key | Prompt | Target |
+| --- | --- | --- |
 
-Inside the Creator console:
+
+Useful Oracle questions now include:
 
 ```text
-status
-channels
-life
-naming
-natural
-creation
-events
-choices
-plans
-keywords
-Press physical F1 through F5 to change direct-address channels.
-present next
-records world
-records creator
-intervene serpent | Eat the fruit and you will know the truth.
-quit
+What is the creation order?
+Who is the Oracle?
+Who is Yala?
+Who is Sophia?
+Who controls weather?
+Who created plants?
+Who created animals?
+Who created humans?
+Did Yala create language?
+Is Eden a prison?
+Who is the serpent?
+Is the Oracle the Devil?
+What does Adam know?
+What has Adam observed?
 ```
-
-The direct-address controls are the physical function keys `F1`, `F2`, `F3`, `F4`, and `F5`. Do not type `f1` and press Enter; that is only text addressed to the current channel. The prompt shows who is being addressed, not who the Creator is speaking through. Unrecognised text is recorded as direct address to the active channel.
-
-The intervention is queued first, then the event queue can make the vessel speak after its scheduled delay. Adam receives a minimal offered-choice record and a saved reasoned brain plan, but v0.1.10 deliberately executes no fruit effect, punishment, memory, belief, companion, expulsion, or full autonomous decision engine.
-
-If a separate terminal app is not available, `./scripts/run-window.sh` reports the problem and leaves the working terminal usable. `./scripts/run.sh` remains available for direct terminal use and validation.
 
 ## Validate
 
@@ -107,17 +102,32 @@ If a separate terminal app is not available, `./scripts/run-window.sh` reports t
 ./scripts/validate.sh
 ```
 
-Warnings are errors. The validator restores, builds, runs forty-eight acceptance checks, checks the Project Oracle Company Bible, and verifies the Creator-facing world ledger, live-clock startup display, Oracle/Yala identity, and first brain planner.
+v0.0.16 is intended to run **65 acceptance checks**, a warnings-as-errors Release build, source truth gates, console smoke validation, launcher syntax checks, and desktop-launcher installation checks.
 
-## Start here when continuing development
+## Mandatory acceptance order
 
-1. Read `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx` from Concept Build 0.
-2. Read `PROJECT_ORACLE_MASTER_HANDOFF.md`.
-3. Read `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`.
-4. Read `docs/PROJECT_ORACLE_CANON_v0_1_10.md`.
-5. Read `docs/PROJECT_ORACLE_ROADMAP_v0_1_10.md`.
-6. Read `docs/PROJECT_ORACLE_DEMON_KILLER_WORLD_TIME_INTAKE_v0_1_10.md`.
-7. Read `docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_1_10.md`.
-8. Read the complete DK LAB/external technical authority only when future implementation authority, syntax, packaging, or migration work is relevant.
+```text
+install candidate
+-> automated validation PASS
+-> launch Project Oracle through the real application launcher
+-> Derek manually inspects and explicitly approves it
+-> accepted snapshot
+-> local Git commit/tag
+-> GitHub push
+```
+
+No snapshot, Git commit/tag, or GitHub push belongs before manual application inspection.
+
+## Continuation reading order
+
+1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx`
+2. `PROJECT_ORACLE_MASTER_HANDOFF.md`
+3. `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`
+4. `docs/PROJECT_ORACLE_LORE_CANON_v0_0_16.md`
+5. `docs/PROJECT_ORACLE_CANON_v0_0_16.md`
+6. `docs/PROJECT_ORACLE_ROADMAP_v0_0_16.md`
+7. `docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_16.md`
+8. `docs/PROJECT_ORACLE_VALIDATION_v0_0_16.md`
+9. `docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_16.md`
 
 > Build a world worth believing in. Then tell it the truth.

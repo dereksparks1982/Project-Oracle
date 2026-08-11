@@ -3,6 +3,7 @@ using ProjectOracle.Brain;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
 using ProjectOracle.Interventions;
+using ProjectOracle.Observation;
 
 namespace ProjectOracle.Persistence;
 
@@ -21,4 +22,6 @@ public sealed record OracleSaveSnapshot(
     IReadOnlyList<CreatorIntervention> Interventions,
     IReadOnlyList<ScheduledWorldEvent>? ScheduledEvents = null,
     IReadOnlyList<OfferedChoiceState>? OfferedChoices = null,
-    IReadOnlyList<ReasonedPlanState>? ReasonedPlans = null);
+    IReadOnlyList<ReasonedPlanState>? ReasonedPlans = null,
+    IReadOnlyList<ObservationState>? Observations = null,
+    IReadOnlyList<AttentionState>? AttentionStates = null);

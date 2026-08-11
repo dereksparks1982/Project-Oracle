@@ -7,3 +7,6 @@ TestResults/
 *.suo
 *.cache
 *.log
+**/bin/
+**/obj/
+/PROJECT_ORACLE_v*_CHANGED_FILES_ONLY/
