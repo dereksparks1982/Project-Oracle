@@ -19,7 +19,7 @@ public sealed record OracleSaveSnapshot(
     long LastOfflineElapsedRealMilliseconds,
     WorldState World,
     IReadOnlyList<OracleRecord> Records,
-    IReadOnlyList<CreatorIntervention> Interventions,
+    IReadOnlyList<OracleIntervention> Interventions,
     IReadOnlyList<ScheduledWorldEvent>? ScheduledEvents = null,
     IReadOnlyList<OfferedChoiceState>? OfferedChoices = null,
     IReadOnlyList<ReasonedPlanState>? ReasonedPlans = null,

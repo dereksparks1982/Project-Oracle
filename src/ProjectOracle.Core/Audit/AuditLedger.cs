@@ -19,14 +19,16 @@ public sealed class AuditLedger
     public IReadOnlyList<OracleRecord> WorldRecords =>
         _records.Where(record => record.Audience == RecordAudience.World).ToArray();
 
-    public IReadOnlyList<OracleRecord> CreatorRecords =>
-        _records.Where(record => record.Audience == RecordAudience.Creator).ToArray();
+    public IReadOnlyList<OracleRecord> OracleRecords =>
+        _records.Where(record => record.Audience == RecordAudience.Oracle).ToArray();
+
+    public IReadOnlyList<OracleRecord> AllRecords => _records.ToArray();
 
     public void RecordWorld(long tick, string category, string message) =>
         Add(tick, RecordAudience.World, category, message);
 
-    public void RecordCreator(long tick, string category, string message) =>
-        Add(tick, RecordAudience.Creator, category, message);
+    public void RecordOracle(long tick, string category, string message) =>
+        Add(tick, RecordAudience.Oracle, category, message);
 
     private void Add(long tick, RecordAudience audience, string category, string message)
     {

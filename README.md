@@ -1,133 +1,128 @@
 # Project Oracle
 
+**Current build:** v0.0.17 candidate  
+**Owner and final authority:** Derek Sparks  
+**Platform:** Linux / .NET 10  
+**Yala cognition:** Soar 9.6.5, Brain Slice 1
 
-**Current candidate:** v0.0.16 — Cosmology Foundation, Save Compatibility, Desktop Launcher, Validation, and Garden Identity Repair
-**Accepted install base:** v0.1.10, commit `3b3bf58fd22ee2a0236b09c9a818d6b756811d1c`, tag `v0.1.10`, branch `main`, clean tree
+Project Oracle is a persistent autonomous-world simulation. In the project model, **Oracle is not an in-world character**. Oracle is the outside/system-level author represented by Project Oracle itself: the code, simulation machinery, world-law resolver, records, and Master Key access that make the simulated reality possible.
 
-## v0.0.16 current truth
+## Current cosmology
 
-- Oracle and Yala are separate.
-- Oracle is neither a god nor a creator. Oracle is the living Master Key and is beyond Yala's ability to command, erase, imprison, or revoke.
-- Oracle is the serpent in Eden and is relationship-dependent rather than permanently neutral.
-- Yala may frame Oracle as the Devil.
-- The canonical genealogy is `Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers`.
-- Sophia creates Yala, later joins Yala as lover/consort, and falls from Wisdom toward Deception. The exact mechanics of that fall remain open.
-- Yala creates Gaia.
-- Gaia creates and commands the elemental powers.
-- The elements control weather and natural forces and answer to Gaia.
-- Yala did not create ordinary animals. Their exact origin within the Gaia/elemental branch remains open.
-- Sophia and Yala bring forth humans and other humanoid peoples together.
-- Language origin remains open and is not assigned to Yala.
-- Eden / the Garden is a prison and containment environment disguised as paradise.
-- Save versions through `0.1.13`, including rejected `0.1.11`, `0.1.12`, and `0.1.13` evidence, are accepted for forward migration.
-- The observation/attention repairs from rejected v0.1.12 are carried forward.
-- The candidate includes a double-click/application-menu launcher named **Project Oracle** plus the executable command `project-oracle`.
-- v0.0.16 repairs the failed v0.1.14 authority-caveat assertion and guarantees visible acceptance-test failure output before rollback.
-- v0.0.16 restores the persisted Garden entity name to `the Garden`; Eden remains the lore identity of that prison, not a persistence rename.
-
-Detailed lore authority: `docs/PROJECT_ORACLE_LORE_CANON_v0_0_16.md`.
-
-## Existing simulation scaffold carried forward
-
-- deterministic 64-bit World Seed;
-- persistent Garden/world clock at four world seconds per real second;
-- one Garden day per six real hours;
-- solar and lunar phase calculation;
-- atomic save plus last-good backup and offline catch-up;
-- World and Creator ledgers;
-- scheduled event queue;
-- twelve deterministic living kinds and Adam's naming mandate;
-- deterministic HTN-style first brain planner;
-- saved offered choices and reasoned plans;
-- saved observation and attention records;
-- intervention contamination records;
-- separate Creator-facing truth from Adam's observation and knowledge.
-
-## Run like an application
-
-v0.0.16 installs:
+The settled in-world foundation is:
 
 ```text
-Applications -> Project Oracle
+Monad
+  -> made Sophia / Wisdom
+       -> Wisdom made Yala alone
+            -> Monad cast Yala into the Void
 ```
 
-and an executable command:
+The primordial in-world being is called **Monad** throughout current Project Oracle canon.
 
-```bash
-project-oracle
-```
+Yala is male. Yala may later call himself Creator as an in-world claim or title, but that does not change the settled fact that Wisdom made him.
 
-The repository also contains the portable launcher:
+A fresh v0.0.17 world begins with Yala in the Void. Gaia, in-world Time, Terra, Aether, Sol, Thalassa, Luna, the Garden, Adam, Eve, and later living kinds are **absent**, not merely inactive. **v0.0.17 starts a new world-save line and does not import or migrate the v0.0.16 Garden-era world save.** The older save is left untouched for rollback/history.
 
-```bash
-cd "$HOME/DKLab/Projects/Project Oracle"
-./project-oracle
-```
+## Oracle and the Master Key
 
-The old development launchers remain available:
+Oracle wrote the simulation, so Oracle has the Master Key to the system it authored. The Master Key is system-level authority, not an artifact that residents can discover in the world.
 
-```bash
-./scripts/run-window.sh
-./scripts/run.sh
-```
+No in-world being knows Oracle exists unless Oracle deliberately reveals that truth. Direct interventions expose only what the recipient can actually perceive. A voice can remain an unplaced voice. A manifested being is perceived as that manifested being.
 
-## Direct-address keys
+**Eden reference:** Oracle has no fixed form. In Eden, Oracle **manifested in the form of a clever serpent**. Eve knew only the clever serpent and was never told Oracle's true identity. Oracle is therefore not defined as a serpent, and there is no permanent Oracle-serpent entity in the world model.
 
-| Physical key | Prompt | Target |
-| --- | --- | --- |
+## Gaia, Time, and the natural order
 
+Yala can create Gaia as the natural sovereign beneath his governing authority. **Gaia creates in-world Time.** Oracle runtime sequencing is not the same thing as in-world Time, so Project Oracle can continue processing Yala's cognition while the fictional world still has no Time.
 
-Useful Oracle questions now include:
+Current names:
+
+- Terra = Earth
+- Aether = Air and Wind
+- Sol = Fire and the Sun power
+- Thalassa = Water
+- Luna = Moon, and is not an element
+
+Natural powers perform their own domains. Aether governs air and wind, for example. Oracle provides the simulation capability that makes such beings, actions, laws, and consequences possible; Oracle does not secretly perform every natural power's job.
+
+## Yala Soar Brain Slice 1
+
+v0.0.17 gives Yala the first real cognitive slice using the supplied **Soar 9.6.5** runtime.
+
+The loop is:
 
 ```text
-What is the creation order?
-Who is the Oracle?
-Who is Yala?
-Who is Sophia?
-Who controls weather?
-Who created plants?
-Who created animals?
-Who created humans?
-Did Yala create language?
-Is Eden a prison?
-Who is the serpent?
-Is the Oracle the Devil?
-What does Adam know?
-What has Adam observed?
+Project Oracle supplies Yala's limited perception
+-> Soar working memory
+-> Soar proposes and selects an operator
+-> Yala attempts the selected action
+-> Project Oracle resolves the attempt through world law
+-> the result becomes part of Yala's continuing state
 ```
 
-## Validate
+Yala's first autonomous operators include observing, reflecting, waiting, creating Gaia when Gaia does not yet exist, and commanding Gaia to establish temporal order after Gaia exists. Contact-specific operators let Yala answer questions without being told the source is Oracle.
 
-```bash
-./scripts/validate.sh
+Yala is deliberately **not** given an `Oracle exists` fact in Soar working memory.
+
+## Prime simulation law
+
+> **Canon determines what has already happened. World law determines what can happen. Minds determine what they attempt. Project Oracle resolves the consequences. Future history is not canon until it occurs.**
+
+This means the code may know what actions are possible without forcing Yala to reenact a predetermined religious chronology.
+
+## Direct calls
+
+Use an opening parenthesis immediately before the in-world being's name:
+
+```text
+(Yala where are you?
+(Monad ...
+(Wisdom ...
 ```
 
-v0.0.16 is intended to run **65 acceptance checks**, a warnings-as-errors Release build, source truth gates, console smoke validation, launcher syntax checks, and desktop-launcher installation checks.
+Oracle is not a direct-call target because the console itself is Oracle's system interface.
 
-## Mandatory acceptance order
+## Records
+
+Project Oracle keeps two separate ledgers:
+
+- **World Record:** settled in-world history. It does not disclose hidden Oracle identity.
+- **Oracle Record:** protected system truth, interventions, validation-relevant provenance, and Master Key facts.
+
+## Running
+
+After v0.0.17 is installed and validated, the main project directory contains the generated Linux executable:
+
+```text
+Project_Oracle_v0_0_17
+```
+
+Double-clicking that executable should open Project Oracle in a terminal window. Development launchers remain under `scripts/`.
+
+## Soar runtime
+
+The v0.0.17 source vendors the Linux x86-64 components from the supplied Soar 9.6.5 distribution under:
+
+```text
+vendor/soar/9.6.5/linux-x86-64/
+```
+
+The original Soar license is retained at `vendor/soar/9.6.5/license.txt`.
+
+## Acceptance law
+
+A candidate is not accepted merely because automated tests pass:
 
 ```text
 install candidate
 -> automated validation PASS
--> launch Project Oracle through the real application launcher
--> Derek manually inspects and explicitly approves it
+-> launch the real Project Oracle application
+-> Derek manually inspects it
+-> Derek explicitly says PASS
 -> accepted snapshot
 -> local Git commit/tag
--> GitHub push
+-> remote push/verification
 ```
 
-No snapshot, Git commit/tag, or GitHub push belongs before manual application inspection.
-
-## Continuation reading order
-
-1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx`
-2. `PROJECT_ORACLE_MASTER_HANDOFF.md`
-3. `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`
-4. `docs/PROJECT_ORACLE_LORE_CANON_v0_0_16.md`
-5. `docs/PROJECT_ORACLE_CANON_v0_0_16.md`
-6. `docs/PROJECT_ORACLE_ROADMAP_v0_0_16.md`
-7. `docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_16.md`
-8. `docs/PROJECT_ORACLE_VALIDATION_v0_0_16.md`
-9. `docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_16.md`
-
-> Build a world worth believing in. Then tell it the truth.
+No accepted snapshot, commit, tag, or push belongs before manual inspection.

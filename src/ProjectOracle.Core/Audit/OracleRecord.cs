@@ -3,7 +3,7 @@ namespace ProjectOracle.Audit;
 public enum RecordAudience
 {
     World,
-    Creator
+    Oracle
 }
 
 public sealed record OracleRecord(

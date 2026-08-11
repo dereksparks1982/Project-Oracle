@@ -1,23 +1,30 @@
-namespace ProjectOracle.Domain;
+using System.Text.Json.Serialization;
 
-public sealed record OracleState(
-    EntityId Id,
-    string Name,
-    bool IsGod,
-    bool IsCreator,
-    bool BeyondYalaControl,
-    string Nature,
-    string FirstManifestation,
-    string AlignmentRule);
+namespace ProjectOracle.Domain;
 
 public sealed record YalaState(
     EntityId Id,
     string TrueName,
     string WorldTitle,
-    bool KnowsOfCreators,
-    bool KnowsFutureLanguageMandate,
-    bool MayClaimSupremeCreator,
-    string AuthorityCaveat);
+    bool KnowsOfOracle = false,
+    bool MayClaimSupremeCreator = true,
+    string AuthorityCaveat = "",
+    string Location = "the Void",
+    string Sex = "male");
+
+public sealed record CosmicState(
+    bool GaiaCreated,
+    bool TimeCreated,
+    bool LowerWorldEstablished,
+    bool GardenEstablished,
+    string YalaLocation);
+
+public sealed record YalaCognitionState(
+    long DecisionCount,
+    long LastDecisionRealUnixMilliseconds,
+    string? LastAction,
+    string? LastResult,
+    IReadOnlyList<string> Memory);
 
 public sealed record AdamState(
     EntityId Id,
@@ -29,20 +36,19 @@ public sealed record SparkState(
     EntityId BearerId,
     bool CanBeReadByYala,
     bool CanBeRewrittenByYala,
-    string CreatorDescription);
+    [property: JsonPropertyName("oracle_description")] string OracleDescription);
 
 public sealed record GardenState(
     EntityId Id,
     string Name,
     bool BoundaryOpen);
 
-public sealed record AddressChannelState(
+public sealed record DirectCallTargetState(
     string Key,
     string Prompt,
-    string FunctionKey,
     string TargetName,
     string AuthoritySummary,
-    bool ReceivesDirectAddress);
+    bool ReceivesDirectCall);
 
 public sealed record LivingKindState(
     EntityId Id,
@@ -60,7 +66,8 @@ public sealed record CreationPowerState(
     string Name,
     string Domain,
     string AuthoritySummary,
-    bool ReceivesDirectAddress);
+    bool ReceivesDirectCall,
+    bool Exists = true);
 
 public sealed record NamingMandateState(
     bool Active,
@@ -77,13 +84,15 @@ public sealed record NaturalCourseState(
 public sealed record WorldState(
     ulong Seed,
     long WorldMilliseconds,
-    GardenState Garden,
+    GardenState? Garden,
     YalaState Yala,
-    AdamState Adam,
-    SparkState AdamSpark,
+    AdamState? Adam,
+    SparkState? AdamSpark,
     IReadOnlyList<CreationPowerState> CreationPowers,
-    IReadOnlyList<AddressChannelState> AddressChannels,
+    [property: JsonPropertyName("DirectCallTargets")]
+    IReadOnlyList<DirectCallTargetState> DirectCallTargets,
     IReadOnlyList<LivingKindState> LivingKinds,
-    NamingMandateState NamingMandate,
+    NamingMandateState? NamingMandate,
     NaturalCourseState NaturalCourse,
-    OracleState? Oracle = null);
+    CosmicState? Cosmic = null,
+    YalaCognitionState? YalaCognition = null);

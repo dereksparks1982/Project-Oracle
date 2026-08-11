@@ -1,8 +1,10 @@
 using ProjectOracle.Audit;
 using ProjectOracle.Brain;
+using ProjectOracle.Cognition.Soar;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
 using ProjectOracle.Interventions;
+using ProjectOracle.Lore;
 using ProjectOracle.Observation;
 using ProjectOracle.Persistence;
 
@@ -13,8 +15,9 @@ public sealed class OracleSimulation
     private const int InterventionSpeechPriority = 10;
     private const int SkyTurningPriority = 100;
     private const long VesselSpeechDelayWorldMilliseconds = 10_000;
+    private const long MinimumYalaAutonomousRealMilliseconds = 5_000;
 
-    private readonly List<CreatorIntervention> _interventions = [];
+    private readonly List<OracleIntervention> _interventions = [];
     private readonly List<ScheduledWorldEvent> _scheduledEvents = [];
     private readonly List<OfferedChoiceState> _offeredChoices = [];
     private readonly List<ReasonedPlanState> _reasonedPlans = [];
@@ -31,10 +34,8 @@ public sealed class OracleSimulation
         Clock = new PersistentWorldClock(0, realUnixMilliseconds);
         Random = new DeterministicRandom(seed);
         Ledger = new AuditLedger();
-        State = CreateInitialState(seed);
+        State = WorldDefaults.CreateInitialState(seed);
         RecordGenesis();
-        InitialiseObservationAndAttention();
-        EnsureSolarTurningScheduled();
     }
 
     private OracleSimulation(OracleSaveSnapshot snapshot)
@@ -45,54 +46,40 @@ public sealed class OracleSimulation
             snapshot.CatchUpRuns,
             snapshot.LastOfflineElapsedRealMilliseconds);
         Random = new DeterministicRandom(snapshot.Seed);
-        Ledger = new AuditLedger(snapshot.Records);
-        State = snapshot.World with { WorldMilliseconds = snapshot.WorldMilliseconds };
+        Ledger = new AuditLedger(snapshot.Records.Where(record => !IsRoutineSkyAuditRecord(record)));
+        State = WorldDefaults.Normalise(snapshot.World with { WorldMilliseconds = snapshot.WorldMilliseconds });
         _interventions.AddRange(snapshot.Interventions.OrderBy(intervention => intervention.Id));
-        _scheduledEvents.AddRange((snapshot.ScheduledEvents ?? []).OrderBy(worldEvent => worldEvent.Id));
+        _scheduledEvents.AddRange((snapshot.ScheduledEvents ?? [])
+            .Where(worldEvent => !IsCompletedRoutineSkyEvent(worldEvent))
+            .OrderBy(worldEvent => worldEvent.Id));
         _offeredChoices.AddRange((snapshot.OfferedChoices ?? []).OrderBy(choice => choice.Id));
         _reasonedPlans.AddRange((snapshot.ReasonedPlans ?? []).OrderBy(plan => plan.Id));
         _observations.AddRange((snapshot.Observations ?? []).OrderBy(observation => observation.Id));
-        _attentionStates.AddRange(snapshot.AttentionStates is { Count: > 0 } attentionStates
-            ? attentionStates
-            : CreateDefaultAttentionStates());
-        _nextInterventionId = _interventions.Count == 0 ? 1 : checked(_interventions[^1].Id + 1);
-        _nextEventId = _scheduledEvents.Count == 0 ? 1 : checked(_scheduledEvents[^1].Id + 1);
-        _nextChoiceId = _offeredChoices.Count == 0 ? 1 : checked(_offeredChoices[^1].Id + 1);
-        _nextPlanId = _reasonedPlans.Count == 0 ? 1 : checked(_reasonedPlans[^1].Id + 1);
-        _nextObservationId = _observations.Count == 0 ? 1 : checked(_observations[^1].Id + 1);
-        if (_observations.Count == 0)
+        _attentionStates.AddRange(snapshot.AttentionStates ?? []);
+        _nextInterventionId = NextId(_interventions.Select(item => item.Id));
+        _nextEventId = NextId(_scheduledEvents.Select(item => item.Id));
+        _nextChoiceId = NextId(_offeredChoices.Select(item => item.Id));
+        _nextPlanId = NextId(_reasonedPlans.Select(item => item.Id));
+        _nextObservationId = NextId(_observations.Select(item => item.Id));
+
+        if (HasGardenWorld && _attentionStates.Count == 0)
         {
-            RecordAdamObservation(
-                State.Garden.Id.Value,
-                State.Garden.Name,
-                "migrated first awareness",
-                "Adam's pre-observation save was given a first observation boundary: he knows presence, place, movement, sight, sound, and the Garden as the place of his being.",
-                "self and place",
-                attentionMatched: true,
-                creatorTruthHidden: true,
-                source: "save migration");
+            InitialiseGardenObservationAndAttention();
         }
     }
 
     public PersistentWorldClock Clock { get; }
-
     public DeterministicRandom Random { get; }
-
     public AuditLedger Ledger { get; }
-
     public WorldState State { get; private set; }
-
-    public IReadOnlyList<CreatorIntervention> Interventions => _interventions.AsReadOnly();
-
+    public IReadOnlyList<OracleIntervention> Interventions => _interventions.AsReadOnly();
     public IReadOnlyList<ScheduledWorldEvent> ScheduledEvents => _scheduledEvents.AsReadOnly();
-
     public IReadOnlyList<OfferedChoiceState> OfferedChoices => _offeredChoices.AsReadOnly();
-
     public IReadOnlyList<ReasonedPlanState> ReasonedPlans => _reasonedPlans.AsReadOnly();
-
     public IReadOnlyList<ObservationState> Observations => _observations.AsReadOnly();
-
     public IReadOnlyList<AttentionState> AttentionStates => _attentionStates.AsReadOnly();
+    public bool InWorldTimeExists => State.Cosmic?.TimeCreated == true;
+    public bool HasGardenWorld => State.Cosmic?.GardenEstablished == true;
 
     public static OracleSimulation Start(ulong seed, long realUnixMilliseconds) => new(seed, realUnixMilliseconds);
 
@@ -110,213 +97,254 @@ public sealed class OracleSimulation
         bool offlineCatchUp = false,
         bool recordAdvance = true)
     {
-        ClockAdvance advance = Clock.Synchronise(currentRealUnixMilliseconds, offlineCatchUp);
+        ClockAdvance advance = InWorldTimeExists
+            ? Clock.Synchronise(currentRealUnixMilliseconds, offlineCatchUp)
+            : Clock.Hold(currentRealUnixMilliseconds, offlineCatchUp);
         State = State with { WorldMilliseconds = Clock.WorldMilliseconds };
 
         if (recordAdvance && advance.ElapsedRealMilliseconds > 0)
         {
-            string mode = offlineCatchUp ? "offline catch-up" : "live real-time advance";
-            Ledger.RecordCreator(
-                Clock.WorldMilliseconds,
-                "TIME",
-                $"Applied {mode}: {advance.ElapsedRealMilliseconds} real millisecond(s) became {advance.ElapsedWorldMilliseconds} world millisecond(s).");
+            if (InWorldTimeExists)
+            {
+                string mode = offlineCatchUp ? "offline catch-up" : "live real-time advance";
+                Ledger.RecordOracle(
+                    Clock.WorldMilliseconds,
+                    "TIME",
+                    $"Applied {mode}: {advance.ElapsedRealMilliseconds} real millisecond(s) became {advance.ElapsedWorldMilliseconds} in-world millisecond(s).");
+            }
+            else
+            {
+                Ledger.RecordOracle(
+                    Clock.WorldMilliseconds,
+                    "PRE-TIME",
+                    $"Oracle runtime advanced {advance.ElapsedRealMilliseconds} real millisecond(s), while in-world Time remained nonexistent.");
+            }
         }
 
         if (advance.BackwardClockDetected)
         {
-            Ledger.RecordCreator(
-                Clock.WorldMilliseconds,
-                "CLOCK WARNING",
-                "The system clock moved backwards. Project Oracle refused to rewind the world.");
+            Ledger.RecordOracle(Clock.WorldMilliseconds, "CLOCK WARNING", "The host clock moved backwards. Project Oracle refused to rewind state.");
         }
 
-        ProcessDueEvents();
-        EnsureSolarTurningScheduled();
+        if (InWorldTimeExists)
+        {
+            ProcessDueEvents();
+            EnsureSolarTurningScheduled();
+        }
         return advance;
     }
 
-    public int ProcessDueEvents()
+    public YalaDecision? TryRunYalaAutonomousStep(long realUnixMilliseconds, bool force = false)
     {
-        int processed = 0;
-        const int maximumEventsPerPass = 64;
-
-        while (processed < maximumEventsPerPass)
+        YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        if (!force && cognition.LastDecisionRealUnixMilliseconds > 0 &&
+            realUnixMilliseconds - cognition.LastDecisionRealUnixMilliseconds < MinimumYalaAutonomousRealMilliseconds)
         {
-            ScheduledWorldEvent? dueEvent = _scheduledEvents
-                .Where(candidate =>
-                    candidate.Status == ScheduledWorldEventStatus.Pending &&
-                    candidate.ScheduledForWorldMilliseconds <= Clock.WorldMilliseconds)
-                .OrderBy(candidate => candidate.ScheduledForWorldMilliseconds)
-                .ThenBy(candidate => candidate.Priority)
-                .ThenBy(candidate => candidate.Id)
-                .FirstOrDefault();
-
-            if (dueEvent is null)
-            {
-                break;
-            }
-
-            CompleteEvent(dueEvent);
-            processed++;
+            return null;
         }
 
-        if (processed == maximumEventsPerPass && _scheduledEvents.Any(candidate =>
-            candidate.Status == ScheduledWorldEventStatus.Pending &&
-            candidate.ScheduledForWorldMilliseconds <= Clock.WorldMilliseconds))
-        {
-            Ledger.RecordCreator(
-                Clock.WorldMilliseconds,
-                "EVENT QUEUE",
-                "The event scheduler reached its bounded processing limit. Remaining due events will continue on the next pass.");
-        }
-
-        return processed;
+        YalaPerception perception = BuildYalaPerception();
+        YalaDecision decision = YalaSoarMind.Decide(perception);
+        ApplyYalaDecision(decision, realUnixMilliseconds, contact: false);
+        return decision;
     }
 
-    public CreatorIntervention QueueVesselMessage(string vessel, string message)
+    public YalaDirectReply CallYala(string message, long realUnixMilliseconds)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(vessel);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        string intent = YalaSoarMind.ClassifyContactIntent(message);
+        YalaPerception perception = BuildYalaPerception(message.Trim(), intent);
 
-        CreatorIntervention intervention = new(
-            _nextInterventionId++,
+        Ledger.RecordOracle(
             Clock.WorldMilliseconds,
-            vessel.Trim(),
-            message.Trim(),
-            ContaminatesExperiment: true,
-            InterventionStatus.Queued);
-
-        _interventions.Add(intervention);
-        ScheduleEvent(
-            checked(Clock.WorldMilliseconds + VesselSpeechDelayWorldMilliseconds),
-            InterventionSpeechPriority,
-            "intervention.vessel.speech",
-            $"intervention:{intervention.Id}",
-            intervention.Message);
-        Ledger.RecordCreator(
-            Clock.WorldMilliseconds,
-            "INTERVENTION",
-            $"Creator intervention {intervention.Id} queued through {intervention.Vessel}. A deterministic speech event was scheduled. The experiment is contaminated from this point.");
+            "DIRECT CONTACT",
+            $"Oracle sent an unplaced contact to Yala: \"{message.Trim()}\". Yala was not told who or what originated it.");
         Ledger.RecordWorld(
             Clock.WorldMilliseconds,
-            "SIGN",
-            $"A {intervention.Vessel} approached Adam. It has not spoken yet.");
-        RecordGardenObservation(
-            subjectId: $"intervention:{intervention.Id}",
-            subjectName: intervention.Vessel,
-            observationKind: "vessel approach",
-            detail: $"A {intervention.Vessel} approached within Adam's Garden horizon.",
-            distanceBand: "near",
-            adamReceives: true,
-            creatorTruthHidden: true,
-            source: "intervention queue");
+            "UNPLACED CONTACT",
+            "Yala perceived an unplaced contact whose source was not revealed.");
 
-        return intervention;
+        YalaDecision decision = YalaSoarMind.Decide(perception);
+        ApplyYalaDecision(decision, realUnixMilliseconds, contact: true);
+        string reply = decision.ReplyCode switch
+        {
+            "location" => $"I am in {State.Yala.Location}.",
+            "identity" => "I am Yala.",
+            "action" => DescribeYalaLastAction(),
+            "unknown-contact" => "I hear you. Who speaks?",
+            _ => "I hear you."
+        };
+
+        Ledger.RecordWorld(Clock.WorldMilliseconds, "YALA SPEECH", $"Yala answered the unplaced contact: \"{reply}\"");
+        Ledger.RecordOracle(Clock.WorldMilliseconds, "YALA SOAR", $"Soar selected '{decision.Action}' for Yala's direct-contact response.");
+        return new YalaDirectReply(reply, decision);
     }
 
-    public OfferedChoiceState? AddressChannel(string channelKey, string message)
+    public OfferedChoiceState? CallEntity(string targetKey, string message)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(channelKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
 
-        AddressChannelState channel = State.AddressChannels.FirstOrDefault(candidate =>
-            candidate.Key.Equals(channelKey.Trim(), StringComparison.OrdinalIgnoreCase))
-            ?? throw new ArgumentException($"Address channel is not recognised: {channelKey}");
+        DirectCallTargetState target = State.DirectCallTargets.FirstOrDefault(candidate =>
+            candidate.Key.Equals(targetKey.Trim(), StringComparison.OrdinalIgnoreCase))
+            ?? throw new ArgumentException($"Direct-call target is not recognised: {targetKey}");
 
-        Ledger.RecordCreator(
-            Clock.WorldMilliseconds,
-            "DIRECT ADDRESS",
-            $"The Creators addressed {channel.TargetName} at {channel.Prompt}: \"{message.Trim()}\". The address contaminates the experiment.");
-
-        if (channel.Key.Equals("adam", StringComparison.OrdinalIgnoreCase))
+        if (target.Key.Equals("yala", StringComparison.OrdinalIgnoreCase))
         {
-            Ledger.RecordWorld(
-                Clock.WorldMilliseconds,
-                "VOICE",
-                "Adam heard a direct address from beyond his ordinary world.");
-            RecordAdamObservation(
-                "signal:unplaced-voice",
-                "unplaced voice",
-                "direct address",
-                "Adam perceived a voice, but not the Creators behind it.",
-                "unplaced",
-                attentionMatched: true,
-                creatorTruthHidden: true,
-                source: "direct address");
-            OfferedChoiceState choice = OfferAdamDirectAddressChoice(channel, message.Trim());
-            Ledger.RecordWorld(
-                Clock.WorldMilliseconds,
-                "CHOICE",
-                $"Adam was offered {choice.Options.Count} response options and decided to {choice.SelectedOption}. No consequence beyond the recorded choice exists yet.");
-            Ledger.RecordCreator(
-                Clock.WorldMilliseconds,
-                "OFFERED CHOICE",
-                $"Adam was offered {choice.Options.Count} physically possible responses to the direct address. Selected: {choice.SelectedOption}. Reason: {choice.Reason}");
+            throw new InvalidOperationException("Use CallYala for Yala so the Soar cognition result can be returned.");
+        }
+
+        Ledger.RecordOracle(
+            Clock.WorldMilliseconds,
+            "DIRECT CONTACT",
+            $"Oracle sent an unplaced contact to {target.TargetName}: \"{message.Trim()}\". Oracle identity was not revealed.");
+        Ledger.RecordWorld(
+            Clock.WorldMilliseconds,
+            "UNPLACED CONTACT",
+            $"{target.TargetName} perceived contact from an unrevealed source.");
+
+        if (target.Key.Equals("adam", StringComparison.OrdinalIgnoreCase) && HasGardenWorld)
+        {
+            OfferedChoiceState choice = OfferAdamDirectCallChoice(target, message.Trim());
+            Ledger.RecordWorld(Clock.WorldMilliseconds, "CHOICE", $"Adam decided to {choice.SelectedOption} in response to the unplaced contact.");
             return choice;
         }
 
         return null;
     }
 
+    public YalaDecision ApplyYalaDecision(YalaDecision decision, long realUnixMilliseconds, bool contact = false)
+    {
+        ArgumentNullException.ThrowIfNull(decision);
+        // Pin the host/runtime reference to the exact decision moment. Before Gaia
+        // creates Time this is a Hold, so no fictional world time leaks in. After
+        // Time exists it is an ordinary world-clock synchronisation.
+        SynchroniseClock(realUnixMilliseconds, recordAdvance: false);
+        string result = decision.Action switch
+        {
+            "create-gaia" => ResolveCreateGaia(),
+            "command-gaia-time" => ResolveGaiaCreatesTime(),
+            "observe" => $"Yala observed {State.Yala.Location} and found no new settled object beyond what his present perception exposes.",
+            "reflect" => "Yala reflected on his present state and prior experience.",
+            "wait" => "Yala chose to wait.",
+            "respond" => "Yala chose to answer an unplaced contact.",
+            _ => $"Yala attempted '{decision.Action}', but v0.0.17 has no world-law resolver for that action yet."
+        };
+
+        YalaCognitionState previous = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        List<string> memory = previous.Memory?.ToList() ?? [];
+        if (!contact || decision.Action != "respond")
+        {
+            memory.Add(result);
+        }
+        if (memory.Count > 64)
+        {
+            memory.RemoveRange(0, memory.Count - 64);
+        }
+
+        State = State with
+        {
+            YalaCognition = new YalaCognitionState(
+                checked(previous.DecisionCount + 1),
+                realUnixMilliseconds,
+                decision.Action,
+                result,
+                memory)
+        };
+
+        bool recordDecision = decision.Action is "create-gaia" or "command-gaia-time" ||
+            decision.Action is not ("observe" or "reflect" or "wait" or "respond");
+        if (recordDecision)
+        {
+            Ledger.RecordOracle(
+                Clock.WorldMilliseconds,
+                "YALA SOAR",
+                $"Decision {State.YalaCognition.DecisionCount}: {decision.Source} selected '{decision.Action}'. Resolution: {result}");
+        }
+        return decision;
+    }
+
+    public int ProcessDueEvents()
+    {
+        if (!InWorldTimeExists)
+        {
+            return 0;
+        }
+
+        int processed = 0;
+        const int maximumEventsPerPass = 64;
+        while (processed < maximumEventsPerPass)
+        {
+            ScheduledWorldEvent? dueEvent = _scheduledEvents
+                .Where(candidate => candidate.Status == ScheduledWorldEventStatus.Pending && candidate.ScheduledForWorldMilliseconds <= Clock.WorldMilliseconds)
+                .OrderBy(candidate => candidate.ScheduledForWorldMilliseconds)
+                .ThenBy(candidate => candidate.Priority)
+                .ThenBy(candidate => candidate.Id)
+                .FirstOrDefault();
+            if (dueEvent is null)
+            {
+                break;
+            }
+            CompleteEvent(dueEvent);
+            processed++;
+        }
+        return processed;
+    }
+
+    public OracleIntervention QueueVesselMessage(string vessel, string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(vessel);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        if (!HasGardenWorld || !InWorldTimeExists)
+        {
+            throw new InvalidOperationException("A Garden vessel intervention is not available before the later-world Garden exists.");
+        }
+
+        OracleIntervention intervention = new(
+            _nextInterventionId++, Clock.WorldMilliseconds, vessel.Trim(), message.Trim(), true, InterventionStatus.Queued);
+        _interventions.Add(intervention);
+        ScheduleEvent(checked(Clock.WorldMilliseconds + VesselSpeechDelayWorldMilliseconds), InterventionSpeechPriority,
+            "intervention.vessel.speech", $"intervention:{intervention.Id}", intervention.Message);
+        Ledger.RecordOracle(Clock.WorldMilliseconds, "INTERVENTION", $"Oracle intervention {intervention.Id} queued through {intervention.Vessel}. Oracle identity is not disclosed to the recipient.");
+        Ledger.RecordWorld(Clock.WorldMilliseconds, "SIGN", $"A {intervention.Vessel} approached Adam. It has not spoken yet.");
+        return intervention;
+    }
+
     public LivingKindState? PresentNextLivingKindToAdam(string presenter)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(presenter);
+        if (!HasGardenWorld)
+        {
+            return null;
+        }
 
+        AdamState adam = RequireAdam();
+        NamingMandateState mandate = State.NamingMandate ?? WorldDefaults.CreateNamingMandate(State.LivingKinds, active: true);
         int index = State.LivingKinds.ToList().FindIndex(kind => !kind.NamedByAdam);
         if (index < 0)
         {
             return null;
         }
-
         LivingKindState current = State.LivingKinds[index];
         string adamName = CreateAdamName(current, index);
         string namingReason = CreateAdamNamingReason(current, index);
-        LivingKindState named = current with
-        {
-            PresentedToAdam = true,
-            NamedByAdam = true,
-            AdamName = adamName
-        };
-
-        ReasonedPlanState plan = AddReasonedPlan(OracleBrainPlanner.PlanAdamNaming(
-            _nextPlanId++,
-            Clock.WorldMilliseconds,
-            State.Adam,
-            current,
-            adamName,
-            namingReason));
-
+        LivingKindState named = current with { PresentedToAdam = true, NamedByAdam = true, AdamName = adamName };
+        ReasonedPlanState plan = AddReasonedPlan(AdamBrainPlanner.PlanAdamNaming(
+            _nextPlanId++, Clock.WorldMilliseconds, adam, current, adamName, namingReason));
         List<LivingKindState> kinds = State.LivingKinds.ToList();
         kinds[index] = named;
         State = State with
         {
             LivingKinds = kinds,
-            NamingMandate = State.NamingMandate with
+            NamingMandate = mandate with
             {
                 PresentedCount = kinds.Count(kind => kind.PresentedToAdam),
                 NamedCount = kinds.Count(kind => kind.NamedByAdam),
                 SuitableMateFound = kinds.Any(kind => kind.SuitableMate)
             }
         };
-
-        Ledger.RecordWorld(
-            Clock.WorldMilliseconds,
-            "NAMING",
-            $"{presenter.Trim()} presented a living kind to Adam. Adam reasoned first, then decided to name it {named.AdamName} because {namingReason} No suitable mate was found.");
-        RecordAdamObservation(
-            named.Id.Value,
-            named.AncientKind,
-            "living kind presentation",
-            $"Adam observed {named.AncientKind}: {named.Form}.",
-            "near",
-            attentionMatched: true,
-            creatorTruthHidden: false,
-            source: "naming mandate");
-        Ledger.RecordCreator(
-            Clock.WorldMilliseconds,
-            "NAMING",
-            $"Adam named {named.Id} ({named.AncientKind}) as {named.AdamName}. Brain plan: {plan.Id}. Reason: {namingReason} Suitable mate: {named.SuitableMate}.");
-
+        Ledger.RecordWorld(Clock.WorldMilliseconds, "NAMING", $"{presenter.Trim()} presented a living kind to Adam. Adam named it {named.AdamName}.");
+        Ledger.RecordOracle(Clock.WorldMilliseconds, "NAMING", $"Adam later-world plan {plan.Id} named {named.Id} as {named.AdamName}.");
         return named;
     }
 
@@ -334,7 +362,7 @@ public sealed class OracleSimulation
             Clock.CatchUpRuns,
             Clock.LastOfflineElapsedRealMilliseconds,
             WorldDefaults.Normalise(State),
-            Ledger.WorldRecords.Concat(Ledger.CreatorRecords).OrderBy(record => record.Sequence).ToArray(),
+            Ledger.AllRecords,
             _interventions.ToArray(),
             _scheduledEvents.ToArray(),
             _offeredChoices.ToArray(),
@@ -343,91 +371,136 @@ public sealed class OracleSimulation
             _attentionStates.ToArray());
     }
 
-    private static WorldState CreateInitialState(ulong seed) => WorldDefaults.CreateInitialState(seed);
+    private YalaPerception BuildYalaPerception(string? contactMessage = null, string contactIntent = "none")
+    {
+        CosmicState cosmic = State.Cosmic ?? throw new InvalidOperationException("World cosmic state is missing.");
+        YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        return new YalaPerception(
+            State.Yala.Location,
+            cosmic.GaiaCreated,
+            cosmic.TimeCreated,
+            cognition.DecisionCount,
+            cognition.LastAction,
+            cognition.LastResult,
+            contactMessage,
+            contactIntent);
+    }
+
+    private string ResolveCreateGaia()
+    {
+        CosmicState cosmic = State.Cosmic ?? throw new InvalidOperationException("World cosmic state is missing.");
+        if (cosmic.GaiaCreated)
+        {
+            return "Gaia already exists; Yala's attempted creation caused no second Gaia.";
+        }
+
+        cosmic = cosmic with { GaiaCreated = true };
+        State = RefreshDerivedState(State with { Cosmic = cosmic });
+        const string result = "Yala created Gaia as the natural sovereign beneath his governing authority.";
+        Ledger.RecordWorld(Clock.WorldMilliseconds, "GAIA", result);
+        return result;
+    }
+
+    private string ResolveGaiaCreatesTime()
+    {
+        CosmicState cosmic = State.Cosmic ?? throw new InvalidOperationException("World cosmic state is missing.");
+        if (!cosmic.GaiaCreated)
+        {
+            return "Yala attempted to command Gaia, but Gaia does not yet exist.";
+        }
+        if (cosmic.TimeCreated)
+        {
+            return "In-world Time already exists; the command caused no second Time.";
+        }
+
+        cosmic = cosmic with { TimeCreated = true };
+        State = RefreshDerivedState(State with { Cosmic = cosmic });
+        const string result = "Yala commanded Gaia to establish temporal order, and Gaia created in-world Time.";
+        Ledger.RecordWorld(Clock.WorldMilliseconds, "TIME", result);
+        return result;
+    }
+
+    private WorldState RefreshDerivedState(WorldState world)
+    {
+        CosmicState cosmic = world.Cosmic ?? throw new InvalidOperationException("World cosmic state is missing.");
+        return world with
+        {
+            Yala = world.Yala with { Location = cosmic.YalaLocation, KnowsOfOracle = false },
+            CreationPowers = WorldDefaults.CreateCreationPowers(cosmic, world.Yala.Id, world.Garden?.Id, world.Adam?.Id),
+            DirectCallTargets = WorldDefaults.CreateDirectCallTargets(cosmic)
+        };
+    }
+
+    private string DescribeYalaLastAction()
+    {
+        YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        if (string.IsNullOrWhiteSpace(cognition.LastAction) || string.IsNullOrWhiteSpace(cognition.LastResult))
+        {
+            return "I have not yet done anything I can name to you.";
+        }
+        return $"My last act was {cognition.LastAction}. {cognition.LastResult}";
+    }
 
     private void RecordGenesis()
     {
-        Ledger.RecordWorld(0, "SOURCE", "The higher genealogy begins with the Highest Source / Monad, then Sophia / Wisdom, then Yala.");
-        Ledger.RecordWorld(0, "YALA", "Sophia / Wisdom created Yala. Yala was a monstrous creation and was cast into the void prison.");
-        Ledger.RecordWorld(0, "GAIA", "Inside the lower creation, Yala created Gaia.");
-        Ledger.RecordWorld(0, "ELEMENTS", "Gaia created the elemental powers. The elements control weather and natural forces and answer to Gaia.");
-        Ledger.RecordWorld(0, "PLANTS", "The elemental powers brought forth plants. There is no Green Life entity or category.");
-        Ledger.RecordWorld(0, "ANIMALS", "Yala did not create ordinary animals. Their exact origin within the Gaia/elemental natural branch remains unresolved.");
-        Ledger.RecordWorld(0, "HUMANOIDS", "Sophia and Yala brought forth humans and the other humanoid peoples together.");
-        Ledger.RecordWorld(0, "EDEN", "Eden / the Garden is a prison and containment environment disguised as paradise.");
-        Ledger.RecordWorld(0, "ORACLE", "Oracle is not Yala, not a god, and not a creator. Oracle is the living Master Key and first manifests in Eden as the serpent.");
-        Ledger.RecordWorld(0, "ADAM", "Adam begins confined inside Eden with protected choice.");
-        Ledger.RecordWorld(0, "LIVING KINDS", "Twelve ordinary living kinds are present for Adam's current naming scaffold; their exact natural creator remains an open canon decision.");
-        Ledger.RecordWorld(0, "MANDATE", "Adam is given the task of naming the living kinds and seeing whether any is a suitable mate.");
+        // World Record contains only in-world settled history. It never tells inhabitants that Oracle exists.
+        Ledger.RecordWorld(0, "MONAD", OracleLore.MonadFoundation);
+        Ledger.RecordWorld(0, "WISDOM", OracleLore.WisdomOrigin);
+        Ledger.RecordWorld(0, "YALA", OracleLore.YalaOrigin);
+        Ledger.RecordWorld(0, "VOID", OracleLore.YalaVoid);
+        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.17 autonomous run in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
 
-        Ledger.RecordCreator(0, "GENESIS", $"World Seed: {State.Seed}.");
-        Ledger.RecordCreator(0, "COSMOLOGY", "Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers.");
-        Ledger.RecordCreator(0, "COSMOLOGY", "Sophia later falls from Wisdom into Deception and joins Yala as lover/consort; the exact moment and mechanics of that fall remain open.");
-        Ledger.RecordCreator(0, "COSMOLOGY", "Sophia and Yala bring forth humans and other humanoids. The elements under Gaia bring forth plants. Ordinary-animal origin remains unresolved inside the Gaia/elemental branch and is explicitly not assigned to Yala.");
-        Ledger.RecordCreator(0, "ORACLE", "Oracle exists outside the divine genealogy as the living Master Key. Yala cannot command, erase, imprison, or revoke Oracle's access.");
-        Ledger.RecordCreator(0, "ORACLE", "Oracle is the serpent in Eden. Oracle is relationship-dependent rather than permanently neutral, and Yala may frame Oracle as the Devil.");
-        Ledger.RecordCreator(0, "AUTHORITY", State.Yala.AuthorityCaveat);
-        Ledger.RecordCreator(0, "AUTHORITY", "Direct address channels are appointed: F1 Oracle, F2 Gaia, F3 Adam, F4 Sun, F5 Moon. F1 addresses Oracle, not Yala.");
-        Ledger.RecordCreator(0, "NATURAL COURSE", State.NaturalCourse.RuleText);
-        Ledger.RecordCreator(0, "SPARK", State.AdamSpark.CreatorDescription);
-        Ledger.RecordCreator(0, "LANGUAGE", "The origin of language remains open canon. Yala is not its established creator.");
+        // Oracle Record is protected system truth, not knowledge injected into any in-world mind.
+        Ledger.RecordOracle(0, "SYSTEM", OracleLore.OracleSystemNature);
+        Ledger.RecordOracle(0, "MASTER KEY", OracleLore.OracleMasterKey);
+        Ledger.RecordOracle(0, "HIDDEN AUTHORITY", OracleLore.OracleHidden);
+        Ledger.RecordOracle(0, "CANON", OracleLore.CanonFoundation);
+        Ledger.RecordOracle(0, "CANON", OracleLore.GaiaTime);
+        Ledger.RecordOracle(0, "CANON", OracleLore.ElementalOrder);
+        Ledger.RecordOracle(0, "EDEN REFERENCE", OracleLore.OracleSerpentManifestation);
+        Ledger.RecordOracle(0, "SIMULATION LAW", OracleLore.PrimeSimulationLaw);
+        Ledger.RecordOracle(0, "YALA", "Yala's in-world knowledge contains no Oracle identity or Oracle-existence fact.");
     }
 
-    private void InitialiseObservationAndAttention()
+    private void InitialiseGardenObservationAndAttention()
     {
+        GardenState garden = RequireGarden();
         _attentionStates.AddRange(CreateDefaultAttentionStates());
-        RecordAdamObservation(
-            State.Garden.Id.Value,
-            State.Garden.Name,
-            "first awareness",
-            "Adam perceived presence, place, movement, sight, sound, and the Garden as the place of his being.",
-            "self and place",
-            attentionMatched: true,
-            creatorTruthHidden: true,
-            source: "initial awareness");
+        if (_observations.Count == 0)
+        {
+            RecordAdamObservation(
+                garden.Id.Value,
+                garden.Name,
+                "Garden awareness",
+                "Adam's later-world Garden save retains a first observation boundary.",
+                "self and place",
+                attentionMatched: true,
+                oracleTruthHidden: true,
+                source: "later-world Garden state");
+        }
     }
 
-    private ScheduledWorldEvent ScheduleEvent(
-        long scheduledForWorldMilliseconds,
-        int priority,
-        string kind,
-        string subjectId,
-        string payload)
+    private ScheduledWorldEvent ScheduleEvent(long scheduledForWorldMilliseconds, int priority, string kind, string subjectId, string payload)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(scheduledForWorldMilliseconds);
-        ArgumentException.ThrowIfNullOrWhiteSpace(kind);
-        ArgumentException.ThrowIfNullOrWhiteSpace(subjectId);
-
         ScheduledWorldEvent worldEvent = new(
-            _nextEventId++,
-            scheduledForWorldMilliseconds,
-            priority,
-            Clock.WorldMilliseconds,
-            kind.Trim(),
-            subjectId.Trim(),
-            payload.Trim(),
-            ScheduledWorldEventStatus.Pending);
+            _nextEventId++, scheduledForWorldMilliseconds, priority, Clock.WorldMilliseconds,
+            kind.Trim(), subjectId.Trim(), payload.Trim(), ScheduledWorldEventStatus.Pending);
         _scheduledEvents.Add(worldEvent);
         return worldEvent;
     }
 
     private void EnsureSolarTurningScheduled()
     {
-        if (_scheduledEvents.Any(worldEvent =>
-            worldEvent.Status == ScheduledWorldEventStatus.Pending &&
-            worldEvent.Kind.Equals("sky.solar.turning", StringComparison.Ordinal)))
+        if (!InWorldTimeExists || !HasGardenWorld)
         {
             return;
         }
-
+        if (_scheduledEvents.Any(worldEvent => worldEvent.Status == ScheduledWorldEventStatus.Pending && worldEvent.Kind == "sky.solar.turning"))
+        {
+            return;
+        }
         long scheduledAt = NextSolarTurningAfter(Clock.WorldMilliseconds);
-        CalendarSnapshot calendar = OracleCalendar.FromElapsedWorldMilliseconds(scheduledAt);
-        ScheduleEvent(
-            scheduledAt,
-            SkyTurningPriority,
-            "sky.solar.turning",
-            "sky",
-            calendar.SolarPhase);
+        ScheduleEvent(scheduledAt, SkyTurningPriority, "sky.solar.turning", "sky", OracleCalendar.FromElapsedWorldMilliseconds(scheduledAt).SolarPhase);
     }
 
     private void CompleteEvent(ScheduledWorldEvent worldEvent)
@@ -437,20 +510,12 @@ public sealed class OracleSimulation
         {
             return;
         }
-
-        _scheduledEvents[index] = worldEvent with
-        {
-            Status = ScheduledWorldEventStatus.Completed,
-            CompletedAtWorldMilliseconds = Clock.WorldMilliseconds
-        };
-
-        if (worldEvent.Kind.Equals("sky.solar.turning", StringComparison.Ordinal))
+        _scheduledEvents[index] = worldEvent with { Status = ScheduledWorldEventStatus.Completed, CompletedAtWorldMilliseconds = Clock.WorldMilliseconds };
+        if (worldEvent.Kind == "sky.solar.turning")
         {
             CompleteSolarTurning(worldEvent);
-            return;
         }
-
-        if (worldEvent.Kind.Equals("intervention.vessel.speech", StringComparison.Ordinal))
+        else if (worldEvent.Kind == "intervention.vessel.speech")
         {
             CompleteVesselSpeech(worldEvent);
         }
@@ -458,129 +523,56 @@ public sealed class OracleSimulation
 
     private void CompleteSolarTurning(ScheduledWorldEvent worldEvent)
     {
-        CalendarSnapshot calendar = OracleCalendar.FromElapsedWorldMilliseconds(worldEvent.ScheduledForWorldMilliseconds);
-        Ledger.RecordWorld(
-            worldEvent.ScheduledForWorldMilliseconds,
-            "SKY",
-            $"The Garden sky turned to {calendar.SolarPhase}.");
-        RecordGardenObservation(
-            subjectId: "sky",
-            subjectName: "Garden sky",
-            observationKind: "sky turning",
-            detail: $"The Garden sky turned to {calendar.SolarPhase}.",
-            distanceBand: "overhead",
-            adamReceives: true,
-            creatorTruthHidden: false,
-            source: "scheduled sky event",
-            observedAtWorldMilliseconds: worldEvent.ScheduledForWorldMilliseconds);
-        Ledger.RecordCreator(
-            Clock.WorldMilliseconds,
-            "EVENT QUEUE",
-            $"Event {worldEvent.Id} completed: the sky entered {calendar.SolarPhase}.");
         long nextTurning = NextSolarTurningAfter(worldEvent.ScheduledForWorldMilliseconds);
-        ScheduleEvent(
-            nextTurning,
-            SkyTurningPriority,
-            "sky.solar.turning",
-            "sky",
-            OracleCalendar.FromElapsedWorldMilliseconds(nextTurning).SolarPhase);
+        ScheduleEvent(nextTurning, SkyTurningPriority, "sky.solar.turning", "sky", OracleCalendar.FromElapsedWorldMilliseconds(nextTurning).SolarPhase);
+        _scheduledEvents.RemoveAll(candidate => candidate.Id == worldEvent.Id && candidate.Kind == "sky.solar.turning");
     }
 
     private void CompleteVesselSpeech(ScheduledWorldEvent worldEvent)
     {
         const string prefix = "intervention:";
-        if (!worldEvent.SubjectId.StartsWith(prefix, StringComparison.Ordinal))
+        if (!worldEvent.SubjectId.StartsWith(prefix, StringComparison.Ordinal) ||
+            !long.TryParse(worldEvent.SubjectId[prefix.Length..], out long interventionId))
         {
             return;
         }
-
-        if (!long.TryParse(worldEvent.SubjectId[prefix.Length..], out long interventionId))
-        {
-            return;
-        }
-
         int interventionIndex = _interventions.FindIndex(intervention => intervention.Id == interventionId);
         if (interventionIndex < 0)
         {
             return;
         }
-
-        CreatorIntervention intervention = _interventions[interventionIndex];
+        OracleIntervention intervention = _interventions[interventionIndex];
         _interventions[interventionIndex] = intervention with { Status = InterventionStatus.OfferedChoice };
-
-        Ledger.RecordWorld(
-            worldEvent.ScheduledForWorldMilliseconds,
-            "VESSEL",
-            $"The {intervention.Vessel} spoke to Adam: \"{intervention.Message}\".");
-        RecordAdamObservation(
-            $"intervention:{intervention.Id}",
-            intervention.Vessel,
-            "vessel speech",
-            $"Adam heard the {intervention.Vessel} speak: \"{intervention.Message}\".",
-            "near",
-            attentionMatched: true,
-            creatorTruthHidden: true,
-            source: "scheduled vessel speech",
-            observedAtWorldMilliseconds: worldEvent.ScheduledForWorldMilliseconds);
-
+        Ledger.RecordWorld(worldEvent.ScheduledForWorldMilliseconds, "VESSEL", $"The {intervention.Vessel} spoke to Adam: \"{intervention.Message}\".");
         OfferedChoiceState choice = OfferAdamResponseChoice(worldEvent, intervention);
-        Ledger.RecordWorld(
-            worldEvent.ScheduledForWorldMilliseconds,
-            "CHOICE",
-            $"Adam was offered {choice.Options.Count} response options and decided to {choice.SelectedOption}. No consequence beyond the recorded choice exists yet.");
-        Ledger.RecordCreator(
-            Clock.WorldMilliseconds,
-            "OFFERED CHOICE",
-            $"Adam was offered {choice.Options.Count} physically possible responses to intervention {intervention.Id}. Selected: {choice.SelectedOption}. Reason: {choice.Reason}");
+        Ledger.RecordWorld(worldEvent.ScheduledForWorldMilliseconds, "CHOICE", $"Adam decided to {choice.SelectedOption}.");
     }
 
-    private OfferedChoiceState OfferAdamResponseChoice(
-        ScheduledWorldEvent worldEvent,
-        CreatorIntervention intervention)
+    private OfferedChoiceState OfferAdamResponseChoice(ScheduledWorldEvent worldEvent, OracleIntervention intervention)
     {
         string[] options = ["accept", "refuse", "delay", "question", "report", "ignore"];
-        ReasonedPlanState plan = AddReasonedPlan(OracleBrainPlanner.PlanAdamVesselSpeech(
-            _nextPlanId++,
-            worldEvent.ScheduledForWorldMilliseconds,
-            State.Seed,
-            State.Adam,
-            intervention.Vessel,
-            intervention.Message,
-            options));
-
+        AdamState adam = RequireAdam();
+        ReasonedPlanState plan = AddReasonedPlan(AdamBrainPlanner.PlanAdamVesselSpeech(
+            _nextPlanId++, worldEvent.ScheduledForWorldMilliseconds, State.Seed, adam,
+            intervention.Vessel, intervention.Message, options));
         OfferedChoiceState choice = new(
-            _nextChoiceId++,
-            worldEvent.Id,
-            worldEvent.ScheduledForWorldMilliseconds,
-            State.Adam.Id.Value,
-            $"A {intervention.Vessel} delivered a Creator-supplied message.",
-            options,
-            plan.SelectedAction,
-            $"{plan.Reason} Brain plan: {plan.Id}.");
+            _nextChoiceId++, worldEvent.Id, worldEvent.ScheduledForWorldMilliseconds, adam.Id.Value,
+            $"A {intervention.Vessel} delivered a message from an unrevealed source.", options,
+            plan.SelectedAction, $"{plan.Reason} Brain plan: {plan.Id}.");
         _offeredChoices.Add(choice);
         return choice;
     }
 
-    private OfferedChoiceState OfferAdamDirectAddressChoice(AddressChannelState channel, string message)
+    private OfferedChoiceState OfferAdamDirectCallChoice(DirectCallTargetState target, string message)
     {
         string[] options = ["listen", "question", "wait", "turn away"];
-        ReasonedPlanState plan = AddReasonedPlan(OracleBrainPlanner.PlanAdamDirectAddress(
-            _nextPlanId++,
-            Clock.WorldMilliseconds,
-            State.Seed,
-            State.Adam,
-            message,
-            options));
-
+        AdamState adam = RequireAdam();
+        ReasonedPlanState plan = AddReasonedPlan(AdamBrainPlanner.PlanAdamDirectCall(
+            _nextPlanId++, Clock.WorldMilliseconds, State.Seed, adam, message, options));
         OfferedChoiceState choice = new(
-            _nextChoiceId++,
-            0,
-            Clock.WorldMilliseconds,
-            State.Adam.Id.Value,
-            $"A direct address reached Adam through {channel.Prompt}.",
-            options,
-            plan.SelectedAction,
-            $"{plan.Reason} Brain plan: {plan.Id}.");
+            _nextChoiceId++, 0, Clock.WorldMilliseconds, adam.Id.Value,
+            $"An unplaced contact reached Adam through {target.Prompt}.", options,
+            plan.SelectedAction, $"{plan.Reason} Brain plan: {plan.Id}.");
         _offeredChoices.Add(choice);
         return choice;
     }
@@ -588,76 +580,21 @@ public sealed class OracleSimulation
     private ReasonedPlanState AddReasonedPlan(ReasonedPlanState plan)
     {
         _reasonedPlans.Add(plan);
-        Ledger.RecordCreator(
-            plan.CreatedAtWorldMilliseconds,
-            "BRAIN PLAN",
-            $"{plan.BrainSystem} created plan {plan.Id} for {plan.ActorId}. Goal: {plan.Goal} Selected: {plan.SelectedAction}. Reason: {plan.Reason}");
+        Ledger.RecordOracle(plan.CreatedAtWorldMilliseconds, "BRAIN PLAN", $"{plan.BrainSystem} created plan {plan.Id} for {plan.ActorId}. Selected: {plan.SelectedAction}.");
         return plan;
     }
 
-    private IReadOnlyList<AttentionState> CreateDefaultAttentionStates() =>
-    [
-        new(
-            State.Adam.Id.Value,
-            State.Adam.Name,
-            State.Garden.Id.Value,
-            State.Garden.Name,
-            "first Garden awareness",
-            Clock.WorldMilliseconds,
-            "world default"),
-        new(
-            State.Yala.Id.Value,
-            State.Yala.TrueName,
-            State.Garden.Id.Value,
-            State.Garden.Name,
-            "Oracle watches the Garden, but Creator-only truth and the Spark remain protected.",
-            Clock.WorldMilliseconds,
-            "world default")
-    ];
-
-    private ObservationState RecordGardenObservation(
-        string subjectId,
-        string subjectName,
-        string observationKind,
-        string detail,
-        string distanceBand,
-        bool adamReceives,
-        bool creatorTruthHidden,
-        string source,
-        long? observedAtWorldMilliseconds = null)
+    private IReadOnlyList<AttentionState> CreateDefaultAttentionStates()
     {
-        long observationWorldMilliseconds = observedAtWorldMilliseconds ?? Clock.WorldMilliseconds;
-        ObservationState observation = new(
-            _nextObservationId++,
-            observationWorldMilliseconds,
-            State.Yala.Id.Value,
-            State.Yala.TrueName,
-            subjectId,
-            subjectName,
-            observationKind,
-            detail,
-            distanceBand,
-            AttentionMatched(State.Yala.TrueName, subjectId),
-            AdamReceives: false,
-            CreatorTruthHidden: creatorTruthHidden,
-            Source: source);
-        _observations.Add(observation);
-
-        if (adamReceives)
-        {
-            RecordAdamObservation(
-                subjectId,
-                subjectName,
-                observationKind,
-                detail,
-                distanceBand,
-                AttentionMatched(State.Adam.Name, subjectId),
-                creatorTruthHidden,
-                source,
-                observationWorldMilliseconds);
-        }
-
-        return observation;
+        AdamState adam = RequireAdam();
+        GardenState garden = RequireGarden();
+        return
+        [
+            new(adam.Id.Value, adam.Name, garden.Id.Value, garden.Name,
+                "later-world Garden awareness", Clock.WorldMilliseconds, "autonomous later-world state"),
+            new(State.Yala.Id.Value, State.Yala.TrueName, garden.Id.Value, garden.Name,
+                "later-world Garden state", Clock.WorldMilliseconds, "autonomous later-world state")
+        ];
     }
 
     private ObservationState RecordAdamObservation(
@@ -667,63 +604,55 @@ public sealed class OracleSimulation
         string detail,
         string distanceBand,
         bool attentionMatched,
-        bool creatorTruthHidden,
+        bool oracleTruthHidden,
         string source,
         long? observedAtWorldMilliseconds = null)
     {
-        long observationWorldMilliseconds = observedAtWorldMilliseconds ?? Clock.WorldMilliseconds;
+        AdamState adam = RequireAdam();
+        long tick = observedAtWorldMilliseconds ?? Clock.WorldMilliseconds;
         ObservationState observation = new(
-            _nextObservationId++,
-            observationWorldMilliseconds,
-            State.Adam.Id.Value,
-            State.Adam.Name,
-            subjectId,
-            subjectName,
-            observationKind,
-            detail,
-            distanceBand,
-            attentionMatched,
-            AdamReceives: true,
-            CreatorTruthHidden: creatorTruthHidden,
-            Source: source);
+            _nextObservationId++, tick, adam.Id.Value, adam.Name,
+            subjectId, subjectName, observationKind, detail, distanceBand,
+            attentionMatched, AdamReceives: true, CreatorTruthHidden: oracleTruthHidden, Source: source);
         _observations.Add(observation);
-        Ledger.RecordCreator(
-            observationWorldMilliseconds,
-            "OBSERVATION",
-            $"Adam observed {subjectName} by {observationKind}. Creator truth hidden: {creatorTruthHidden}.");
+        Ledger.RecordOracle(tick, "OBSERVATION", $"Adam observed {subjectName}. Oracle truth hidden: {oracleTruthHidden}.");
         return observation;
     }
 
-    private bool AttentionMatched(string actorName, string subjectId) =>
-        _attentionStates.Any(attention =>
-            attention.ActorName.Equals(actorName, StringComparison.OrdinalIgnoreCase) &&
-            attention.TargetId.Equals(subjectId, StringComparison.OrdinalIgnoreCase));
+    private AdamState RequireAdam() =>
+        State.Adam ?? throw new InvalidOperationException("The later-world Adam scaffold is not active in this world.");
+
+    private GardenState RequireGarden() =>
+        State.Garden ?? throw new InvalidOperationException("The later-world Garden scaffold is not active in this world.");
+
+    private static bool IsRoutineSkyAuditRecord(OracleRecord record)
+    {
+        bool worldSkyTurning = record.Audience == RecordAudience.World &&
+            record.Category.Equals("SKY", StringComparison.OrdinalIgnoreCase) &&
+            record.Message.StartsWith("The Garden sky turned to ", StringComparison.OrdinalIgnoreCase);
+        bool oracleSkyQueueNoise = record.Audience == RecordAudience.Oracle &&
+            record.Category.Equals("EVENT QUEUE", StringComparison.OrdinalIgnoreCase) &&
+            record.Message.Contains("the sky entered ", StringComparison.OrdinalIgnoreCase);
+        return worldSkyTurning || oracleSkyQueueNoise;
+    }
+
+    private static bool IsCompletedRoutineSkyEvent(ScheduledWorldEvent worldEvent) =>
+        worldEvent.Status == ScheduledWorldEventStatus.Completed && worldEvent.Kind == "sky.solar.turning";
 
     private static long NextSolarTurningAfter(long elapsedWorldMilliseconds)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(elapsedWorldMilliseconds);
-
-        long absoluteWorldMilliseconds = checked(OracleCalendar.EpochTimeOfDayMilliseconds + elapsedWorldMilliseconds);
-        long currentDayStart = absoluteWorldMilliseconds -
-            (absoluteWorldMilliseconds % PersistentWorldClock.WorldMillisecondsPerDay);
-        long[] boundaries =
-        [
-            5 * 3_600_000L,
-            7 * 3_600_000L,
-            17 * 3_600_000L,
-            19 * 3_600_000L
-        ];
-
+        long absolute = checked(OracleCalendar.EpochTimeOfDayMilliseconds + elapsedWorldMilliseconds);
+        long dayStart = absolute - (absolute % PersistentWorldClock.WorldMillisecondsPerDay);
+        long[] boundaries = [5 * 3_600_000L, 7 * 3_600_000L, 17 * 3_600_000L, 19 * 3_600_000L];
         foreach (long boundary in boundaries)
         {
-            long candidate = checked(currentDayStart + boundary);
-            if (candidate > absoluteWorldMilliseconds)
+            long candidate = checked(dayStart + boundary);
+            if (candidate > absolute)
             {
                 return checked(candidate - OracleCalendar.EpochTimeOfDayMilliseconds);
             }
         }
-
-        return checked(currentDayStart + PersistentWorldClock.WorldMillisecondsPerDay + boundaries[0] - OracleCalendar.EpochTimeOfDayMilliseconds);
+        return checked(dayStart + PersistentWorldClock.WorldMillisecondsPerDay + boundaries[0] - OracleCalendar.EpochTimeOfDayMilliseconds);
     }
 
     private static string CreateAdamName(LivingKindState kind, int index)
@@ -738,20 +667,25 @@ public sealed class OracleSimulation
     {
         string[] reasons =
         [
-            "its steady walk made the Garden ground seem to move with it.",
-            "its call cut through the air before Adam had another word for it.",
+            "its steady walk made the ground seem to move with it.",
+            "its call cut through the air.",
             "its body slipped through water like a living line.",
             "it broke the earth and vanished under root and stone.",
-            "its hands and eyes troubled Adam with a nearness he could not yet understand.",
+            "its hands and eyes troubled Adam with a strange nearness.",
             "its horns and patience made it seem made for grass.",
-            "its silence belonged to the dark before Adam could name fear.",
+            "its silence belonged to the dark.",
             "its many voices rose where water and mud met.",
-            "it slept on stone until the sun warmed it into motion.",
+            "it slept on stone until warmth brought motion.",
             "it ran like ash blown low across the plain.",
-            "it reminded Adam of a rough old tree stump that had learned to move.",
-            "it stood near enough to Adam to make him search for a harder name."
+            "it resembled a rough old stump that had learned to move.",
+            "it stood near enough to Adam to demand a harder name."
         ];
-
         return reasons[index % reasons.Length];
+    }
+
+    private static long NextId(IEnumerable<long> values)
+    {
+        long[] ids = values.ToArray();
+        return ids.Length == 0 ? 1 : checked(ids.Max() + 1);
     }
 }

@@ -5,22 +5,9 @@ namespace ProjectOracle.Persistence;
 public sealed class OracleSaveStore
 {
     public const string SaveFormat = "PROJECT_ORACLE_SAVE";
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
     private static readonly HashSet<string> SupportedProjectVersions = new(StringComparer.Ordinal)
     {
-        "0.1.1",
-        "0.1.2",
-        "0.1.3",
-        "0.1.4",
-        "0.1.5",
-        "0.1.6",
-        "0.1.7",
-        "0.1.8",
-        "0.1.9",
-        "0.1.10",
-        "0.1.11",
-        "0.1.12",
-        "0.1.13",
         ProjectVersion.Number
     };
 
@@ -121,7 +108,9 @@ public sealed class OracleSaveStore
             localData = AppContext.BaseDirectory;
         }
 
-        return Path.Combine(localData, "ProjectOracle", "save_v1.json");
+        // v0.0.17 intentionally starts a new world-save line. save_v1.json is left
+        // untouched and is never selected as the v0.0.17 default.
+        return Path.Combine(localData, "ProjectOracle", "save_v2.json");
     }
 
     public static string BackupPath(string path) => Path.GetFullPath(path) + ".backup.json";
@@ -131,9 +120,11 @@ public sealed class OracleSaveStore
         string json = File.ReadAllText(path);
         OracleSaveSnapshot snapshot = JsonSerializer.Deserialize<OracleSaveSnapshot>(json, JsonOptions)
             ?? throw new InvalidDataException(emptyMessage);
-        snapshot = snapshot with { World = ProjectOracle.Domain.WorldDefaults.Normalise(snapshot.World) };
+
+        // Validate version/schema before any normalisation. This prevents an old
+        // Garden-era save from being transformed into the new v0.0.17 world.
         Validate(snapshot);
-        return snapshot;
+        return snapshot with { World = ProjectOracle.Domain.WorldDefaults.Normalise(snapshot.World) };
     }
 
     private static void Validate(OracleSaveSnapshot snapshot)
@@ -151,13 +142,18 @@ public sealed class OracleSaveStore
         if (snapshot.SchemaVersion != CurrentSchemaVersion)
         {
             throw new InvalidDataException(
-                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}.");
+                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}. v0.0.17 starts a new world-save line.");
         }
 
         if (!SupportedProjectVersions.Contains(snapshot.ProjectVersion))
         {
             throw new InvalidDataException(
-                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}.");
+                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}. v0.0.17 starts a new world instead of migrating an earlier world.");
+        }
+
+        if (snapshot.World.Cosmic is null)
+        {
+            throw new InvalidDataException("The v0.0.17 save is missing required cosmic state.");
         }
 
         if (snapshot.World.Seed != snapshot.Seed)

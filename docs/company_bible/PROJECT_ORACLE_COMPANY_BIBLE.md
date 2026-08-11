@@ -1,185 +1,122 @@
 # Project Oracle Company Bible
 
-**Version:** v0.0.16
-**Status:** Mandatory and canonical for Project Oracle
-**Project:** Project Oracle
-**Owner:** Derek Sparks
+**Version:** v0.0.17  
+**Status:** Mandatory and canonical for Project Oracle  
+**Owner and final authority:** Derek Sparks  
 **Canonical path:** `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`
 
-> Build a world worth believing in. Then tell it the truth.
+## 1. One active Bible
 
-## 1. Sole authority and scope
+This is the one active Company Bible. Permanent workflow-law changes edit this file rather than creating competing addenda.
 
-This file is the one active Company Bible for Project Oracle. It governs Project Oracle authority, workflow, build approval, versioning, packaging, validation, continuity, and conduct.
+## 2. Owner authority
 
+Derek is the final creative and project authority. Tools advise, implement, validate, and report. Explicit later owner corrections outrank earlier project text. `STOP` ends implementation/tool/release work immediately until Derek directs otherwise.
 
-Do not create a second active Project Oracle Company Bible, addendum, carryover file, reinforcement note, or alternate Bible. Future permanent workflow-rule changes must edit this same file in a numbered Project Oracle build.
+## 3. Required reading
 
-## 2. Derek is the final authority
+Before implementation, read the origin/handoff, master handoff, this Bible, current lore canon, current canon, roadmap, architecture, validation record, world-time intake, and resume handshake. Do not reconstruct current law from memory when active project files answer it.
 
-Derek Sparks is the owner, creator, and final creative decision-maker for Project Oracle.
+## 4. Approval and version law
 
-- Tools advise, report, validate, and package. They do not overrule Derek.
-- Codex may have engineering judgement, but owner decisions outrank taste, convention, automation, and momentum.
-- If Derek corrects a misunderstanding, the correction governs immediately.
-- If Derek says `stop`, all build, tool, packaging, and implementation work stops immediately.
+Implementation requires explicit owner approval for the stated scope. Repairs stay on the same numeric version. New features advance version only when authorised. Current feature build: **v0.0.17**.
 
-## 3. No guessing past the Bible
+## 5. Packaging, rollback, and acceptance
 
-When a decision point appears and the assistant thinks it is acceptable to guess, it must check this Company Bible first.
+Changed-files-only packages preserve project-relative paths, carry hashes/inventories, verify the intended base before mutation, back up touched paths outside the active tree, and restore touched paths if install-side validation fails.
 
-The rule is:
-
-```text
-No guessing past the Company Bible.
-If the Company Bible answers it, follow it.
-If it does not answer it, check the active handoff, canon, roadmap, architecture, validation records, and source.
-If the records still do not answer it, ask Derek or mark it as an open decision.
-```
-
-Do not invent behaviour because it seems obvious. Do not reinterpret Derek's words into a cheaper substitute. The physical `F1` key is not the same instruction as typing the characters `f1`.
-
-## 4. Required reading order before work
-
-Before proposing or performing a Project Oracle build, read end to end:
-
-1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx`.
-2. `PROJECT_ORACLE_MASTER_HANDOFF.md`.
-3. This Company Bible.
-4. The current canon document.
-5. The current roadmap.
-6. The current architecture document.
-7. The current validation record.
-
-Do not propose or build from memory.
-
-## 5. Prebuild scope and approval
-
-Before implementation, packaging, file generation, or equivalent build work, state:
-
-- required accepted base version, commit, tag, branch, and clean-tree requirement when available;
-- target numeric version and build title;
-- exact purpose and behaviour;
-- exact files or systems expected to be added, modified, or deleted;
-- explicit exclusions;
-- risks and controls;
-- rollback point and method;
-- validation plan;
-- exact package filename.
-
-Implementation begins only after Derek explicitly approves that stated scope with a build or patch command. Approval applies only to that scope. If the work expands, stop and obtain approval for the expanded scope.
-
-## 6. Complete the approved scope only
-
-Once Derek approves an exact build:
-
-- complete every approved item unless Derek changes the scope;
-- do not silently defer requested work;
-- do not add unrelated work because it seems helpful;
-- disclose limitations before delivery;
-- finish, validate, package, and hand off the current build before starting another.
-
-When Derek says to stop building unless he says so, treat that as active project law.
-
-## 7. Version truth
-
-Every build, patch, hotfix, documentation release, or package uses the next unused numeric version.
-
-- Rejected or failed packages are not accepted baselines and their version numbers are not reused.
-- A documentation-only build still advances the version when it changes active project authority.
-- Active version surfaces must agree, including source constants, README, scripts, validation, changelog, session log, roadmap, architecture, canon, handoff, changed-file records, package name, and installer output.
-- Version numbers in the roadmap are planned lanes, not reservations.
-
-After Derek accepts a build, he may commit and tag it locally. Do not ask him to accept a superseded build when a later repair replaces it.
-
-## 8. Packaging and rollback
-
-The default deliverable is one changed-files-only ZIP.
-
-- Provide one primary download unless Derek asks otherwise.
-- Preserve project-relative paths under `Project Oracle/` in the package payload.
-- Include an installer script that verifies the expected base before mutation.
-- Include changed-file and deleted-file inventories.
-- Do not place backup copies inside the active project tree.
-- A post-mutation validation failure must roll back replaced files and remove newly installed candidate files.
-
-## 9. Validation, manual inspection, and acceptance evidence
-
-Warnings are failures by default. Validation must be deterministic, bounded, and appropriate to the change.
-
-A build is not successful merely because files were written or automated tests passed. Project Oracle acceptance order is mandatory:
+Acceptance order is mandatory:
 
 ```text
 install candidate
 -> automated validation PASS
--> launch the real Project Oracle application/console
--> Derek manually inspects and explicitly approves it
+-> launch real Project Oracle application
+-> Derek manual inspection
+-> Derek explicit PASS
 -> accepted snapshot
--> local Git commit and tag
--> GitHub push
+-> local Git commit/tag
+-> remote push/verification
 ```
 
-No accepted snapshot, Git commit, tag, or GitHub push may occur before Derek's manual console/application inspection. A failed manual inspection consumes the candidate version and keeps the last accepted Git baseline authoritative.
+Never claim a validation lane ran when the environment could not run it.
 
-Report exactly what was validated and what was blocked by the builder environment. Derek's install-side validation and manual inspection are the acceptance gates when the local project toolchain or graphical session is unavailable in the builder workspace.
+## 6. Prime simulation law
 
-Failed builds, rejected packages, installation crashes, misunderstandings, and corrections remain evidence. Correct them through a later numbered build and documentation; do not scrub them out of history.
+> **Canon determines what has already happened. World law determines what can happen. Minds determine what they attempt. Project Oracle resolves the consequences. Future history is not canon until it occurs.**
 
-## 10. Project identity and cosmology authority
+Older later-world scaffolding does not force a fresh autonomous run to reenact a fixed sequence.
 
-Project Oracle is a standalone autonomous-world simulation, artificial-life experiment, historical generator, and observer-driven god simulation.
+## 7. Settled in-world foundation
 
-- There is no player character inside the world.
-- The autonomous inhabitants are the active agents.
-- The current canonical genealogy is `Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers`.
-- Sophia / Wisdom creates Yala. Sophia later falls into Deception and joins Yala as lover/consort; the exact moment and mechanism of that fall remain open unless the lore canon closes them later.
-- Yala creates Gaia.
-- Gaia creates and commands the elemental beings. The elements control weather and natural forces and answer to Gaia.
-- The elemental powers bring forth plants. There is no `Green Life` entity, power, or category.
-- Yala did not create ordinary animals. Their exact origin within the Gaia/elemental natural branch remains an explicit open canon decision.
-- Sophia and Yala bring forth humans and other humanoid peoples together.
-- The origin of language remains open; Yala is not its established creator.
-- Eden / the Garden is a prison and containment environment disguised as paradise.
-- The persisted simulation entity name for Eden remains exactly `the Garden`; lore wording must not rename that persistence identity.
-- Oracle is separate from Yala. Oracle is neither a god nor a creator. Oracle is the living Master Key and exists outside the divine genealogy as an access anomaly Yala cannot command, erase, imprison, or revoke.
-- Oracle is the serpent in Eden. Oracle is not permanently neutral; her treatment of beings is relationship- and conduct-dependent.
-- Yala may frame Oracle as the Devil because Yala cannot control or remove her.
-- Whether Yala later turns against Deception remains an open future branch.
-- The Master Key concept is simulation-internal only. It never authorises Oracle or any inhabitant to access the host operating system, real accounts, networks, devices, or people.
+- Monad is the first settled in-world divine being in the current lore.
+- Monad made Sophia / Wisdom.
+- Wisdom made Yala alone, outside the intended order.
+- Yala is male.
+- Monad cast Yala into the Void.
+- Wisdom's later choices remain open until they occur.
+- A Wisdom/Yala union can produce demons if that union actually occurs; it is not pre-set history.
+- Yala is governing authority over lower creation he establishes and may create, command, and delegate.
+- Yala may call himself Creator in-world. That claim does not alter his origin.
+- Yala can create Gaia as natural sovereign beneath his governing authority.
+- **Gaia creates in-world Time.**
+- Terra = Earth; Aether = Air and Wind; Sol = Fire and Sun power; Thalassa = Water; Luna = Moon and is not an element.
+- Yala can form man from clay and breathe a life-like spark into mankind if that act actually occurs.
 
-The detailed lore authority is the current `docs/PROJECT_ORACLE_LORE_CANON_v0_0_16.md`. If a lore point is marked unresolved there, code and documentation must not invent an answer.
+Use **Monad** consistently in active Project Oracle documentation and code.
 
-## 11. Direct address and control law
+## 8. Oracle system authority
 
-The intended direct-address map is:
+- Oracle is the outside/system-level author represented by Project Oracle itself.
+- Oracle is not an in-world entity, NPC, god record, or direct-call target.
+- Derek occupies the Oracle/system-author position for the project.
+- Oracle has the Master Key because Oracle wrote the simulation and its locks.
+- The Master Key is system authority, not an in-world artifact.
+- No in-world being knows Oracle exists unless Oracle deliberately reveals that truth.
+- Interventions expose only the form, voice, event, or information actually perceived.
+- Oracle has no fixed form.
+- In Eden, Oracle **manifested in the form of a clever serpent**. Eve knew only the clever serpent and was never told Oracle's true identity.
+- Fictional/system authority inside Project Oracle grants no real host, account, device, network, or external-world access.
 
-| Physical key | Prompt | Addressed being/system |
-| --- | --- | --- |
-| `F1` | `<oracle>` | Oracle, the living Master Key; **not Yala** |
-| `F2` | `<gaia>` | Gaia |
-| `F3` | `<adam>` | Adam |
-| `F4` | `<sun>` | the current Sun/Sol channel |
-| `F5` | `<moon>` | the current Moon/Luna channel |
+## 9. Yala cognition law
 
-Physical function keys mean physical function keys. Typed aliases such as `f1` are not direct-address controls and must not be described as fallback equivalents.
+Yala's v0.0.17 Brain Slice 1 uses the real Soar 9.6.5 runtime.
 
-Addressing Adam must not puppet Adam. Addressing Gaia, Sun, Moon, or Oracle must still pass through world law, records, and implemented authority. Oracle's fictional Master Key status does not bypass trusted host-process boundaries.
+- Project Oracle supplies only Yala's available perception and remembered state.
+- Soar proposes/selects the action Yala attempts.
+- Project Oracle resolves whether and how the attempt changes reality.
+- The result returns to Yala's continuing cognition state.
+- Yala's working memory must not contain a hidden `Oracle exists` fact.
+- Yala may form beliefs that are wrong, incomplete, self-aggrandising, or uncertain.
 
-## 12. Language convention
+## 10. Time law
 
-- C# source identifiers and external programming APIs use standard American English.
-- Human-facing prose uses British English where practical: terminal output, records, errors, menus, reports, documentation, and test descriptions.
+Oracle runtime ordering is not fictional world Time. Before Gaia creates Time, Project Oracle may process cognition and system operations while in-world `WorldMilliseconds` remains held. Once Gaia creates Time, the world clock may advance under the accepted clock scale.
 
-## 13. Image permission
+## 11. Direct-call law
 
-Do not generate, edit, or replace images unless Derek directly asks to make, create, draw, render, clean up, or edit that image.
-
-## 14. Future maintenance
-
-The active Project Oracle Company Bible folder must contain exactly one active Bible:
+The in-world contact marker remains:
 
 ```text
-docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md
+(EntityName message
 ```
 
-Future mandatory workflow changes edit this file in the same numbered build that adopts them.
+Examples include `(Yala`, `(Monad`, and `(Wisdom`. There is no `(Oracle` target. The console itself is Oracle's system interface.
+
+A direct contact does not reveal Oracle identity unless Derek explicitly chooses to reveal it. It also does not puppet the target.
+
+## 12. Records
+
+- **World Record** contains settled in-world history and must not leak protected Oracle identity into resident knowledge.
+- **Oracle Record** contains protected system truth, Master Key facts, intervention provenance, validation-relevant facts, and hidden causal context.
+
+Routine status noise does not belong in either scrolling record.
+
+## 13. World-save reset law
+
+v0.0.17 starts a new world-save line at `save_v2.json`. The v0.0.16 Garden-era `save_v1.json` is not imported or migrated. It remains untouched for rollback/history. A fresh v0.0.17 world begins from the approved Void-era state with no inherited Garden-era world state or cognition.
+
+If future autonomous history establishes a Garden, its persisted name remains exactly `the Garden`.
+
+## 14. Documentation truth
+
+Current README and current authority files must state current law directly. Do not keep obsolete current claims merely to explain their removal. Historical evidence belongs only where it is actually needed and must never override current canon.

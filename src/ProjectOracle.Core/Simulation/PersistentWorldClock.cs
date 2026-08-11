@@ -25,48 +25,46 @@ public sealed class PersistentWorldClock
     }
 
     public long WorldMilliseconds { get; private set; }
-
     public long LastRealUnixMilliseconds { get; private set; }
-
     public int CatchUpRuns { get; private set; }
-
     public long LastOfflineElapsedRealMilliseconds { get; private set; }
-
     public long DayNumber => (WorldMilliseconds / WorldMillisecondsPerDay) + 1;
-
     public int Hour => Calendar.Hour;
-
     public int Minute => Calendar.Minute;
-
     public int Second => Calendar.Second;
-
     public string Phase => Calendar.SolarPhase;
-
     public CalendarSnapshot Calendar => OracleCalendar.FromElapsedWorldMilliseconds(WorldMilliseconds);
 
-    public ClockAdvance Synchronise(long currentRealUnixMilliseconds, bool offlineCatchUp)
+    public ClockAdvance Hold(long currentRealUnixMilliseconds, bool offlineCatchUp)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(currentRealUnixMilliseconds);
-
         long rawElapsed = checked(currentRealUnixMilliseconds - LastRealUnixMilliseconds);
         bool backwardClockDetected = rawElapsed < 0;
         long elapsedRealMilliseconds = Math.Max(rawElapsed, 0);
-        long elapsedWorldMilliseconds = checked(elapsedRealMilliseconds * WorldSecondsPerRealSecond);
-
-        WorldMilliseconds = checked(WorldMilliseconds + elapsedWorldMilliseconds);
         LastRealUnixMilliseconds = Math.Max(currentRealUnixMilliseconds, LastRealUnixMilliseconds);
-
         if (offlineCatchUp)
         {
             CatchUpRuns = checked(CatchUpRuns + 1);
             LastOfflineElapsedRealMilliseconds = elapsedRealMilliseconds;
         }
+        return new ClockAdvance(elapsedRealMilliseconds, 0, offlineCatchUp, backwardClockDetected);
+    }
 
-        return new ClockAdvance(
-            elapsedRealMilliseconds,
-            elapsedWorldMilliseconds,
-            offlineCatchUp,
-            backwardClockDetected);
+    public ClockAdvance Synchronise(long currentRealUnixMilliseconds, bool offlineCatchUp)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(currentRealUnixMilliseconds);
+        long rawElapsed = checked(currentRealUnixMilliseconds - LastRealUnixMilliseconds);
+        bool backwardClockDetected = rawElapsed < 0;
+        long elapsedRealMilliseconds = Math.Max(rawElapsed, 0);
+        long elapsedWorldMilliseconds = checked(elapsedRealMilliseconds * WorldSecondsPerRealSecond);
+        WorldMilliseconds = checked(WorldMilliseconds + elapsedWorldMilliseconds);
+        LastRealUnixMilliseconds = Math.Max(currentRealUnixMilliseconds, LastRealUnixMilliseconds);
+        if (offlineCatchUp)
+        {
+            CatchUpRuns = checked(CatchUpRuns + 1);
+            LastOfflineElapsedRealMilliseconds = elapsedRealMilliseconds;
+        }
+        return new ClockAdvance(elapsedRealMilliseconds, elapsedWorldMilliseconds, offlineCatchUp, backwardClockDetected);
     }
 
     public string Describe() => Calendar.DescribeDateAndTime();

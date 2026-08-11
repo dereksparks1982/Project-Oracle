@@ -1,307 +1,68 @@
 # Project Oracle Changelog
 
-## v0.0.16 — Cosmology Foundation, Save Compatibility, Desktop Launcher, Validation, and Garden Identity Repair — Candidate — 10 August 2026
-
-### Repaired
-
-- Carries the complete v0.1.15 candidate forward from accepted v0.1.10.
-- Restores the persisted Garden entity name to exactly `the Garden`.
-- Keeps Eden as the lore/prison identity without renaming persistence-facing world, observation, or attention state.
-- Adds a dedicated stable Garden identity regression.
-- Preserves full acceptance-test output before rollback.
-
-### Failure evidence carried forward
-
-- v0.1.15 compiled cleanly but acceptance finished **60 passed; 4 failed** because the stored Garden name had drifted to `Eden / the Garden`.
-- Its installer automatically rolled back to accepted v0.1.10.
-
-### Validation
-
-- Intended suite: **65 acceptance checks**.
-- Required base: accepted v0.1.10 at `3b3bf58fd22ee2a0236b09c9a818d6b756811d1c`, exact tag `v0.1.10`, branch `main`, clean tree.
-- Automated PASS must be followed by Derek's manual application inspection before snapshot, Git commit/tag, or GitHub.
-
-## v0.0.16 — Cosmology Foundation, Save Compatibility, Desktop Launcher, Validation, and Garden Identity Repair — Candidate — 10 August 2026
-
-### Repaired
-
-- Carries the complete v0.1.14 cosmology, lore, save-compatibility, observation/attention, and Linux application-launcher work forward from accepted v0.1.10.
-- Repairs the v0.1.14 authority-caveat regression: acceptance now checks that Yala is not the Highest Source, is not Oracle, remains beneath Oracle's access boundary, and that protected Creator records outrank Yala's claims.
-- Repairs silent acceptance failure reporting: the validator now prints the complete acceptance-test output before failing and triggering installer rollback.
-- Advances all active candidate/version surfaces to v0.0.16 while preserving v0.1.14 as failed evidence.
-
-### Validation
-
-- Intended acceptance suite remains 65 checks.
-- Required base remains accepted v0.1.10 at commit `3b3bf58fd22ee2a0236b09c9a818d6b756811d1c`, tag `v0.1.10`, branch `main`, clean tree.
-- Automated PASS must still be followed by Derek's manual launch/inspection before snapshot, Git, tag, or GitHub.
-
-## v0.1.14 — Cosmology Foundation, Save Compatibility, and Desktop Launcher — Failed Candidate — 10 August 2026
-
-### Cosmology and lore
-
-- Separated Oracle from Yala.
-- Made Oracle neither god nor creator and encoded the living Master Key concept.
-- Recorded Oracle as the serpent in Eden, relationship-dependent rather than permanently neutral, and beyond Yala's ability to control or remove.
-- Recorded the possibility that Yala frames Oracle as the Devil.
-- Replaced the old hierarchy with `Highest Source / Monad -> Sophia / Wisdom -> Yala -> Gaia -> Elemental Powers`.
-- Recorded Gaia as creator/ruler of the elements, the elements as weather/natural-force authorities under Gaia, and plants as arising through the elemental branch.
-- Removed Green Life as a being, power, and category.
-- Removed the false claim that Yala created ordinary animals; exact Gaia/elemental animal origin remains open.
-- Recorded Sophia + Yala as the origin of humans and other humanoid peoples.
-- Marked language origin, final elemental roster, Sophia's exact fall mechanics, Yala-vs-Deception future, and final Oracle origin as open rather than invented.
-- Added `docs/PROJECT_ORACLE_LORE_CANON_v0_1_14.md` as the detailed lore authority.
-
-### Save repair
-
-- Added `0.1.12` and `0.1.13` forward compatibility.
-- Old saves gain current Oracle/cosmology/address defaults through normalisation.
-- Preserved the observation/attention repair carried through rejected v0.1.12/v0.1.13.
-
-### Application launcher
-
-- Added repository executable `project-oracle`.
-- Added user executable installation at `~/.local/bin/project-oracle`.
-- Added Applications-menu desktop entry `Project Oracle`.
-- Manual acceptance now launches through the real application path before snapshot/Git/GitHub.
-
-### Validation
-
-- Intended acceptance suite: 65 checks.
-- Added cosmology, Oracle/Yala separation, weather, animal-origin boundary, humanoid origin, Eden/serpent, and `0.1.12`/`0.1.13` migration regressions.
-
-## v0.1.13 — Gaia Domain Canon Repair — Candidate — 8 August 2026
-
-### Repaired
-
-- Corrected the Gaia/Green Life canon defect found during Derek's manual console inspection of v0.1.12.
-- Removed `Green Life` as a separate creation power and separate World Record category.
-- Made Green Life Gaia's plant domain: plants, vegetation, growth, and the world's green covering.
-- Made Gaia explicitly not govern animals or people.
-- Kept Living Kinds as animals and ancient living forms under Yala.
-- Carried the v0.1.12 observation and attention repair forward unchanged.
-- Corrected active version surfaces, roadmap sequencing, validation count, inventories, and export checksums.
-
-### Validation
-
-- Added one Gaia-domain regression check on top of the fifty-eight v0.1.12 checks.
-- Intended acceptance coverage is now fifty-nine checks.
-- Strengthened source gates to reject `power:green-life:0001` and any `GREEN LIFE` World Record category.
-
-### Baseline
-
-Required base is accepted v0.1.10 at commit `3b3bf58fd22ee2a0236b09c9a818d6b756811d1c`, tag `v0.1.10`, branch `main`, clean tree. v0.1.13 carries the v0.1.12 observation repair forward because v0.1.12 was rejected before manual acceptance.
-
-## v0.1.11 — Observation and Attention — Failed Candidate — 3 August 2026
-
-### Added
-
-- Added saved `ObservationState` records for Adam and Yala.
-- Added saved `AttentionState` records for first Garden attention.
-- Recorded Adam's first awareness at world start.
-- Recorded observations for direct address, vessel approach, vessel speech, sky turning, and living-kind presentation.
-- Added `CreatorTruthHidden` evidence so Adam can observe a sign or voice without receiving Creator-facing truth.
-- Added `observations` / `observe` and `attention` console commands.
-- Added Oracle answer support for `What has Adam observed?`.
-
-### Failure evidence discovered 8 August 2026
-
-- The acceptance programme actually contained fifty-three checks, not the fifty-four claimed by active documentation.
-- Export checksums were stale after active documents changed.
-- Scheduled observations used catch-up processing time instead of scheduled event time.
-- Direct-address voice observation borrowed Adam's subject id.
-- Garden focus behaved as a wildcard attention match and reach was conflated with attention.
-- Empty attention arrays bypassed migration defaults.
-
-### Status
-
-v0.1.11 is consumed and rejected as a baseline. v0.1.12 passed automated validation but failed Derek's manual console inspection on the Gaia/Green Life canon. v0.1.13 repairs that manual-inspection defect and carries the v0.1.12 observation repair forward from accepted v0.1.10.
-
-### Not added
-
-
-## v0.1.10 — Oracle/Yala Identity, Decision Output, and First Brain Planner — Candidate — 3 August 2026
-
-### Repaired
-
-- Corrected Oracle/Yala identity so `<oracle>` answers as Yala, not as a separate witness describing Yala.
-- Made Adam's decision output show offered choices, selected action, and reason.
-- Set the first Garden living-kind set to exactly twelve kinds.
-- Preserved the v0.1.9 Creator-facing creation record and live-time correction.
-
-### Added
-
-- Added an internal deterministic HTN-style brain planner inspired by the MIT-licensed Fluid HTN project.
-- Added saved `ReasonedPlanState` records with goal, situation, decomposition, options, selected action, reason, and source.
-- Made Adam create a brain plan before direct-address response, vessel-speech response, and naming.
-- Added `plans` / `brain` console inspection.
-- Added a retro black-and-green console theme for real terminal sessions.
-- Added accent colours for direct-address prompts, live line, records, commands, Yala/Oracle, Adam, and world powers.
-- Added `NO_COLOR` and redirected-output safety so validation and logs stay plain text.
-- Added `docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_1_10.md` for long-thread continuation.
-
-### Validation
-
-- Increased acceptance coverage to forty-eight checks.
-- Added checks for reasoned brain plans before naming and direct-address choices.
-- Added save/restore coverage for reasoned brain plans.
-- Added source checks for the first brain planner and retro console theme.
-
-### Not added
-
-
-### Baseline
-
-Required accepted baseline remains Project Oracle v0.1.7 unless Derek reports that v0.1.9 was accepted locally before applying this package. Project Oracle v0.1.8 remains rejected manual evidence.
-
-## v0.1.9 — Creation Record and Live Time Correction — Candidate — 3 August 2026
-
-### Repaired
-
-- Corrected the genesis World Record so it begins with the void and Yala before Adam appears.
-- Recorded that the Creators threw Yala into the void to see what she would do with her prison.
-- Recorded that Yala created Sol and the other powers, demi-gods under a demi-god.
-- Added World and Garden as explicit creation-order entries.
-- Recorded the Garden as created just before Adam and the Living Kinds as created after Adam.
-- Removed the confusing static startup `World time:` line above the live display.
-- Reframed `records world` as the Creator-facing world ledger, not Adam's knowledge.
-
-### Preserved
-
-- Live console refresh, terminal title refresh, and the separate Garden console launcher.
-- Physical `F1` through `F5` direct-address controls.
-- Deterministic scheduled events and offered-choice records.
-- Adam's first-knowing rule: he knows that he is, not that he is alive.
-- Yala's overclaim caveat and Creator authority above Yala.
-
-### Validation
-
-- Added acceptance coverage for the exact first World Record categories: Void, Yala, Sol, Powers, World, Green Life, Garden, Adam, Living Kinds, and Mandate.
-- Added acceptance coverage proving the World Record is Creator-facing while Adam's current answer set still does not know the Creators or Yala.
-- Added acceptance coverage proving rejected `0.1.8` saves normalise into the corrected creation order and canonical address channels.
-- Updated console smoke validation to reject the old static startup `World time:` line.
-
-### Baseline
-
-Required accepted baseline is Project Oracle v0.1.7. Project Oracle v0.1.8 passed automated validation but was manually rejected because the creation ledger began too late with Adam/Garden.
-
-## v0.1.8 — Live Oracle Window and World Powers — Candidate — 2 August 2026
-
-### Added
-
-- Added live console refresh while waiting for input, including world time, sky state, active direct-address channel, pending event count, and offered-choice count.
-- Added terminal-title refresh for the live Garden console.
-- Added clearer `run-window.sh` failure reporting when no separate terminal window can open.
-- Added saved `CreationPowerState` records for Yala/Void, Sol, Gaia, Aether, Thalassa, Luna, Green Life, Adam, and Living Kinds.
-- Added Yala authority caveat: she knows the order but may claim she rules all or created all; protected Creator records outrank her claim.
-- Added Oracle first answers for creation order, Sol, Gaia, Aether, Thalassa, Luna, Adam's rank above animals, Yala's overclaim, and Adam's first knowing.
-- Added `creation` / `powers` console inspection.
-- Added `0.1.7` save upgrade coverage for creation powers.
-
-### Preserved
-
-- Physical `F1` through `F5` remain the only channel controls.
-- Typed `f1`, `f2`, `f3`, `f4`, and `f5` remain ordinary addressed text.
-- World and Creator records remain separated.
-- Default world output does not leak Yala's true name, Spark truth, or Creator-only truth.
-
-### Not added
-
-
-### Baseline
-
-Project Oracle v0.1.7 validated by Derek with thirty-six passing acceptance checks.
-
-### Acceptance
-
-Not accepted until Derek installs, validates, runs the console, confirms the live clock updates in the separate window, checks Oracle creation-order questions under `F1`, and explicitly accepts the build.
-
-## v0.1.7 — Deterministic Event Queue and Offered Choices — Candidate — 2 August 2026
-
-### Added
-
-- Added Core scheduled-event records with deterministic ordering by world time, priority, and event id.
-- Added offered-choice records for Adam response scaffolding.
-- Added automatic solar turning events for dawn, day, dusk, and night.
-- Added scheduled vessel speech events for queued Creator interventions.
-- Added `events` and `choices` console inspection commands.
-- Added save/restore support for scheduled events and offered choices while preserving older save compatibility.
-- Added acceptance checks for `0.1.6` save upgrade through event defaults, event ordering, vessel speech, offered choices, and persistence.
-
-### Preserved
-
-- Physical `F1` through `F5` direct-address controls remain the only channel controls.
-- Typed `f1`, `f2`, `f3`, `f4`, and `f5` remain ordinary addressed text.
-- `0.1.1` through `0.1.6` saves remain supported.
-- World and Creator records remain separated.
-
-### Not added
-
-- Memory, belief, emotion, full autonomous mind, companion, fruit effect, punishment, expulsion, exterior world, civilisation, model calls, database, graphics, or real plague execution.
-
-### Baseline
-
-Project Oracle v0.1.6 accepted commit `123dbe1`, tag `v0.1.6`.
-
-### Acceptance
-
-Not accepted until Derek installs, validates, runs the console, inspects `events` and `choices`, checks the physical `F1` through `F5` keys still work, and explicitly accepts the build.
-
-## v0.1.6 — Physical Function Keys and Save Migration Chain Repair — Candidate — 2 August 2026
-
-### Repaired
-
-- Implemented physical `F1`, `F2`, `F3`, `F4`, and `F5` channel capture in the interactive console.
-- Removed typed `f1`, `f2`, `f3`, `f4`, and `f5` as channel-switch shortcuts; those inputs are now ordinary direct-address text.
-- Added explicit `0.1.4` and `0.1.5` save-version support so accepted prior saves continue under `v0.1.6`.
-- Added acceptance coverage for `0.1.4` save upgrade and physical function-key mapping.
-- Updated version surfaces, README, validator, tests, validation record, handoff, roadmap, architecture, canon, Company Bible, and session log to `0.1.6`.
-
-### Preserved
-
-- Project Oracle's Company Bible remains the active authority document.
-- The v0.1.3 direct-address, living-kinds, naming-mandate, and Natural Course feature scope is preserved.
-- The v0.1.0 SDK-pin failure evidence remains preserved in the handoff history.
-
-### Not added
-
-- Autonomous decisions, memory, belief, AI/model calls, Eve, Lilith, reproduction, fruit effects, expulsion, exterior world, civilisation, database, networking, graphics, event queue, or real plague execution.
-
-### Baseline
-
-Project Oracle v0.1.5 accepted commit `34fd05c`, tag `v0.1.5`.
-
-### Acceptance
-
-Not accepted until Derek installs, validates, runs the console, checks the physical `F1` through `F5` keys, and explicitly accepts the build.
-
-## v0.1.5 — Project Oracle Company Bible Authority — Candidate — 2 August 2026
-
-### Added
-
-- Added `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md` as Project Oracle's one active Company Bible.
-- Added a validation check proving the Oracle Company Bible exists and preserves the no-guessing and physical-function-key rules.
-
-### Repaired
-
-- Recorded that physical `F1` through `F5` keys are the intended controls and typed `f1` through `f5` aliases are only fallbacks.
-- Moved the event queue proposal to a later build because raw function-key capture should be repaired first.
-- Version surfaces, README, validator, tests, validation record, and handoff report `0.1.5`.
-
-### Preserved
-
-- The v0.1.4 legacy save compatibility hotfix is preserved.
-- The v0.1.3 direct-address, living-kinds, naming-mandate, and Natural Course feature scope is preserved.
-- The v0.1.0 SDK-pin failure evidence remains preserved in the handoff history.
-
-### Not added
-
-- Autonomous decisions, memory, belief, AI/model calls, Eve, Lilith, reproduction, fruit effects, expulsion, exterior world, civilisation, database, networking, graphics, raw terminal F-key capture implementation, event queue, or real plague execution.
-
-### Baseline
-
-Project Oracle v0.1.4 installed candidate.
-
-### Acceptance
-
-Not accepted until Derek installs, validates, and explicitly accepts the build.
+## v0.0.16 — Repair Candidate — 11 August 2026
+
+### Canon repair
+
+- Records the primordial in-world being now named Monad as first in the then-current cosmology.
+- Records Wisdom as the primordial being's female counterpart in the then-current cosmology.
+- Records the intended Monad-plus-Wisdom son-type creation concept.
+- Records Wisdom's betrayal through attempting that creation alone and Yala resulting from it.
+- Records Yala as male and his exile into the Void.
+- Records Monad waiting to see whether Wisdom repents.
+- Records angelic beings as directly created children of Monad rather than a replacement counterpart.
+- Keeps a possible Wisdom/Yala union and demon lineage conditional rather than predetermined.
+- Opens future humanoid forms from person-like through monstrous without prewriting which peoples arise.
+- Keeps plant, ordinary-animal, and language origins open.
+- Separates the current Garden/Gaia/Adam prototype scaffold from inevitable autonomous future history.
+- Records the prime rule that future history is not canon until it occurs.
+
+### Interface repair
+
+- Adds opening-parenthesis entity calls: `(EntityName message`.
+- Removes function-key entity selection from active source, tests, validation, and current documentation.
+- Adds the then-current direct-call target set.
+- Preserves Adam's protected-choice behaviour when directly called.
+
+### Validation repair
+
+- Replaces stale cosmology expectations that caused the previous 64/1 v0.0.16 acceptance result.
+- Replaces obsolete entity-selector acceptance checks while preserving exactly 65 acceptance checks.
+- Keeps full acceptance output visible on install-side failure.
+- Keeps stable persisted Garden identity exactly `the Garden`.
+- Repairs legacy v0.1.7 Yala save normalisation so current `MayClaimSupremeCreator` capability is restored instead of preserving a stale false value.
+
+### Version law
+
+This remains **v0.0.16**. Repair failures and corrections do not advance the numeric version.
+
+### Acceptance gate
+
+Automated PASS must be followed by Derek's manual application inspection and explicit PASS before accepted snapshot, commit/tag, or push.
+
+### v0.0.16 repair candidate — LIVE status and routine-sky noise
+
+- Kept version at v0.0.16.
+- Made the LIVE status width-aware so refreshes cannot wrap into console scrollback spam.
+- Removed routine dawn/day/dusk/night transitions from World/system ledger output while preserving sky state and observations.
+- Pruned completed routine sky scheduler entries and filtered legacy saved routine sky audit noise on restore.
+- Added dedicated regressions; acceptance inventory is now 67 checks.
+
+## v0.0.17
+
+- Repair 2: World Record hidden-Oracle leak: removed the system name from Monad's genesis World Record wording so no in-world record reveals Oracle. Version remains v0.0.17. - candidate - Yala Soar Cognition, Monad Canon, Oracle System Authority, and Native Launcher
+
+- Reframed Oracle as the outside/system-level Project Oracle authority rather than an in-world entity.
+- Removed Oracle as an in-world direct-call target.
+- Changed current lore to Monad -> Wisdom -> Yala; Monad is not called Creator or Omega.
+- Started fresh worlds with Yala in the Void before Gaia, Time, or lower creation exist.
+- Made Gaia the creator of in-world Time and separated world Time from runtime sequencing.
+- Added Yala Soar 9.6.5 Brain Slice 1 using the supplied SML runtime.
+- Added Yala limited-perception input, operator selection, attempted-action resolution, direct-contact responses, and persisted first-slice memory state.
+- Locked Oracle non-disclosure to in-world beings.
+- Corrected Eden language: Oracle manifested in the form of a clever serpent; Eve knew only the clever serpent.
+- Started a new `save_v2.json` world-save line; v0.0.16 Garden-era saves are left untouched and are not imported or migrated.
+- Added generation/validation of a real root Linux executable `Project_Oracle_v0_0_17` and desktop-launch path.
+- Rebuilt current README and v0.0.17 authority documents around the corrected ontology.
+
+Acceptance remains pending automated target-machine validation and Derek's manual application inspection.

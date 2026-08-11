@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
 
-if ! command -v dotnet >/dev/null 2>&1; then
-  echo "Project Oracle needs the .NET 10 SDK. The dotnet command was not found." >&2
-  exit 1
+if [[ -x "$project_root/Project_Oracle_v0_0_17" && "${PROJECT_ORACLE_FORCE_DOTNET_RUN:-0}" != "1" ]]; then
+  exec "$project_root/Project_Oracle_v0_0_17" "$@"
 fi
 
-if [[ ! -t 0 && "${PROJECT_ORACLE_ALLOW_NONINTERACTIVE:-0}" != "1" && "$*" != *"--once"* ]]; then
-  echo "Project Oracle needs an interactive input stream for the live Creator console." >&2
-  echo "Use ./scripts/run-window.sh for the separate Garden console window." >&2
-  echo "For scripted checks, set PROJECT_ORACLE_ALLOW_NONINTERACTIVE=1 or use --once." >&2
+if ! command -v dotnet >/dev/null 2>&1; then
+  echo "Project Oracle needs the .NET 10 SDK for development launch. The validated root executable is also missing." >&2
   exit 1
 fi
 
