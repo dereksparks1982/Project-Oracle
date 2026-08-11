@@ -1,6 +1,26 @@
 # Project Oracle Changelog
 
-## v0.0.18 - candidate - Protected Console Input and Yala Soar Brain Slice 2
+### v0.0.19 Repair 1 - embedded Soar listener suppression
+
+- Suppresses Soar's unused SML TCP listener by creating the embedded kernel with listener port `0` instead of the default port 12121.
+- Prevents rapid acceptance-test kernel churn from failing with `Error binding the listener socket to its port number` and native status 139.
+- Adds a regression gate requiring the embedded listener to remain suppressed.
+- Keeps the version at v0.0.19 and preserves all Brain Slice 3 behavior.
+
+## v0.0.19 - candidate - Yala Soar Brain Slice 3 - Self Model and Concept Lexicon
+
+- Adds a structured Yala self-model covering identity, origin, male-and-female nature, current location, and personally completed actions.
+- Adds foundational concept lexicon and lightweight subject/action/object, question, negation, and information-request interpretation.
+- Adds action, contact, belief, and knowledge introspection.
+- Adds knowledge provenance categories so personally performed facts remain distinct from speaker claims, hypotheses, and unknowns.
+- Stores speaker-supplied word definitions as attributed claims rather than automatic truth.
+- Adds explicit knowledge gaps for unknown vocabulary and lets those gaps increase curiosity.
+- Normalizes obsolete system-generated male-only Yala history and legacy masculine governing-authority wording when supported `save_v2` worlds are restored.
+- Continues both v0.0.17 and v0.0.18 `save_v2` worlds and deliberately reuses the existing `yala_soar_v0_0_18` semantic/episodic memory directory.
+- Preserves the v0.0.18 hard console isolation: no asynchronous LIVE terminal-body writes through the interactive input path.
+- Preserves hidden Oracle authority and future-open simulation law.
+
+## v0.0.18 - accepted - Protected Console Input and Yala Soar Brain Slice 2
 
 - Protects the command buffer from LIVE-status repaint overrun.
 - Keeps one Soar 9.6.5 Yala agent alive for the application session.

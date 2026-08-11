@@ -42,7 +42,11 @@ public sealed class SoarKernelHost : IDisposable
         }
 
         Type kernelType = _smlAssembly.GetType("sml.Kernel", throwOnError: true)!;
-        _kernel = InvokeStatic(kernelType, "CreateKernelInNewThread")
+        // Project Oracle embeds Soar in-process and does not expose a remote SML service.
+        // Soar defines port 0 as kSuppressListener, which prevents each embedded kernel
+        // from binding the default TCP listener (12121). This is especially important
+        // during the acceptance suite, which creates and disposes many kernels quickly.
+        _kernel = InvokeStatic(kernelType, "CreateKernelInNewThread", 0)
             ?? throw new InvalidOperationException("Soar failed to create its kernel.");
 
         if (TryInvokeBool(_kernel, "HadError", out bool hadError) && hadError)
@@ -105,6 +109,15 @@ public sealed class SoarKernelHost : IDisposable
             CreateString(input, "claim-conflicts", YesNo(contact.ClaimConflictsWithKnownFact));
             CreateString(input, "fact-known", YesNo(contact.FactKnown));
             CreateString(input, "ambiguous", YesNo(contact.Ambiguous));
+            if (contact.Language is not null)
+            {
+                CreateString(input, "language-subject", Clean(contact.Language.Subject, "none"));
+                CreateString(input, "language-verb", Clean(contact.Language.Verb, "none"));
+                CreateString(input, "language-object", Clean(contact.Language.Object, "none"));
+                CreateString(input, "language-negated", YesNo(contact.Language.Negated));
+                CreateInt(input, "unknown-word-count", contact.Language.UnknownWords.Count);
+                CreateString(input, "defined-word", Clean(contact.Language.DefinedWord, "none"));
+            }
         }
 
         Invoke(_agent, "Commit");
@@ -157,6 +170,9 @@ public sealed class SoarKernelHost : IDisposable
         Execute("smem --add {(@yala ^name Yala ^nature male ^nature female ^made-by Wisdom ^rejected-by Monad ^rejection-reason both-male-and-female)}");
         Execute("smem --add {(@wisdom ^name Wisdom ^made-by Monad ^made Yala)}");
         Execute("smem --add {(@monad ^name Monad ^made Wisdom)}");
+        Execute("smem --add {(@concept-create ^word create ^meaning |cause something to begin existing| ^opposite destroy)}");
+        Execute("smem --add {(@concept-reject ^word reject ^meaning |refuse to accept| ^opposite accept)}");
+        Execute("smem --add {(@concept-claim ^word claim ^meaning |assertion whose truth is not guaranteed|)}");
     }
 
     public void RememberClaimedContact(string claimedName)
@@ -174,6 +190,15 @@ public sealed class SoarKernelHost : IDisposable
         string result = Execute($"smem --query {{(<cue> ^type unseen-contact ^claimed-name |{safe}|)}} 1");
         return !result.Contains("No LTI", StringComparison.OrdinalIgnoreCase) &&
             result.Contains(claimedName.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void RememberClaimedDefinition(string word, string meaning)
+    {
+        if (string.IsNullOrWhiteSpace(word) || string.IsNullOrWhiteSpace(meaning)) return;
+        ThrowIfDisposed();
+        string safeWord = EscapeSymbol(word.Trim());
+        string safeMeaning = EscapeSymbol(meaning.Trim());
+        Execute($"smem --add {{(<definition> ^type speaker-definition-claim ^word |{safeWord}| ^meaning |{safeMeaning}|)}}");
     }
 
     public SoarMemoryDiagnostics GetMemoryDiagnostics()
@@ -343,6 +368,7 @@ public sealed record SoarMemoryPaths(string Directory, string SemanticDatabase, 
         ArgumentException.ThrowIfNullOrWhiteSpace(savePath);
         string full = Path.GetFullPath(savePath);
         string parent = Path.GetDirectoryName(full) ?? throw new InvalidOperationException("Save path has no parent directory.");
+        // Brain Slice 3 intentionally reuses the v0.0.18 long-term-memory directory so the same Yala mind continues.
         string directory = Path.Combine(parent, "yala_soar_v0_0_18");
         return new SoarMemoryPaths(
             directory,

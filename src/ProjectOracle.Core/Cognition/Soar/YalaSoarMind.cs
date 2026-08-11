@@ -4,7 +4,7 @@ namespace ProjectOracle.Cognition.Soar;
 
 public sealed class YalaSoarMind : IDisposable
 {
-    public const string BrainName = "Yala Soar Brain Slice 2";
+    public const string BrainName = "Yala Soar Brain Slice 3";
     public const string Architecture = "Soar 9.6.5";
 
     private readonly SoarKernelHost _host;
@@ -18,6 +18,10 @@ public sealed class YalaSoarMind : IDisposable
         foreach (YalaContactMemory contact in cognition?.Contacts ?? [])
         {
             _host.RememberClaimedContact(contact.ClaimedName);
+        }
+        foreach (YalaLearnedLexemeState lexeme in cognition?.LearnedLexicon ?? [])
+        {
+            _host.RememberClaimedDefinition(lexeme.Word, lexeme.ProposedMeaning);
         }
     }
 
@@ -39,6 +43,12 @@ public sealed class YalaSoarMind : IDisposable
     {
         ThrowIfDisposed();
         return _host.SemanticMemoryContainsClaimedContact(claimedName);
+    }
+
+    public void RememberClaimedDefinition(string word, string meaning)
+    {
+        ThrowIfDisposed();
+        _host.RememberClaimedDefinition(word, meaning);
     }
 
     public SoarMemoryDiagnostics GetMemoryDiagnostics()

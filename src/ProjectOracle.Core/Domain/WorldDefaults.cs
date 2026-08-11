@@ -1,3 +1,4 @@
+using ProjectOracle.Cognition;
 using ProjectOracle.Lore;
 
 namespace ProjectOracle.Domain;
@@ -42,7 +43,7 @@ public static class WorldDefaults
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.18 continues the v0.0.17 save line. Missing cosmic state never
+        // v0.0.19 continues the v0.0.17/v0.0.18 save line. Missing cosmic state never
         // resurrects the old Garden-era save; it normalises to the new Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
@@ -83,7 +84,7 @@ public static class WorldDefaults
             SuitableMateFound = livingKinds.Any(kind => kind.SuitableMate)
         };
 
-        YalaCognitionState cognition = NormaliseYalaCognition(world.YalaCognition ?? CreateInitialYalaCognition());
+        YalaCognitionState cognition = NormaliseYalaCognition(world.YalaCognition ?? CreateInitialYalaCognition(), cosmic);
         EntityId yalaId = world.Yala?.Id ?? new EntityId("being:yala:0001");
 
         return world with
@@ -103,7 +104,7 @@ public static class WorldDefaults
     }
 
 
-    private static YalaCognitionState NormaliseYalaCognition(YalaCognitionState cognition)
+    private static YalaCognitionState NormaliseYalaCognition(YalaCognitionState cognition, CosmicState cosmic)
     {
         List<string> memory = (cognition.Memory ?? [])
             .Where(item => !item.Equals("I am male.", StringComparison.OrdinalIgnoreCase))
@@ -117,13 +118,26 @@ public static class WorldDefaults
 
         List<YalaBeliefState> beliefs = (cognition.Beliefs ?? [])
             .Where(item => !item.Proposition.Equals("I am male.", StringComparison.OrdinalIgnoreCase))
+            .Select(item => item.Status is "unsettled-claim" or "rejected-as-conflicting"
+                ? item with { Source = YalaKnowledgeSource.ClaimedByAnother }
+                : item)
             .ToList();
-        EnsureBelief(beliefs, "I am Yala.", "self");
-        EnsureBelief(beliefs, "I am both male and female.", "self");
-        EnsureBelief(beliefs, "Wisdom made me.", "origin-memory");
-        EnsureBelief(beliefs, "Monad made Wisdom.", "origin-memory");
-        EnsureBelief(beliefs, "Monad rejected me because I am both male and female rather than exclusively one or the other.", "origin-memory");
-        EnsureBelief(beliefs, "Monad cast me into the Void.", "origin-memory");
+        EnsureBelief(beliefs, "I am Yala.", YalaKnowledgeSource.InheritedKnowledge);
+        EnsureBelief(beliefs, "I am both male and female.", YalaKnowledgeSource.InheritedKnowledge);
+        EnsureBelief(beliefs, "Wisdom made me.", YalaKnowledgeSource.InheritedKnowledge);
+        EnsureBelief(beliefs, "Monad made Wisdom.", YalaKnowledgeSource.InheritedKnowledge);
+        EnsureBelief(beliefs, "Monad rejected me because I am both male and female rather than exclusively one or the other.", YalaKnowledgeSource.Remembered);
+        EnsureBelief(beliefs, "Monad cast me into the Void.", YalaKnowledgeSource.Remembered);
+
+        List<YalaActionMemoryState> actions = (cognition.ActionMemory ?? []).ToList();
+        if (cosmic.GaiaCreated && !actions.Any(item => item.Completed && item.Action == "create" && item.Object.Equals("Gaia", StringComparison.OrdinalIgnoreCase)))
+        {
+            actions.Add(new YalaActionMemoryState("create", "Gaia", "I created Gaia as the natural sovereign beneath my governing authority.", true, 0));
+        }
+        if (cosmic.TimeCreated && !actions.Any(item => item.Completed && item.Action == "command" && item.Object.Equals("Gaia establish Time", StringComparison.OrdinalIgnoreCase)))
+        {
+            actions.Add(new YalaActionMemoryState("command", "Gaia establish Time", "I commanded Gaia to establish temporal order, and Gaia created in-world Time.", true, 0));
+        }
 
         return cognition with
         {
@@ -131,7 +145,10 @@ public static class WorldDefaults
             Contacts = cognition.Contacts ?? [],
             Beliefs = beliefs,
             Episodes = cognition.Episodes ?? [],
-            Drives = cognition.Drives ?? CreateInitialDrives()
+            Drives = cognition.Drives ?? CreateInitialDrives(),
+            ActionMemory = actions,
+            KnowledgeGaps = cognition.KnowledgeGaps ?? [],
+            LearnedLexicon = cognition.LearnedLexicon ?? []
         };
     }
 
@@ -142,7 +159,13 @@ public static class WorldDefaults
 
     private static void EnsureBelief(List<YalaBeliefState> beliefs, string proposition, string source)
     {
-        if (beliefs.Any(item => item.Proposition.Equals(proposition, StringComparison.OrdinalIgnoreCase))) return;
+        int index = beliefs.FindIndex(item => item.Proposition.Equals(proposition, StringComparison.OrdinalIgnoreCase));
+        if (index >= 0)
+        {
+            YalaBeliefState existing = beliefs[index];
+            beliefs[index] = existing with { Status = "known", Confidence = 1.0, Source = source };
+            return;
+        }
         beliefs.Add(new YalaBeliefState(proposition, "known", 1.0, source, 0, 0));
     }
 
@@ -184,7 +207,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.18; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.19; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;
@@ -271,16 +294,19 @@ public static class WorldDefaults
             Episodes: [],
             Drives: CreateInitialDrives(),
             ConversationCount: 0,
-            LastSpeakerClaim: null);
+            LastSpeakerClaim: null,
+            ActionMemory: [],
+            KnowledgeGaps: [],
+            LearnedLexicon: []);
 
     public static IReadOnlyList<YalaBeliefState> CreateInitialBeliefs() =>
     [
-        new("I am Yala.", "known", 1.0, "self", 0, 0),
-        new("I am both male and female.", "known", 1.0, "self", 0, 0),
-        new("Wisdom made me.", "known", 1.0, "origin-memory", 0, 0),
-        new("Monad made Wisdom.", "known", 1.0, "origin-memory", 0, 0),
-        new("Monad rejected me because I am both male and female rather than exclusively one or the other.", "known", 1.0, "origin-memory", 0, 0),
-        new("Monad cast me into the Void.", "known", 1.0, "origin-memory", 0, 0)
+        new("I am Yala.", "known", 1.0, YalaKnowledgeSource.InheritedKnowledge, 0, 0),
+        new("I am both male and female.", "known", 1.0, YalaKnowledgeSource.InheritedKnowledge, 0, 0),
+        new("Wisdom made me.", "known", 1.0, YalaKnowledgeSource.InheritedKnowledge, 0, 0),
+        new("Monad made Wisdom.", "known", 1.0, YalaKnowledgeSource.InheritedKnowledge, 0, 0),
+        new("Monad rejected me because I am both male and female rather than exclusively one or the other.", "known", 1.0, YalaKnowledgeSource.Remembered, 0, 0),
+        new("Monad cast me into the Void.", "known", 1.0, YalaKnowledgeSource.Remembered, 0, 0)
     ];
 
     public static YalaDriveState CreateInitialDrives() =>

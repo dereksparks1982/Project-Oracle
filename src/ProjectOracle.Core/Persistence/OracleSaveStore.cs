@@ -9,6 +9,7 @@ public sealed class OracleSaveStore
     private static readonly HashSet<string> SupportedProjectVersions = new(StringComparer.Ordinal)
     {
         "0.0.17",
+        "0.0.18",
         ProjectVersion.Number
     };
 
@@ -109,7 +110,7 @@ public sealed class OracleSaveStore
             localData = AppContext.BaseDirectory;
         }
 
-        // v0.0.18 continues the v0.0.17 save_v2 world line. save_v1.json remains
+        // v0.0.19 continues the v0.0.17/v0.0.18 save_v2 world line. save_v1.json remains
         // untouched and is never selected as the active default.
         return Path.Combine(localData, "ProjectOracle", "save_v2.json");
     }
@@ -123,7 +124,7 @@ public sealed class OracleSaveStore
             ?? throw new InvalidDataException(emptyMessage);
 
         // Validate version/schema before any normalisation. This prevents an old
-        // legacy save line from being transformed into the current v0.0.18 save_v2 world.
+        // legacy save line from being transformed into the current v0.0.19 save_v2 world.
         Validate(snapshot);
         return snapshot with { World = ProjectOracle.Domain.WorldDefaults.Normalise(snapshot.World) };
     }
@@ -143,13 +144,13 @@ public sealed class OracleSaveStore
         if (snapshot.SchemaVersion != CurrentSchemaVersion)
         {
             throw new InvalidDataException(
-                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}. v0.0.18 continues the v0.0.17 save_v2 world line only.");
+                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}. v0.0.19 continues the v0.0.17/v0.0.18 save_v2 world line only.");
         }
 
         if (!SupportedProjectVersions.Contains(snapshot.ProjectVersion))
         {
             throw new InvalidDataException(
-                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}. v0.0.18 accepts the v0.0.17 save_v2 world line and current saves only.");
+                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}. v0.0.19 accepts v0.0.17, v0.0.18, and current save_v2 worlds only.");
         }
 
         if (snapshot.World.Cosmic is null)

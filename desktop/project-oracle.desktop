@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Project Oracle
-Comment=Open Project Oracle v0.0.18 and Yala's Soar world
+Comment=Open Project Oracle v0.0.19 and Yala's Soar world
 Exec=PROJECT_ORACLE_EXEC_PLACEHOLDER
 Icon=utilities-terminal
 Terminal=false

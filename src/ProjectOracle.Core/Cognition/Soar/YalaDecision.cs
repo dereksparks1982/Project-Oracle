@@ -20,6 +20,8 @@ public sealed record YalaContactFrame(
     string? KnownFactAnswer,
     bool Ambiguous)
 {
+    public ProjectOracle.Cognition.Language.YalaUtterance? Language { get; init; }
+
     public static YalaContactFrame None { get; } = new(
         "none", "none", null, false, false, false, false, false, null, false);
 }

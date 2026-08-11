@@ -75,8 +75,8 @@ internal static class Program
         {
             ConsoleTheme.WriteLine($"In-world Time: {simulation.Clock.Describe()}");
         }
-        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.18 world started at Yala's Void state.");
-        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 2 with persistent session, memory, drives, and deliberation.");
+        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.19 world started at Yala's Void state.");
+        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 3 with self-model, concept lexicon, provenance, memory, drives, and deliberation.");
         ConsoleTheme.WriteLine("Type help for system-console commands and direct-call syntax.");
         PrintRecords(simulation.Ledger.WorldRecords, "WORLD RECORD");
     }
@@ -234,7 +234,7 @@ internal static class Program
         }
         else
         {
-            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.18.");
+            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.19.");
         }
     }
 
@@ -282,6 +282,7 @@ internal static class Program
         ConsoleTheme.WriteLine($"Last result: {cognition.LastResult ?? "none"}");
         ConsoleTheme.WriteLine($"Drives: curiosity {drives.Curiosity}, caution {drives.Caution}, authority {drives.Authority}, companionship {drives.Companionship}, comfort {drives.Comfort}, uncertainty {drives.Uncertainty}");
         ConsoleTheme.WriteLine($"Contacts: {cognition.Contacts?.Count ?? 0}; beliefs/claims: {cognition.Beliefs?.Count ?? 0}; structured episodes: {cognition.Episodes?.Count ?? 0}");
+        ConsoleTheme.WriteLine($"Self-action memories: {cognition.ActionMemory?.Count ?? 0}; knowledge gaps: {cognition.KnowledgeGaps?.Count ?? 0}; learned word claims: {cognition.LearnedLexicon?.Count ?? 0}; base lexicon: {ProjectOracle.Cognition.Language.YalaLexicon.BuiltInCount}");
         SoarMemoryDiagnostics diagnostics = simulation.GetYalaMemoryDiagnostics();
         ConsoleTheme.WriteLine($"Soar semantic memory: {diagnostics.SemanticNodes} node(s), {diagnostics.SemanticEdges} edge(s); episodic time: {diagnostics.EpisodicTime}");
         ConsoleTheme.WriteLine("Recent remembered state:");
@@ -365,7 +366,7 @@ internal static class Program
         ConsoleTheme.WriteLine("(Wisdom <message>               Contact Wisdom from the system console.");
         ConsoleTheme.WriteLine("calls                           Show current direct-call targets.");
         ConsoleTheme.WriteLine("status                          Show current cosmology and Yala state.");
-        ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 2 state and memory diagnostics.");
+        ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 3 state, lexicon, self-model, and memory diagnostics.");
         ConsoleTheme.WriteLine("creation / powers               Show currently existing in-world powers.");
         ConsoleTheme.WriteLine("records world                   Show settled in-world history.");
         ConsoleTheme.WriteLine("records oracle                  Show protected Oracle/system truth.");

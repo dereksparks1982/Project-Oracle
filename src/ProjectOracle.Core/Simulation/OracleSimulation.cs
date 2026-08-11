@@ -1,5 +1,6 @@
 using ProjectOracle.Audit;
 using ProjectOracle.Brain;
+using ProjectOracle.Cognition;
 using ProjectOracle.Cognition.Soar;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
@@ -49,7 +50,7 @@ public sealed class OracleSimulation : IDisposable
             snapshot.CatchUpRuns,
             snapshot.LastOfflineElapsedRealMilliseconds);
         Random = new DeterministicRandom(snapshot.Seed);
-        Ledger = new AuditLedger(snapshot.Records.Where(record => !IsRoutineSkyAuditRecord(record)));
+        Ledger = new AuditLedger(NormaliseHistoricalRecords(snapshot.Records).Where(record => !IsRoutineSkyAuditRecord(record)));
         State = WorldDefaults.Normalise(snapshot.World with { WorldMilliseconds = snapshot.WorldMilliseconds });
         _yalaMind = new YalaSoarMind(MemoryPaths(savePath), State.YalaCognition);
         _interventions.AddRange(snapshot.Interventions.OrderBy(intervention => intervention.Id));
@@ -238,7 +239,7 @@ public sealed class OracleSimulation : IDisposable
             "reflect" => "Yala reflected on Yala's present state and prior experience.",
             "wait" => "Yala chose to wait.",
             "respond" => "Yala chose to answer an unplaced contact.",
-            _ => $"Yala attempted '{decision.Action}', but v0.0.18 has no world-law resolver for that action yet."
+            _ => $"Yala attempted '{decision.Action}', but v0.0.19 has no world-law resolver for that action yet."
         };
 
         YalaCognitionState previous = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
@@ -251,6 +252,8 @@ public sealed class OracleSimulation : IDisposable
         {
             memory.RemoveRange(0, memory.Count - 64);
         }
+
+        IReadOnlyList<YalaActionMemoryState> actionMemory = UpdateActionMemory(previous.ActionMemory ?? [], decision, result, checked(previous.DecisionCount + 1));
 
         State = State with
         {
@@ -267,7 +270,10 @@ public sealed class OracleSimulation : IDisposable
                     checked(previous.DecisionCount + 1),
                     contact ? "contact-decision" : "autonomous-decision",
                     result)),
-                Drives = AdjustDrivesAfterDecision(previous.Drives ?? WorldDefaults.CreateInitialDrives(), decision, contact)
+                Drives = AdjustDrivesAfterDecision(previous.Drives ?? WorldDefaults.CreateInitialDrives(), decision, contact),
+                ActionMemory = actionMemory,
+                KnowledgeGaps = previous.KnowledgeGaps ?? [],
+                LearnedLexicon = previous.LearnedLexicon ?? []
             }
         };
 
@@ -447,7 +453,42 @@ public sealed class OracleSimulation : IDisposable
             string proposition = message;
             string status = contact.ClaimConflictsWithKnownFact ? "rejected-as-conflicting" : "unsettled-claim";
             double confidence = contact.ClaimConflictsWithKnownFact ? 0.05 : 0.25;
-            beliefs.Add(new YalaBeliefState(proposition, status, confidence, "unplaced-speaker", decision, decision));
+            beliefs.Add(new YalaBeliefState(proposition, status, confidence, YalaKnowledgeSource.ClaimedByAnother, decision, decision));
+        }
+
+        List<YalaLearnedLexemeState> learnedLexicon = (cognition.LearnedLexicon ?? []).ToList();
+        if (contact.Language?.IsDefinitionClaim == true)
+        {
+            string word = contact.Language.DefinedWord!;
+            string meaning = contact.Language.ProposedDefinition!;
+            int existingIndex = learnedLexicon.FindLastIndex(item => item.Word.Equals(word, StringComparison.OrdinalIgnoreCase));
+            YalaLearnedLexemeState remembered = new(
+                word,
+                "unknown",
+                meaning,
+                "speaker-claim",
+                YalaKnowledgeSource.ClaimedByAnother,
+                0.25,
+                existingIndex >= 0 ? learnedLexicon[existingIndex].FirstSeenDecision : decision,
+                decision);
+            if (existingIndex >= 0) learnedLexicon[existingIndex] = remembered;
+            else learnedLexicon.Add(remembered);
+            _yalaMind.RememberClaimedDefinition(word, meaning);
+        }
+
+        List<YalaKnowledgeGapState> knowledgeGaps = (cognition.KnowledgeGaps ?? []).ToList();
+        foreach (string unknownWord in contact.Language?.UnknownWords ?? [])
+        {
+            int gapIndex = knowledgeGaps.FindIndex(item => item.Kind == "unknown-word" && item.Subject.Equals(unknownWord, StringComparison.OrdinalIgnoreCase));
+            if (gapIndex >= 0)
+            {
+                YalaKnowledgeGapState existing = knowledgeGaps[gapIndex];
+                knowledgeGaps[gapIndex] = existing with { LastSeenDecision = decision };
+            }
+            else
+            {
+                knowledgeGaps.Add(new YalaKnowledgeGapState("unknown-word", unknownWord, $"I do not yet have a settled concept for '{unknownWord}'.", decision, decision));
+            }
         }
 
         List<YalaEpisodeState> episodes = AddEpisode(
@@ -461,11 +502,12 @@ public sealed class OracleSimulation : IDisposable
                 reply));
 
         YalaDriveState drives = cognition.Drives ?? WorldDefaults.CreateInitialDrives();
+        int lexicalGapCount = contact.Language?.UnknownWords.Count ?? 0;
         drives = drives with
         {
-            Curiosity = ClampDrive(drives.Curiosity + 2),
+            Curiosity = ClampDrive(drives.Curiosity + 2 + Math.Min(4, lexicalGapCount)),
             Companionship = ClampDrive(drives.Companionship + 1),
-            Uncertainty = ClampDrive(drives.Uncertainty + (contact.FactKnown ? -1 : 2))
+            Uncertainty = ClampDrive(drives.Uncertainty + (contact.FactKnown ? -1 : 2) + Math.Min(2, lexicalGapCount))
         };
 
         State = State with
@@ -477,9 +519,34 @@ public sealed class OracleSimulation : IDisposable
                 Episodes = episodes,
                 Drives = drives,
                 ConversationCount = checked(cognition.ConversationCount + 1),
-                LastSpeakerClaim = claimedName ?? cognition.LastSpeakerClaim
+                LastSpeakerClaim = claimedName ?? cognition.LastSpeakerClaim,
+                ActionMemory = cognition.ActionMemory ?? [],
+                KnowledgeGaps = knowledgeGaps,
+                LearnedLexicon = learnedLexicon
             }
         };
+    }
+
+    private static IReadOnlyList<YalaActionMemoryState> UpdateActionMemory(
+        IReadOnlyList<YalaActionMemoryState> existing,
+        YalaDecision decision,
+        string result,
+        long decisionNumber)
+    {
+        List<YalaActionMemoryState> actions = existing.ToList();
+        if (decision.Action == "create-gaia" && result.StartsWith("Yala created Gaia", StringComparison.Ordinal))
+        {
+            actions.Add(new YalaActionMemoryState("create", "Gaia", "I created Gaia as the natural sovereign beneath my governing authority.", true, decisionNumber));
+        }
+        else if (decision.Action == "command-gaia-time" && result.StartsWith("Yala commanded Gaia", StringComparison.Ordinal))
+        {
+            actions.Add(new YalaActionMemoryState("command", "Gaia establish Time", "I commanded Gaia to establish temporal order, and Gaia created in-world Time.", true, decisionNumber));
+        }
+        return actions
+            .GroupBy(item => $"{item.Action}|{item.Object}", StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.OrderByDescending(item => item.Decision).First())
+            .OrderBy(item => item.Decision)
+            .ToArray();
     }
 
     private static IReadOnlyList<YalaBeliefState> UpdateBeliefsAfterDecision(IReadOnlyList<YalaBeliefState> beliefs, YalaDecision decision)
@@ -531,6 +598,36 @@ public sealed class OracleSimulation : IDisposable
 
     private static SoarMemoryPaths? MemoryPaths(string? savePath) =>
         string.IsNullOrWhiteSpace(savePath) ? null : SoarMemoryPaths.FromSavePath(savePath);
+
+    private static IEnumerable<OracleRecord> NormaliseHistoricalRecords(IEnumerable<OracleRecord> records)
+    {
+        foreach (OracleRecord record in records)
+        {
+            if (record.Audience == RecordAudience.World && record.Category.Equals("YALA", StringComparison.OrdinalIgnoreCase) &&
+                (record.Message.Equals("Wisdom made Yala alone, outside the intended order, and Yala is male.", StringComparison.Ordinal) ||
+                 record.Message.Contains("Yala is male", StringComparison.OrdinalIgnoreCase)))
+            {
+                yield return record with { Message = OracleLore.YalaOrigin };
+                continue;
+            }
+
+            if (record.Audience == RecordAudience.World && record.Category.Equals("VOID", StringComparison.OrdinalIgnoreCase) &&
+                record.Message.Equals("Monad cast Yala into the Void.", StringComparison.Ordinal))
+            {
+                yield return record with { Message = OracleLore.YalaVoid };
+                continue;
+            }
+
+            if (record.Audience == RecordAudience.World && record.Category.Equals("GAIA", StringComparison.OrdinalIgnoreCase) &&
+                record.Message.Contains("beneath his governing authority", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return record with { Message = "Yala created Gaia as the natural sovereign beneath Yala's governing authority." };
+                continue;
+            }
+
+            yield return record;
+        }
+    }
 
     public void Dispose()
     {
@@ -602,7 +699,7 @@ public sealed class OracleSimulation : IDisposable
         Ledger.RecordWorld(0, "WISDOM", OracleLore.WisdomOrigin);
         Ledger.RecordWorld(0, "YALA", OracleLore.YalaOrigin);
         Ledger.RecordWorld(0, "VOID", OracleLore.YalaVoid);
-        Ledger.RecordWorld(0, "STATE", "Yala continues the v0.0.18 autonomous run in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
+        Ledger.RecordWorld(0, "STATE", "Yala continues the v0.0.19 autonomous run in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
 
         // Oracle Record is protected system truth, not knowledge injected into any in-world mind.
         Ledger.RecordOracle(0, "SYSTEM", OracleLore.OracleSystemNature);

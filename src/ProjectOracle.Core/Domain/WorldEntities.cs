@@ -50,6 +50,30 @@ public sealed record YalaDriveState(
     int Comfort,
     int Uncertainty);
 
+public sealed record YalaActionMemoryState(
+    string Action,
+    string Object,
+    string Outcome,
+    bool Completed,
+    long Decision);
+
+public sealed record YalaKnowledgeGapState(
+    string Kind,
+    string Subject,
+    string Detail,
+    long FirstSeenDecision,
+    long LastSeenDecision);
+
+public sealed record YalaLearnedLexemeState(
+    string Word,
+    string PartOfSpeech,
+    string ProposedMeaning,
+    string Status,
+    string Source,
+    double Confidence,
+    long FirstSeenDecision,
+    long LastSeenDecision);
+
 public sealed record YalaCognitionState(
     long DecisionCount,
     long LastDecisionRealUnixMilliseconds,
@@ -61,7 +85,10 @@ public sealed record YalaCognitionState(
     IReadOnlyList<YalaEpisodeState>? Episodes = null,
     YalaDriveState? Drives = null,
     long ConversationCount = 0,
-    string? LastSpeakerClaim = null);
+    string? LastSpeakerClaim = null,
+    IReadOnlyList<YalaActionMemoryState>? ActionMemory = null,
+    IReadOnlyList<YalaKnowledgeGapState>? KnowledgeGaps = null,
+    IReadOnlyList<YalaLearnedLexemeState>? LearnedLexicon = null);
 
 public sealed record AdamState(
     EntityId Id,
