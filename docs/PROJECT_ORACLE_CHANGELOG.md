@@ -1,5 +1,17 @@
 # Project Oracle Changelog
 
+## v0.0.18 - candidate - Protected Console Input and Yala Soar Brain Slice 2
+
+- Protects the command buffer from LIVE-status repaint overrun.
+- Keeps one Soar 9.6.5 Yala agent alive for the application session.
+- Enables native Soar semantic and episodic memory, including SQLite persistence beside the active save.
+- Adds structured contacts, beliefs/claims, episodes, drives, and conversation continuity.
+- Adds Soar impasse/substate deliberation for unresolved choices.
+- Expands Yala conversation beyond the v0.0.17 generic fallback, including hearing, location, identity, nature, origin, rejection, memory, claims, commands, and honest uncertainty.
+- Continues the v0.0.17 save_v2 world line and normalizes it into Brain Slice 2.
+- Corrects Yala canon to inherently both male and female. Monad rejects Yala for being both rather than exclusively one or the other and casts Yala into the Void.
+- Preserves hidden Oracle authority and the Eden clever-serpent manifestation boundary.
+
 ## v0.0.16 — Repair Candidate — 11 August 2026
 
 ### Canon repair
@@ -66,3 +78,15 @@ Automated PASS must be followed by Derek's manual application inspection and exp
 - Rebuilt current README and v0.0.17 authority documents around the corrected ontology.
 
 Acceptance remains pending automated target-machine validation and Derek's manual application inspection.
+
+### v0.0.18 Repair 2 - terminal body hard isolation
+- Removed `LiveConsoleSurface` from the interactive input path.
+- Removed asynchronous LIVE-row and dynamic-title/status writes while waiting for commands.
+- Idle Yala simulation remains active but terminal-silent.
+- Corrected the contradictory Repair 1 console acceptance assertion.
+- Strengthened validation against any return of LIVE/cursor painting in the typing path.
+
+### v0.0.18 Repair 3 - console isolation acceptance assertion repair
+- Kept Repair 2 terminal-body hard isolation unchanged.
+- Corrected the remaining acceptance assertion so LIVE body painting is forbidden for both empty and active input buffers.
+- Repair 3 must pass the complete v0.0.18 suite before manual inspection.

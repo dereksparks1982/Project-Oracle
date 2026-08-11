@@ -10,7 +10,7 @@ using ProjectOracle.Persistence;
 
 namespace ProjectOracle.Simulation;
 
-public sealed class OracleSimulation
+public sealed class OracleSimulation : IDisposable
 {
     private const int InterventionSpeechPriority = 10;
     private const int SkyTurningPriority = 100;
@@ -23,22 +23,25 @@ public sealed class OracleSimulation
     private readonly List<ReasonedPlanState> _reasonedPlans = [];
     private readonly List<ObservationState> _observations = [];
     private readonly List<AttentionState> _attentionStates = [];
+    private readonly YalaSoarMind _yalaMind;
+    private bool _disposed;
     private long _nextInterventionId = 1;
     private long _nextEventId = 1;
     private long _nextChoiceId = 1;
     private long _nextPlanId = 1;
     private long _nextObservationId = 1;
 
-    private OracleSimulation(ulong seed, long realUnixMilliseconds)
+    private OracleSimulation(ulong seed, long realUnixMilliseconds, string? savePath)
     {
         Clock = new PersistentWorldClock(0, realUnixMilliseconds);
         Random = new DeterministicRandom(seed);
         Ledger = new AuditLedger();
         State = WorldDefaults.CreateInitialState(seed);
+        _yalaMind = new YalaSoarMind(MemoryPaths(savePath), State.YalaCognition);
         RecordGenesis();
     }
 
-    private OracleSimulation(OracleSaveSnapshot snapshot)
+    private OracleSimulation(OracleSaveSnapshot snapshot, string? savePath)
     {
         Clock = new PersistentWorldClock(
             snapshot.WorldMilliseconds,
@@ -48,6 +51,7 @@ public sealed class OracleSimulation
         Random = new DeterministicRandom(snapshot.Seed);
         Ledger = new AuditLedger(snapshot.Records.Where(record => !IsRoutineSkyAuditRecord(record)));
         State = WorldDefaults.Normalise(snapshot.World with { WorldMilliseconds = snapshot.WorldMilliseconds });
+        _yalaMind = new YalaSoarMind(MemoryPaths(savePath), State.YalaCognition);
         _interventions.AddRange(snapshot.Interventions.OrderBy(intervention => intervention.Id));
         _scheduledEvents.AddRange((snapshot.ScheduledEvents ?? [])
             .Where(worldEvent => !IsCompletedRoutineSkyEvent(worldEvent))
@@ -81,12 +85,12 @@ public sealed class OracleSimulation
     public bool InWorldTimeExists => State.Cosmic?.TimeCreated == true;
     public bool HasGardenWorld => State.Cosmic?.GardenEstablished == true;
 
-    public static OracleSimulation Start(ulong seed, long realUnixMilliseconds) => new(seed, realUnixMilliseconds);
+    public static OracleSimulation Start(ulong seed, long realUnixMilliseconds, string? savePath = null) => new(seed, realUnixMilliseconds, savePath);
 
-    public static OracleSimulation Restore(OracleSaveSnapshot snapshot, long currentRealUnixMilliseconds)
+    public static OracleSimulation Restore(OracleSaveSnapshot snapshot, long currentRealUnixMilliseconds, string? savePath = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
-        OracleSimulation simulation = new(snapshot);
+        OracleSimulation simulation = new(snapshot, savePath);
         simulation.SynchroniseClock(currentRealUnixMilliseconds, offlineCatchUp: true);
         simulation.EnsureSolarTurningScheduled();
         return simulation;
@@ -144,7 +148,7 @@ public sealed class OracleSimulation
         }
 
         YalaPerception perception = BuildYalaPerception();
-        YalaDecision decision = YalaSoarMind.Decide(perception);
+        YalaDecision decision = _yalaMind.Decide(perception);
         ApplyYalaDecision(decision, realUnixMilliseconds, contact: false);
         return decision;
     }
@@ -152,8 +156,15 @@ public sealed class OracleSimulation
     public YalaDirectReply CallYala(string message, long realUnixMilliseconds)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
-        string intent = YalaSoarMind.ClassifyContactIntent(message);
-        YalaPerception perception = BuildYalaPerception(message.Trim(), intent);
+        YalaCognitionState cognitionBefore = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        YalaContactFrame contact = YalaConversationInterpreter.Interpret(message, cognitionBefore);
+        if (!string.IsNullOrWhiteSpace(contact.ClaimedSpeakerName) && _yalaMind.SemanticMemoryContainsClaimedContact(contact.ClaimedSpeakerName))
+        {
+            contact = contact with { KnownContact = true };
+        }
+
+        string previousActionDescription = DescribeYalaLastAction(cognitionBefore);
+        YalaPerception perception = BuildYalaPerception(message.Trim(), contact);
 
         Ledger.RecordOracle(
             Clock.WorldMilliseconds,
@@ -164,20 +175,19 @@ public sealed class OracleSimulation
             "UNPLACED CONTACT",
             "Yala perceived an unplaced contact whose source was not revealed.");
 
-        YalaDecision decision = YalaSoarMind.Decide(perception);
+        YalaDecision decision = _yalaMind.Decide(perception);
         ApplyYalaDecision(decision, realUnixMilliseconds, contact: true);
-        string reply = decision.ReplyCode switch
-        {
-            "location" => $"I am in {State.Yala.Location}.",
-            "identity" => "I am Yala.",
-            "action" => DescribeYalaLastAction(),
-            "unknown-contact" => "I hear you. Who speaks?",
-            _ => "I hear you."
-        };
+
+        YalaCognitionState afterDecision = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        string reply = YalaReplyRealizer.Realize(decision, contact, State, afterDecision, previousActionDescription);
+        RecordYalaContact(contact, message.Trim(), reply);
 
         Ledger.RecordWorld(Clock.WorldMilliseconds, "YALA SPEECH", $"Yala answered the unplaced contact: \"{reply}\"");
-        Ledger.RecordOracle(Clock.WorldMilliseconds, "YALA SOAR", $"Soar selected '{decision.Action}' for Yala's direct-contact response.");
-        return new YalaDirectReply(reply, decision);
+        Ledger.RecordOracle(
+            Clock.WorldMilliseconds,
+            "YALA SOAR",
+            $"Soar selected '{decision.Action}' for Yala's direct-contact response in {decision.DecisionCycles} decision cycle(s). Substate deliberation: {decision.UsedSubstateDeliberation}.");
+        return new YalaDirectReply(reply, decision, contact);
     }
 
     public OfferedChoiceState? CallEntity(string targetKey, string message)
@@ -224,11 +234,11 @@ public sealed class OracleSimulation
         {
             "create-gaia" => ResolveCreateGaia(),
             "command-gaia-time" => ResolveGaiaCreatesTime(),
-            "observe" => $"Yala observed {State.Yala.Location} and found no new settled object beyond what his present perception exposes.",
-            "reflect" => "Yala reflected on his present state and prior experience.",
+            "observe" => $"Yala observed {State.Yala.Location} and found no new settled object beyond what Yala's present perception exposes.",
+            "reflect" => "Yala reflected on Yala's present state and prior experience.",
             "wait" => "Yala chose to wait.",
             "respond" => "Yala chose to answer an unplaced contact.",
-            _ => $"Yala attempted '{decision.Action}', but v0.0.17 has no world-law resolver for that action yet."
+            _ => $"Yala attempted '{decision.Action}', but v0.0.18 has no world-law resolver for that action yet."
         };
 
         YalaCognitionState previous = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
@@ -244,12 +254,21 @@ public sealed class OracleSimulation
 
         State = State with
         {
-            YalaCognition = new YalaCognitionState(
-                checked(previous.DecisionCount + 1),
-                realUnixMilliseconds,
-                decision.Action,
-                result,
-                memory)
+            YalaCognition = previous with
+            {
+                DecisionCount = checked(previous.DecisionCount + 1),
+                LastDecisionRealUnixMilliseconds = realUnixMilliseconds,
+                LastAction = decision.Action,
+                LastResult = result,
+                Memory = memory,
+                Contacts = previous.Contacts ?? [],
+                Beliefs = UpdateBeliefsAfterDecision(previous.Beliefs ?? WorldDefaults.CreateInitialBeliefs(), decision),
+                Episodes = AddEpisode(previous.Episodes ?? [], new YalaEpisodeState(
+                    checked(previous.DecisionCount + 1),
+                    contact ? "contact-decision" : "autonomous-decision",
+                    result)),
+                Drives = AdjustDrivesAfterDecision(previous.Drives ?? WorldDefaults.CreateInitialDrives(), decision, contact)
+            }
         };
 
         bool recordDecision = decision.Action is "create-gaia" or "command-gaia-time" ||
@@ -371,10 +390,11 @@ public sealed class OracleSimulation
             _attentionStates.ToArray());
     }
 
-    private YalaPerception BuildYalaPerception(string? contactMessage = null, string contactIntent = "none")
+    private YalaPerception BuildYalaPerception(string? contactMessage = null, YalaContactFrame? contact = null)
     {
         CosmicState cosmic = State.Cosmic ?? throw new InvalidOperationException("World cosmic state is missing.");
         YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        YalaDriveState drives = cognition.Drives ?? WorldDefaults.CreateInitialDrives();
         return new YalaPerception(
             State.Yala.Location,
             cosmic.GaiaCreated,
@@ -382,8 +402,142 @@ public sealed class OracleSimulation
             cognition.DecisionCount,
             cognition.LastAction,
             cognition.LastResult,
+            drives.Curiosity,
+            drives.Caution,
+            drives.Authority,
+            drives.Companionship,
+            drives.Comfort,
+            drives.Uncertainty,
             contactMessage,
-            contactIntent);
+            contact);
+    }
+
+    public SoarMemoryDiagnostics GetYalaMemoryDiagnostics() => _yalaMind.GetMemoryDiagnostics();
+
+    private void RecordYalaContact(YalaContactFrame contact, string message, string reply)
+    {
+        YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        long decision = cognition.DecisionCount;
+        List<YalaContactMemory> contacts = (cognition.Contacts ?? []).ToList();
+        string? claimedName = contact.ClaimedSpeakerName;
+
+        if (!string.IsNullOrWhiteSpace(claimedName))
+        {
+            int index = contacts.FindIndex(existing => existing.ClaimedName.Equals(claimedName, StringComparison.OrdinalIgnoreCase));
+            if (index >= 0)
+            {
+                YalaContactMemory existing = contacts[index];
+                contacts[index] = existing with
+                {
+                    EncounterCount = checked(existing.EncounterCount + 1),
+                    LastEncounterDecision = decision,
+                    LastMessage = message
+                };
+            }
+            else
+            {
+                contacts.Add(new YalaContactMemory(claimedName, 1, decision, decision, message));
+            }
+            _yalaMind.RememberClaimedContact(claimedName);
+        }
+
+        List<YalaBeliefState> beliefs = (cognition.Beliefs ?? WorldDefaults.CreateInitialBeliefs()).ToList();
+        if (contact.ContainsClaim)
+        {
+            string proposition = message;
+            string status = contact.ClaimConflictsWithKnownFact ? "rejected-as-conflicting" : "unsettled-claim";
+            double confidence = contact.ClaimConflictsWithKnownFact ? 0.05 : 0.25;
+            beliefs.Add(new YalaBeliefState(proposition, status, confidence, "unplaced-speaker", decision, decision));
+        }
+
+        List<YalaEpisodeState> episodes = AddEpisode(
+            cognition.Episodes ?? [],
+            new YalaEpisodeState(
+                decision,
+                "contact",
+                "An unseen source contacted Yala and Yala answered.",
+                claimedName,
+                message,
+                reply));
+
+        YalaDriveState drives = cognition.Drives ?? WorldDefaults.CreateInitialDrives();
+        drives = drives with
+        {
+            Curiosity = ClampDrive(drives.Curiosity + 2),
+            Companionship = ClampDrive(drives.Companionship + 1),
+            Uncertainty = ClampDrive(drives.Uncertainty + (contact.FactKnown ? -1 : 2))
+        };
+
+        State = State with
+        {
+            YalaCognition = cognition with
+            {
+                Contacts = contacts,
+                Beliefs = beliefs,
+                Episodes = episodes,
+                Drives = drives,
+                ConversationCount = checked(cognition.ConversationCount + 1),
+                LastSpeakerClaim = claimedName ?? cognition.LastSpeakerClaim
+            }
+        };
+    }
+
+    private static IReadOnlyList<YalaBeliefState> UpdateBeliefsAfterDecision(IReadOnlyList<YalaBeliefState> beliefs, YalaDecision decision)
+    {
+        if (!decision.Action.Equals("reflect", StringComparison.OrdinalIgnoreCase)) return beliefs;
+        long marker = beliefs.Count == 0 ? 0 : beliefs.Max(belief => belief.LastConsideredDecision) + 1;
+        return beliefs.Select(belief => belief.Status == "unsettled-claim"
+            ? belief with { LastConsideredDecision = marker, Confidence = Math.Min(0.95, belief.Confidence + 0.01) }
+            : belief).ToArray();
+    }
+
+    private static List<YalaEpisodeState> AddEpisode(IReadOnlyList<YalaEpisodeState> existing, YalaEpisodeState episode)
+    {
+        List<YalaEpisodeState> episodes = existing.ToList();
+        episodes.Add(episode);
+        if (episodes.Count > 256) episodes.RemoveRange(0, episodes.Count - 256);
+        return episodes;
+    }
+
+    private static YalaDriveState AdjustDrivesAfterDecision(YalaDriveState drives, YalaDecision decision, bool contact)
+    {
+        int curiosity = drives.Curiosity;
+        int caution = drives.Caution;
+        int authority = drives.Authority;
+        int companionship = drives.Companionship;
+        int comfort = drives.Comfort;
+        int uncertainty = drives.Uncertainty;
+
+        switch (decision.Action)
+        {
+            case "observe": uncertainty -= 2; curiosity += 1; break;
+            case "reflect": uncertainty -= 1; curiosity += 1; break;
+            case "wait": caution += 1; break;
+            case "create-gaia": comfort += 3; authority += 2; uncertainty -= 4; break;
+            case "command-gaia-time": authority += 2; uncertainty -= 3; break;
+            case "respond" when contact: companionship += 1; curiosity += 1; break;
+        }
+
+        return new YalaDriveState(
+            ClampDrive(curiosity),
+            ClampDrive(caution),
+            ClampDrive(authority),
+            ClampDrive(companionship),
+            ClampDrive(comfort),
+            ClampDrive(uncertainty));
+    }
+
+    private static int ClampDrive(int value) => Math.Clamp(value, 0, 100);
+
+    private static SoarMemoryPaths? MemoryPaths(string? savePath) =>
+        string.IsNullOrWhiteSpace(savePath) ? null : SoarMemoryPaths.FromSavePath(savePath);
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _yalaMind.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private string ResolveCreateGaia()
@@ -396,7 +550,7 @@ public sealed class OracleSimulation
 
         cosmic = cosmic with { GaiaCreated = true };
         State = RefreshDerivedState(State with { Cosmic = cosmic });
-        const string result = "Yala created Gaia as the natural sovereign beneath his governing authority.";
+        const string result = "Yala created Gaia as the natural sovereign beneath Yala's governing authority.";
         Ledger.RecordWorld(Clock.WorldMilliseconds, "GAIA", result);
         return result;
     }
@@ -431,9 +585,9 @@ public sealed class OracleSimulation
         };
     }
 
-    private string DescribeYalaLastAction()
+    private static string DescribeYalaLastAction(YalaCognitionState cognition)
     {
-        YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        ArgumentNullException.ThrowIfNull(cognition);
         if (string.IsNullOrWhiteSpace(cognition.LastAction) || string.IsNullOrWhiteSpace(cognition.LastResult))
         {
             return "I have not yet done anything I can name to you.";
@@ -448,7 +602,7 @@ public sealed class OracleSimulation
         Ledger.RecordWorld(0, "WISDOM", OracleLore.WisdomOrigin);
         Ledger.RecordWorld(0, "YALA", OracleLore.YalaOrigin);
         Ledger.RecordWorld(0, "VOID", OracleLore.YalaVoid);
-        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.17 autonomous run in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
+        Ledger.RecordWorld(0, "STATE", "Yala continues the v0.0.18 autonomous run in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
 
         // Oracle Record is protected system truth, not knowledge injected into any in-world mind.
         Ledger.RecordOracle(0, "SYSTEM", OracleLore.OracleSystemNature);

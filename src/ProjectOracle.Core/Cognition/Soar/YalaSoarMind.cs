@@ -1,33 +1,61 @@
+using ProjectOracle.Domain;
+
 namespace ProjectOracle.Cognition.Soar;
 
-public static class YalaSoarMind
+public sealed class YalaSoarMind : IDisposable
 {
-    public const string BrainName = "Yala Soar Brain Slice 1";
+    public const string BrainName = "Yala Soar Brain Slice 2";
     public const string Architecture = "Soar 9.6.5";
 
-    public static YalaDecision Decide(YalaPerception perception)
+    private readonly SoarKernelHost _host;
+    private bool _disposed;
+
+    public YalaSoarMind(SoarMemoryPaths? memoryPaths = null, YalaCognitionState? cognition = null)
     {
-        ArgumentNullException.ThrowIfNull(perception);
         SoarRuntimePaths paths = SoarRuntimePaths.Discover();
-        using SoarKernelHost host = new("yala", paths.YalaAgent);
-        return host.Run(perception);
+        _host = new SoarKernelHost("yala", paths.YalaAgent, memoryPaths);
+        _host.SeedCanonicalSemanticMemory();
+        foreach (YalaContactMemory contact in cognition?.Contacts ?? [])
+        {
+            _host.RememberClaimedContact(contact.ClaimedName);
+        }
     }
 
-    public static string ClassifyContactIntent(string message)
+    public long SessionDecisionCount => _host.RunCount;
+
+    public YalaDecision Decide(YalaPerception perception)
     {
-        string text = (message ?? string.Empty).Trim().ToLowerInvariant();
-        if (text.Contains("where") || text.Contains("location") || text.Contains("void"))
-        {
-            return "location";
-        }
-        if (text.Contains("who are you") || text.Contains("your name") || text.Contains("what are you"))
-        {
-            return "identity";
-        }
-        if (text.Contains("what did you") || text.Contains("what are you doing") || text.Contains("what have you done"))
-        {
-            return "action";
-        }
-        return "generic";
+        ThrowIfDisposed();
+        return _host.Run(perception);
+    }
+
+    public void RememberClaimedContact(string claimedName)
+    {
+        ThrowIfDisposed();
+        _host.RememberClaimedContact(claimedName);
+    }
+
+    public bool SemanticMemoryContainsClaimedContact(string claimedName)
+    {
+        ThrowIfDisposed();
+        return _host.SemanticMemoryContainsClaimedContact(claimedName);
+    }
+
+    public SoarMemoryDiagnostics GetMemoryDiagnostics()
+    {
+        ThrowIfDisposed();
+        return _host.GetMemoryDiagnostics();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _host.Dispose();
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed) throw new ObjectDisposedException(nameof(YalaSoarMind));
     }
 }

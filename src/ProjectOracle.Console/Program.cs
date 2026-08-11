@@ -9,7 +9,6 @@ using ProjectOracle.Observation;
 using ProjectOracle.Persistence;
 using ProjectOracle.Simulation;
 using System.Diagnostics;
-using System.Text;
 
 namespace ProjectOracle.ConsoleApp;
 
@@ -33,9 +32,9 @@ internal static class Program
             string savePath = options.SavePath ?? OracleSaveStore.DefaultPath();
             long now = realTime.GetUnixTimeMilliseconds();
             bool continuing = store.Exists(savePath);
-            OracleSimulation simulation = continuing
-                ? OracleSimulation.Restore(store.Load(savePath), now)
-                : OracleSimulation.Start(options.Seed, now);
+            using OracleSimulation simulation = continuing
+                ? OracleSimulation.Restore(store.Load(savePath), now, savePath)
+                : OracleSimulation.Start(options.Seed, now, savePath);
 
             ConsoleTheme.ApplyBase();
             PrintBanner(simulation, continuing);
@@ -76,19 +75,17 @@ internal static class Program
         {
             ConsoleTheme.WriteLine($"In-world Time: {simulation.Clock.Describe()}");
         }
-        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.17 world started at Yala's Void state.");
-        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 1.");
+        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.18 world started at Yala's Void state.");
+        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 2 with persistent session, memory, drives, and deliberation.");
         ConsoleTheme.WriteLine("Type help for system-console commands and direct-call syntax.");
         PrintRecords(simulation.Ledger.WorldRecords, "WORLD RECORD");
     }
 
     private static int RunConsole(OracleSimulation simulation, OracleSaveStore store, string savePath, IRealTimeSource realTime)
     {
-        LiveConsoleDisplay liveDisplay = LiveConsoleDisplay.Start(simulation);
         long lastRefresh = 0;
         while (true)
         {
-            ConsoleTheme.WritePrompt("> ");
             ConsoleInput input = ReadConsoleInput(() =>
             {
                 long now = realTime.GetUnixTimeMilliseconds();
@@ -99,12 +96,10 @@ internal static class Program
                 lastRefresh = now;
                 simulation.SynchroniseClock(now, recordAdvance: false);
                 simulation.TryRunYalaAutonomousStep(now);
-                liveDisplay.Refresh(simulation);
             });
 
             if (input.EndOfInput)
             {
-                ConsoleTheme.WriteLine();
                 SaveCurrent(store, savePath, simulation, realTime);
                 return 0;
             }
@@ -123,7 +118,6 @@ internal static class Program
             }
 
             ExecuteCommand(simulation, store, savePath, realTime, command, now);
-            liveDisplay.Refresh(simulation, force: true);
             SaveCurrent(store, savePath, simulation, realTime);
         }
     }
@@ -136,7 +130,12 @@ internal static class Program
             return redirected is null ? ConsoleInput.End() : ConsoleInput.CommandText(redirected);
         }
 
-        StringBuilder line = new();
+        // Repair 2/3: the prompt exclusively owns the terminal body while input is pending.
+        // Idle simulation may continue, but it is terminal-silent. There is no LIVE row,
+        // cursor repositioning, or dynamic status/title painting in this path.
+        ConsoleInputLine line = new();
+        ConsoleTheme.WritePrompt("> ");
+
         while (true)
         {
             if (!System.Console.KeyAvailable)
@@ -145,17 +144,17 @@ internal static class Program
                 Thread.Sleep(LiveRefreshMilliseconds);
                 continue;
             }
+
             ConsoleKeyInfo key = System.Console.ReadKey(intercept: true);
             if (key.Key == ConsoleKey.Enter)
             {
-                ConsoleTheme.WriteLine();
-                return ConsoleInput.CommandText(line.ToString());
+                System.Console.WriteLine();
+                return ConsoleInput.CommandText(line.Text);
             }
             if (key.Key == ConsoleKey.Backspace)
             {
-                if (line.Length > 0)
+                if (line.Backspace())
                 {
-                    line.Remove(line.Length - 1, 1);
                     System.Console.Write("\b \b");
                 }
                 continue;
@@ -235,7 +234,7 @@ internal static class Program
         }
         else
         {
-            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.17.");
+            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.18.");
         }
     }
 
@@ -276,11 +275,16 @@ internal static class Program
     private static void PrintYalaBrain(OracleSimulation simulation)
     {
         YalaCognitionState cognition = simulation.State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        YalaDriveState drives = cognition.Drives ?? WorldDefaults.CreateInitialDrives();
         ConsoleTheme.WriteLine($"Brain: {YalaSoarMind.BrainName} ({YalaSoarMind.Architecture})");
-        ConsoleTheme.WriteLine($"Decisions: {cognition.DecisionCount}");
+        ConsoleTheme.WriteLine($"Decisions: {cognition.DecisionCount}; conversations: {cognition.ConversationCount}");
         ConsoleTheme.WriteLine($"Last action: {cognition.LastAction ?? "none"}");
         ConsoleTheme.WriteLine($"Last result: {cognition.LastResult ?? "none"}");
-        ConsoleTheme.WriteLine("Remembered state:");
+        ConsoleTheme.WriteLine($"Drives: curiosity {drives.Curiosity}, caution {drives.Caution}, authority {drives.Authority}, companionship {drives.Companionship}, comfort {drives.Comfort}, uncertainty {drives.Uncertainty}");
+        ConsoleTheme.WriteLine($"Contacts: {cognition.Contacts?.Count ?? 0}; beliefs/claims: {cognition.Beliefs?.Count ?? 0}; structured episodes: {cognition.Episodes?.Count ?? 0}");
+        SoarMemoryDiagnostics diagnostics = simulation.GetYalaMemoryDiagnostics();
+        ConsoleTheme.WriteLine($"Soar semantic memory: {diagnostics.SemanticNodes} node(s), {diagnostics.SemanticEdges} edge(s); episodic time: {diagnostics.EpisodicTime}");
+        ConsoleTheme.WriteLine("Recent remembered state:");
         foreach (string memory in cognition.Memory.TakeLast(12)) ConsoleTheme.WriteLine($"  {memory}");
     }
 
@@ -361,7 +365,7 @@ internal static class Program
         ConsoleTheme.WriteLine("(Wisdom <message>               Contact Wisdom from the system console.");
         ConsoleTheme.WriteLine("calls                           Show current direct-call targets.");
         ConsoleTheme.WriteLine("status                          Show current cosmology and Yala state.");
-        ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 1 state.");
+        ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 2 state and memory diagnostics.");
         ConsoleTheme.WriteLine("creation / powers               Show currently existing in-world powers.");
         ConsoleTheme.WriteLine("records world                   Show settled in-world history.");
         ConsoleTheme.WriteLine("records oracle                  Show protected Oracle/system truth.");
@@ -378,45 +382,6 @@ internal static class Program
     {
         public static ConsoleInput CommandText(string command) => new(command, false);
         public static ConsoleInput End() => new("", true);
-    }
-
-    private sealed class LiveConsoleDisplay
-    {
-        private readonly bool _enabled;
-        private readonly int _top;
-        private string _lastLine = "";
-        private LiveConsoleDisplay(bool enabled, int top) { _enabled = enabled; _top = top; }
-
-        public static LiveConsoleDisplay Start(OracleSimulation simulation)
-        {
-            if (System.Console.IsOutputRedirected) return new LiveConsoleDisplay(false, 0);
-            LiveConsoleDisplay display = new(true, System.Console.CursorTop);
-            ConsoleTheme.WriteLine(); display.Refresh(simulation, force: true); ConsoleTheme.WriteLine(); return display;
-        }
-
-        public void Refresh(OracleSimulation simulation, bool force = false)
-        {
-            string line = LiveStatusFormatter.Format(simulation, GetAvailableWidth());
-            SetWindowTitle(LiveStatusFormatter.Format(simulation, 240));
-            if (!_enabled || (!force && _lastLine == line)) return;
-            try
-            {
-                int left = System.Console.CursorLeft; int top = System.Console.CursorTop;
-                System.Console.SetCursorPosition(0, _top); System.Console.Write(ConsoleTheme.ClearLine); System.Console.Write(ConsoleTheme.LiveLine(line));
-                System.Console.SetCursorPosition(left, top); _lastLine = line;
-            }
-            catch (Exception error) when (error is IOException or ArgumentOutOfRangeException) { _lastLine = line; }
-        }
-
-        private static int GetAvailableWidth()
-        {
-            try { return Math.Max(1, System.Console.WindowWidth - 1); }
-            catch { return 120; }
-        }
-        private static void SetWindowTitle(string value)
-        {
-            if (!System.Console.IsOutputRedirected) System.Console.Write($"\u001b]0;{ProjectVersion.Display} | {value}\u0007");
-        }
     }
 
     private sealed record ConsoleOptions(ulong Seed, string? SavePath, bool Once, bool TerminalChild)

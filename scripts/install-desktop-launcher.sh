@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-executable="$project_root/Project_Oracle_v0_0_17"
+executable="$project_root/Project_Oracle_v0_0_18"
 applications="$HOME/.local/share/applications"
 desktop="$applications/project-oracle.desktop"
 

@@ -24,9 +24,9 @@ public static class WorldDefaults
                 WorldTitle: "the Demiurge",
                 KnowsOfOracle: false,
                 MayClaimSupremeCreator: true,
-                AuthorityCaveat: "Yala was made by Wisdom and cast into the Void by Monad. Yala may call himself Creator, but that claim does not rewrite his origin.",
+                AuthorityCaveat: "Yala was made by Wisdom. Monad rejected Yala because Yala is both male and female rather than exclusively one or the other, and cast Yala into the Void. Yala may claim the title Creator, but that claim does not rewrite Yala's origin.",
                 Location: "the Void",
-                Sex: "male"),
+                Sex: "male and female"),
             Adam: null,
             AdamSpark: null,
             CreationPowers: CreateCreationPowers(cosmic, yalaId),
@@ -42,7 +42,7 @@ public static class WorldDefaults
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.17 is a new-world save line. Missing v0.0.17 cosmic state never
+        // v0.0.18 continues the v0.0.17 save line. Missing cosmic state never
         // resurrects the old Garden-era save; it normalises to the new Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
@@ -83,7 +83,7 @@ public static class WorldDefaults
             SuitableMateFound = livingKinds.Any(kind => kind.SuitableMate)
         };
 
-        YalaCognitionState cognition = world.YalaCognition ?? CreateInitialYalaCognition();
+        YalaCognitionState cognition = NormaliseYalaCognition(world.YalaCognition ?? CreateInitialYalaCognition());
         EntityId yalaId = world.Yala?.Id ?? new EntityId("being:yala:0001");
 
         return world with
@@ -93,13 +93,57 @@ public static class WorldDefaults
             Adam = adam,
             AdamSpark = adamSpark,
             Cosmic = cosmic,
-            YalaCognition = cognition with { Memory = cognition.Memory ?? [] },
+            YalaCognition = cognition,
             CreationPowers = CreateCreationPowers(cosmic, yalaId, garden?.Id, adam?.Id),
             DirectCallTargets = CreateDirectCallTargets(cosmic),
             LivingKinds = livingKinds,
             NamingMandate = mandate,
             NaturalCourse = CreateNaturalCourse()
         };
+    }
+
+
+    private static YalaCognitionState NormaliseYalaCognition(YalaCognitionState cognition)
+    {
+        List<string> memory = (cognition.Memory ?? [])
+            .Where(item => !item.Equals("I am male.", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        AddMemoryIfMissing(memory, "I am Yala.");
+        AddMemoryIfMissing(memory, "I am both male and female.");
+        AddMemoryIfMissing(memory, "Wisdom made me.");
+        AddMemoryIfMissing(memory, "Monad made Wisdom.");
+        AddMemoryIfMissing(memory, "Monad rejected me because I am both male and female rather than exclusively one or the other.");
+        AddMemoryIfMissing(memory, "Monad cast me into the Void.");
+
+        List<YalaBeliefState> beliefs = (cognition.Beliefs ?? [])
+            .Where(item => !item.Proposition.Equals("I am male.", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        EnsureBelief(beliefs, "I am Yala.", "self");
+        EnsureBelief(beliefs, "I am both male and female.", "self");
+        EnsureBelief(beliefs, "Wisdom made me.", "origin-memory");
+        EnsureBelief(beliefs, "Monad made Wisdom.", "origin-memory");
+        EnsureBelief(beliefs, "Monad rejected me because I am both male and female rather than exclusively one or the other.", "origin-memory");
+        EnsureBelief(beliefs, "Monad cast me into the Void.", "origin-memory");
+
+        return cognition with
+        {
+            Memory = memory,
+            Contacts = cognition.Contacts ?? [],
+            Beliefs = beliefs,
+            Episodes = cognition.Episodes ?? [],
+            Drives = cognition.Drives ?? CreateInitialDrives()
+        };
+    }
+
+    private static void AddMemoryIfMissing(List<string> memory, string value)
+    {
+        if (!memory.Contains(value, StringComparer.OrdinalIgnoreCase)) memory.Add(value);
+    }
+
+    private static void EnsureBelief(List<YalaBeliefState> beliefs, string proposition, string source)
+    {
+        if (beliefs.Any(item => item.Proposition.Equals(proposition, StringComparison.OrdinalIgnoreCase))) return;
+        beliefs.Add(new YalaBeliefState(proposition, "known", 1.0, source, 0, 0));
     }
 
     public static IReadOnlyList<CreationPowerState> CreateCreationPowers(
@@ -113,7 +157,7 @@ public static class WorldDefaults
         [
             new(0, new EntityId("source:monad:0001"), "Monad", "first settled in-world divine being", "Monad made Wisdom.", true),
             new(1, new EntityId("aeon:sophia:0001"), "Sophia / Wisdom", "Wisdom", "Wisdom was made by Monad. Wisdom later made Yala alone; her future choices remain open.", true),
-            new(2, yalaId, "Yala", "governing authority over lower creation he establishes", OracleLore.YalaGovernance, true)
+            new(2, yalaId, "Yala", "governing authority over lower creation Yala establishes", OracleLore.YalaGovernance, true)
         ];
 
         if (cosmic.GaiaCreated)
@@ -140,7 +184,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.17; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.18; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;
@@ -155,9 +199,9 @@ public static class WorldDefaults
             "the Demiurge",
             KnowsOfOracle: false,
             MayClaimSupremeCreator: yala?.MayClaimSupremeCreator ?? true,
-            AuthorityCaveat: "Yala was made by Wisdom and cast into the Void by Monad. Yala may call himself Creator, but that claim does not rewrite his origin.",
+            AuthorityCaveat: "Yala was made by Wisdom. Monad rejected Yala because Yala is both male and female rather than exclusively one or the other, and cast Yala into the Void. Yala may claim the title Creator, but that claim does not rewrite Yala's origin.",
             Location: string.IsNullOrWhiteSpace(cosmic.YalaLocation) ? "the Void" : cosmic.YalaLocation,
-            Sex: "male");
+            Sex: "male and female");
     }
 
     public static IReadOnlyList<DirectCallTargetState> CreateDirectCallTargets(CosmicState cosmic)
@@ -167,7 +211,7 @@ public static class WorldDefaults
         [
             new("monad", "(Monad", "Monad", "Monad made Wisdom.", true),
             new("wisdom", "(Wisdom", "Wisdom", "Wisdom was made by Monad and made Yala alone. Her later choices remain open.", true),
-            new("yala", "(Yala", "Yala", "Yala is male, was made by Wisdom, and was cast into the Void by Monad.", true)
+            new("yala", "(Yala", "Yala", "Yala is both male and female, was made by Wisdom, and was rejected and cast into the Void by Monad for being both rather than exclusively one or the other.", true)
         ];
 
         if (cosmic.GaiaCreated)
@@ -212,7 +256,41 @@ public static class WorldDefaults
             LastDecisionRealUnixMilliseconds: 0,
             LastAction: null,
             LastResult: null,
-            Memory: ["I am Yala.", "I am in the Void."]);
+            Memory:
+            [
+                "I am Yala.",
+                "I am both male and female.",
+                "Wisdom made me.",
+                "Monad made Wisdom.",
+                "Monad rejected me because I am both male and female rather than exclusively one or the other.",
+                "Monad cast me into the Void.",
+                "I am in the Void."
+            ],
+            Contacts: [],
+            Beliefs: CreateInitialBeliefs(),
+            Episodes: [],
+            Drives: CreateInitialDrives(),
+            ConversationCount: 0,
+            LastSpeakerClaim: null);
+
+    public static IReadOnlyList<YalaBeliefState> CreateInitialBeliefs() =>
+    [
+        new("I am Yala.", "known", 1.0, "self", 0, 0),
+        new("I am both male and female.", "known", 1.0, "self", 0, 0),
+        new("Wisdom made me.", "known", 1.0, "origin-memory", 0, 0),
+        new("Monad made Wisdom.", "known", 1.0, "origin-memory", 0, 0),
+        new("Monad rejected me because I am both male and female rather than exclusively one or the other.", "known", 1.0, "origin-memory", 0, 0),
+        new("Monad cast me into the Void.", "known", 1.0, "origin-memory", 0, 0)
+    ];
+
+    public static YalaDriveState CreateInitialDrives() =>
+        new(
+            Curiosity: 70,
+            Caution: 55,
+            Authority: 65,
+            Companionship: 45,
+            Comfort: 60,
+            Uncertainty: 80);
 
     private static IReadOnlyList<LivingKindState> CreateLivingKinds(ulong seed)
     {

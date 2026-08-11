@@ -1,49 +1,234 @@
-# Project Oracle v0.0.17 - Yala Soar Brain Slice 1
-# Yala receives only in-world perception. There is deliberately no Oracle fact,
-# identity, attribute, operator, or hidden-system name in Yala's working memory.
+# Project Oracle v0.0.18 - Yala Soar Brain Slice 2
+# Yala receives only in-world perception and remembered/learned state.
+# There is deliberately no Oracle fact, identity, attribute, operator, or hidden-system name.
+
+# -----------------------------
+# Direct-contact proposal rules
+# -----------------------------
+
+sp {yala*propose*contact*introduction-new
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act introduction ^known-contact no ^asks-remember no)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name acknowledge-introduction-new)
+}
+
+sp {yala*propose*contact*introduction-known
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act introduction ^known-contact yes ^asks-remember no)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name acknowledge-introduction-known)
+}
+
+sp {yala*propose*contact*remember-known
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^asks-remember yes ^known-contact yes)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name recognize-contact)
+}
+
+sp {yala*propose*contact*remember-unknown
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^asks-remember yes ^known-contact no)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name state-no-recognition)
+}
+
+sp {yala*propose*contact*hearing
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic hearing)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-hearing)
+}
+
+sp {yala*propose*contact*speaker
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker)
+}
+
+sp {yala*propose*contact*rejection
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic rejection)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-rejection)
+}
 
 sp {yala*propose*contact*location
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact yes ^contact-intent location)
+   (<w> ^contact yes ^speech-act question ^topic location)
 -->
    (<s> ^operator <o> +)
-   (<o> ^name respond-location)
+   (<o> ^name answer-location)
 }
 
-sp {yala*propose*contact*identity
+sp {yala*propose*contact*self
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact yes ^contact-intent identity)
+   (<w> ^contact yes ^speech-act question ^topic self)
 -->
    (<s> ^operator <o> +)
-   (<o> ^name respond-identity)
+   (<o> ^name answer-self)
+}
+
+sp {yala*propose*contact*nature
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic nature)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-nature)
+}
+
+sp {yala*propose*contact*origin-self
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic origin-self)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-origin-self)
+}
+
+sp {yala*propose*contact*origin-wisdom
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic origin-wisdom)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-origin-wisdom)
+}
+
+sp {yala*propose*contact*origin-monad-unknown
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic origin-monad)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name state-uncertainty)
 }
 
 sp {yala*propose*contact*action
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact yes ^contact-intent action)
+   (<w> ^contact yes ^speech-act question ^topic action)
 -->
    (<s> ^operator <o> +)
-   (<o> ^name respond-action)
+   (<o> ^name answer-action)
 }
 
-sp {yala*propose*contact*generic
+sp {yala*propose*contact*unknown-question
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact yes ^contact-intent generic)
+   (<w> ^contact yes ^speech-act question ^fact-known no ^topic general)
 -->
    (<s> ^operator <o> +)
-   (<o> ^name respond-generic)
+   (<o> ^name state-general-uncertainty)
 }
+
+sp {yala*propose*contact*claim
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act claim)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name consider-claim)
+}
+
+sp {yala*propose*contact*command
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act command)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name consider-command)
+}
+
+sp {yala*propose*contact*greeting
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act greeting)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name acknowledge-greeting)
+}
+
+# A normal statement deliberately produces a tie. Yala resolves it in a substate
+# rather than receiving a hard-wired answer from the host program.
+sp {yala*propose*contact*statement*acknowledge
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act statement)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name acknowledge-statement)
+}
+
+sp {yala*propose*contact*statement*clarify
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act statement)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name ask-clarification)
+}
+
+sp {yala*substate*resolve-statement
+   (state <sub> ^superstate <s> ^impasse tie)
+   (<s> ^io.input-link <in> ^operator <ack> + <clarify> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act statement ^ambiguous no)
+   (<ack> ^name acknowledge-statement)
+   (<clarify> ^name ask-clarification)
+-->
+   (<s> ^operator <ack> > <clarify>)
+}
+
+sp {yala*substate*resolve-ambiguous-statement
+   (state <sub> ^superstate <s> ^impasse tie)
+   (<s> ^io.input-link <in> ^operator <ack> + <clarify> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act statement ^ambiguous yes)
+   (<ack> ^name acknowledge-statement)
+   (<clarify> ^name ask-clarification)
+-->
+   (<s> ^operator <clarify> > <ack>)
+}
+
+sp {yala*propose*contact*ambiguous
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act ambiguous)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name ask-clarification)
+}
+
+# -----------------------------
+# Autonomous proposal rules
+# -----------------------------
 
 sp {yala*propose*observe
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
    (<w> ^contact no)
 -->
-   (<s> ^operator <o> + =)
+   (<s> ^operator <o> +)
    (<o> ^name observe)
 }
 
@@ -52,7 +237,7 @@ sp {yala*propose*reflect
    (<in> ^world-input <w>)
    (<w> ^contact no)
 -->
-   (<s> ^operator <o> + =)
+   (<s> ^operator <o> +)
    (<o> ^name reflect)
 }
 
@@ -61,7 +246,7 @@ sp {yala*propose*wait
    (<in> ^world-input <w>)
    (<w> ^contact no)
 -->
-   (<s> ^operator <o> + =)
+   (<s> ^operator <o> +)
    (<o> ^name wait)
 }
 
@@ -70,8 +255,22 @@ sp {yala*propose*create-gaia
    (<in> ^world-input <w>)
    (<w> ^contact no ^gaia-created no)
 -->
-   (<s> ^operator <o> + =)
+   (<s> ^operator <o> +)
    (<o> ^name create-gaia)
+}
+
+sp {yala*prefer*create-gaia*from-authority-and-comfort
+   (state <s> ^superstate nil ^io.input-link <in> ^operator <create> + <observe> + <reflect> + <wait> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^gaia-created no ^drive-authority { >= 60 <a> } ^drive-comfort { >= 55 <c> })
+   (<create> ^name create-gaia)
+   (<observe> ^name observe)
+   (<reflect> ^name reflect)
+   (<wait> ^name wait)
+-->
+   (<s> ^operator <create> > <observe>)
+   (<s> ^operator <create> > <reflect>)
+   (<s> ^operator <create> > <wait>)
 }
 
 sp {yala*propose*command-gaia-time
@@ -79,40 +278,227 @@ sp {yala*propose*command-gaia-time
    (<in> ^world-input <w>)
    (<w> ^contact no ^gaia-created yes ^time-created no)
 -->
-   (<s> ^operator <o> + =)
+   (<s> ^operator <o> +)
    (<o> ^name command-gaia-time)
 }
 
-sp {yala*apply*respond-location
-   (state <s> ^operator <o> ^io.output-link <out>)
-   (<o> ^name respond-location)
+sp {yala*prefer*command-gaia-time*from-uncertainty
+   (state <s> ^superstate nil ^io.input-link <in> ^operator <time> + <observe> + <reflect> + <wait> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^gaia-created yes ^time-created no ^uncertainty { >= 60 <u> })
+   (<time> ^name command-gaia-time)
+   (<observe> ^name observe)
+   (<reflect> ^name reflect)
+   (<wait> ^name wait)
 -->
-   (<out> ^yala-action <cmd>)
-   (<cmd> ^name respond ^reply-code location)
+   (<s> ^operator <time> > <observe>)
+   (<s> ^operator <time> > <reflect>)
+   (<s> ^operator <time> > <wait>)
 }
 
-sp {yala*apply*respond-identity
-   (state <s> ^operator <o> ^io.output-link <out>)
-   (<o> ^name respond-identity)
+# If no creation action has a decisive preference, ordinary cognition is allowed to
+# tie. A Soar substate then resolves which mental action best fits Yala's drives.
+sp {yala*substate*prefer-observe-when-uncertain
+   (state <sub> ^superstate <s> ^impasse tie)
+   (<s> ^io.input-link <in> ^operator <observe> + <reflect> + <wait> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^uncertainty { >= 70 <u> })
+   (<observe> ^name observe)
+   (<reflect> ^name reflect)
+   (<wait> ^name wait)
 -->
-   (<out> ^yala-action <cmd>)
-   (<cmd> ^name respond ^reply-code identity)
+   (<s> ^operator <observe> > <reflect>)
+   (<s> ^operator <observe> > <wait>)
 }
 
-sp {yala*apply*respond-action
-   (state <s> ^operator <o> ^io.output-link <out>)
-   (<o> ^name respond-action)
+sp {yala*substate*prefer-reflect-when-curious
+   (state <sub> ^superstate <s> ^impasse tie)
+   (<s> ^io.input-link <in> ^operator <observe> + <reflect> + <wait> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^uncertainty { < 70 <u> } ^drive-curiosity { >= 60 <c> })
+   (<observe> ^name observe)
+   (<reflect> ^name reflect)
+   (<wait> ^name wait)
 -->
-   (<out> ^yala-action <cmd>)
-   (<cmd> ^name respond ^reply-code action)
+   (<s> ^operator <reflect> > <observe>)
+   (<s> ^operator <reflect> > <wait>)
 }
 
-sp {yala*apply*respond-generic
+sp {yala*substate*prefer-wait-when-cautious
+   (state <sub> ^superstate <s> ^impasse tie)
+   (<s> ^io.input-link <in> ^operator <observe> + <reflect> + <wait> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^uncertainty { < 70 <u> } ^drive-curiosity { < 60 <c> })
+   (<observe> ^name observe)
+   (<reflect> ^name reflect)
+   (<wait> ^name wait)
+-->
+   (<s> ^operator <wait> > <observe>)
+   (<s> ^operator <wait> > <reflect>)
+}
+
+# -----------------------------
+# Application / output rules
+# -----------------------------
+
+sp {yala*apply*introduction-new
    (state <s> ^operator <o> ^io.output-link <out>)
-   (<o> ^name respond-generic)
+   (<o> ^name acknowledge-introduction-new)
 -->
    (<out> ^yala-action <cmd>)
-   (<cmd> ^name respond ^reply-code unknown-contact)
+   (<cmd> ^name respond ^reply-code introduction-new ^deliberation direct)
+}
+
+sp {yala*apply*introduction-known
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name acknowledge-introduction-known)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code introduction-known ^deliberation direct)
+}
+
+sp {yala*apply*recognize-contact
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name recognize-contact)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code remember-known ^deliberation direct)
+}
+
+sp {yala*apply*state-no-recognition
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name state-no-recognition)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code remember-unknown ^deliberation direct)
+}
+
+sp {yala*apply*answer-hearing
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-hearing)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code hearing ^deliberation direct)
+}
+
+sp {yala*apply*answer-speaker
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker ^deliberation direct)
+}
+
+sp {yala*apply*answer-rejection
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-rejection)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code rejection ^deliberation direct)
+}
+
+sp {yala*apply*answer-location
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-location)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code location ^deliberation direct)
+}
+
+sp {yala*apply*answer-self
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-self)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code identity ^deliberation direct)
+}
+
+sp {yala*apply*answer-nature
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-nature)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code nature ^deliberation direct)
+}
+
+sp {yala*apply*answer-origin-self
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-origin-self)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code origin-self ^deliberation direct)
+}
+
+sp {yala*apply*answer-origin-wisdom
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-origin-wisdom)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code origin-wisdom ^deliberation direct)
+}
+
+sp {yala*apply*state-uncertainty
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name state-uncertainty)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code origin-unknown ^deliberation direct)
+}
+
+sp {yala*apply*state-general-uncertainty
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name state-general-uncertainty)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code unknown ^deliberation direct)
+}
+
+sp {yala*apply*answer-action
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-action)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code action ^deliberation direct)
+}
+
+sp {yala*apply*consider-claim
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name consider-claim)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code consider-claim ^deliberation direct)
+}
+
+sp {yala*apply*consider-command
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name consider-command)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code consider-command ^deliberation direct)
+}
+
+sp {yala*apply*acknowledge-greeting
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name acknowledge-greeting)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code greeting ^deliberation direct)
+}
+
+sp {yala*apply*acknowledge-statement
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name acknowledge-statement)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code acknowledge ^deliberation substate)
+}
+
+sp {yala*apply*ask-clarification
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name ask-clarification)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code clarify ^deliberation substate)
 }
 
 sp {yala*apply*observe
@@ -120,7 +506,7 @@ sp {yala*apply*observe
    (<o> ^name observe)
 -->
    (<out> ^yala-action <cmd>)
-   (<cmd> ^name observe ^reply-code none)
+   (<cmd> ^name observe ^reply-code none ^deliberation substate)
 }
 
 sp {yala*apply*reflect
@@ -128,7 +514,7 @@ sp {yala*apply*reflect
    (<o> ^name reflect)
 -->
    (<out> ^yala-action <cmd>)
-   (<cmd> ^name reflect ^reply-code none)
+   (<cmd> ^name reflect ^reply-code none ^deliberation substate)
 }
 
 sp {yala*apply*wait
@@ -136,7 +522,7 @@ sp {yala*apply*wait
    (<o> ^name wait)
 -->
    (<out> ^yala-action <cmd>)
-   (<cmd> ^name wait ^reply-code none)
+   (<cmd> ^name wait ^reply-code none ^deliberation substate)
 }
 
 sp {yala*apply*create-gaia
@@ -144,7 +530,7 @@ sp {yala*apply*create-gaia
    (<o> ^name create-gaia)
 -->
    (<out> ^yala-action <cmd>)
-   (<cmd> ^name create-gaia ^reply-code none)
+   (<cmd> ^name create-gaia ^reply-code none ^deliberation direct)
 }
 
 sp {yala*apply*command-gaia-time
@@ -152,5 +538,5 @@ sp {yala*apply*command-gaia-time
    (<o> ^name command-gaia-time)
 -->
    (<out> ^yala-action <cmd>)
-   (<cmd> ^name command-gaia-time ^reply-code none)
+   (<cmd> ^name command-gaia-time ^reply-code none ^deliberation direct)
 }

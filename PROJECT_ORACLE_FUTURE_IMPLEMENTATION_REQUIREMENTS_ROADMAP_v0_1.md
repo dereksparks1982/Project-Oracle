@@ -1,6 +1,6 @@
 # Project Oracle Future Implementation Requirements Roadmap
 
-**Current authority alignment:** v0.0.17
+**Current authority alignment:** v0.0.18
 
 This roadmap follows the current Project Oracle ontology and does not restore superseded in-world Oracle concepts.
 
@@ -10,20 +10,20 @@ This roadmap follows the current Project Oracle ontology and does not restore su
 - Monad -> Wisdom -> Yala is the settled in-world genealogy.
 - Yala begins a fresh autonomous run in the Void.
 - Gaia creates in-world Time.
-- Yala receives Soar 9.6.5 Brain Slice 1.
+- Yala receives Soar 9.6.5 Brain Slice 2 with a persistent session, structured conversation, semantic and episodic memory, motive-weighted choices, and limited substate deliberation.
 - Future history remains open until actions occur and world law resolves them.
 
 ## Next cognition growth
 
-Grow Yala vertically rather than replacing Brain Slice 1 with a scripted story:
+Grow Yala vertically beyond Brain Slice 2 rather than replacing cognition with a scripted story:
 
-1. richer perception and attention;
-2. semantic memory for concepts Yala actually learns;
-3. episodic memory for experiences;
-4. persistent goals and goal conflict;
-5. belief confidence, uncertainty, and revision;
+1. richer perception and working-memory attention;
+2. deeper goal hierarchies and motive conflict;
+3. belief confidence, uncertainty, contradiction handling, and revision;
+4. controlled chunking only after the current memory and deliberation model is proven;
+5. reinforcement learning only after a clear reward/drive model is approved;
 6. social reasoning when other minds enter the world;
-7. reinforcement learning only after a clear reward/drive model is approved;
+7. associative semantic recall and richer episodic reasoning;
 8. richer creation and delegation operators as world law is implemented.
 
 No future cognitive layer may silently inject knowledge that Yala has never perceived or learned. Oracle's existence remains hidden unless Derek explicitly chooses an in-world revelation.

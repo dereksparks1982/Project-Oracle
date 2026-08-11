@@ -10,7 +10,7 @@ public sealed record YalaState(
     bool MayClaimSupremeCreator = true,
     string AuthorityCaveat = "",
     string Location = "the Void",
-    string Sex = "male");
+    string Sex = "male and female");
 
 public sealed record CosmicState(
     bool GaiaCreated,
@@ -19,12 +19,49 @@ public sealed record CosmicState(
     bool GardenEstablished,
     string YalaLocation);
 
+public sealed record YalaContactMemory(
+    string ClaimedName,
+    int EncounterCount,
+    long FirstEncounterDecision,
+    long LastEncounterDecision,
+    string? LastMessage);
+
+public sealed record YalaBeliefState(
+    string Proposition,
+    string Status,
+    double Confidence,
+    string Source,
+    long FirstSeenDecision,
+    long LastConsideredDecision);
+
+public sealed record YalaEpisodeState(
+    long Sequence,
+    string Kind,
+    string Summary,
+    string? SpeakerClaim = null,
+    string? Message = null,
+    string? Response = null);
+
+public sealed record YalaDriveState(
+    int Curiosity,
+    int Caution,
+    int Authority,
+    int Companionship,
+    int Comfort,
+    int Uncertainty);
+
 public sealed record YalaCognitionState(
     long DecisionCount,
     long LastDecisionRealUnixMilliseconds,
     string? LastAction,
     string? LastResult,
-    IReadOnlyList<string> Memory);
+    IReadOnlyList<string> Memory,
+    IReadOnlyList<YalaContactMemory>? Contacts = null,
+    IReadOnlyList<YalaBeliefState>? Beliefs = null,
+    IReadOnlyList<YalaEpisodeState>? Episodes = null,
+    YalaDriveState? Drives = null,
+    long ConversationCount = 0,
+    string? LastSpeakerClaim = null);
 
 public sealed record AdamState(
     EntityId Id,

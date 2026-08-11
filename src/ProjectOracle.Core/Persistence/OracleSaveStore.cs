@@ -8,6 +8,7 @@ public sealed class OracleSaveStore
     public const int CurrentSchemaVersion = 2;
     private static readonly HashSet<string> SupportedProjectVersions = new(StringComparer.Ordinal)
     {
+        "0.0.17",
         ProjectVersion.Number
     };
 
@@ -108,8 +109,8 @@ public sealed class OracleSaveStore
             localData = AppContext.BaseDirectory;
         }
 
-        // v0.0.17 intentionally starts a new world-save line. save_v1.json is left
-        // untouched and is never selected as the v0.0.17 default.
+        // v0.0.18 continues the v0.0.17 save_v2 world line. save_v1.json remains
+        // untouched and is never selected as the active default.
         return Path.Combine(localData, "ProjectOracle", "save_v2.json");
     }
 
@@ -122,7 +123,7 @@ public sealed class OracleSaveStore
             ?? throw new InvalidDataException(emptyMessage);
 
         // Validate version/schema before any normalisation. This prevents an old
-        // Garden-era save from being transformed into the new v0.0.17 world.
+        // legacy save line from being transformed into the current v0.0.18 save_v2 world.
         Validate(snapshot);
         return snapshot with { World = ProjectOracle.Domain.WorldDefaults.Normalise(snapshot.World) };
     }
@@ -142,18 +143,18 @@ public sealed class OracleSaveStore
         if (snapshot.SchemaVersion != CurrentSchemaVersion)
         {
             throw new InvalidDataException(
-                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}. v0.0.17 starts a new world-save line.");
+                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}. v0.0.18 continues the v0.0.17 save_v2 world line only.");
         }
 
         if (!SupportedProjectVersions.Contains(snapshot.ProjectVersion))
         {
             throw new InvalidDataException(
-                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}. v0.0.17 starts a new world instead of migrating an earlier world.");
+                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}. v0.0.18 accepts the v0.0.17 save_v2 world line and current saves only.");
         }
 
         if (snapshot.World.Cosmic is null)
         {
-            throw new InvalidDataException("The v0.0.17 save is missing required cosmic state.");
+            throw new InvalidDataException("The save_v2 world is missing required cosmic state.");
         }
 
         if (snapshot.World.Seed != snapshot.Seed)
