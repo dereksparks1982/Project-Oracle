@@ -37,7 +37,9 @@ internal static class Program
                 : OracleSimulation.Start(options.Seed, now, savePath);
 
             ConsoleTheme.ApplyBase();
-            PrintBanner(simulation, continuing);
+            using LiveWorldClockSurface worldClockSurface = new();
+            worldClockSurface.Begin(simulation);
+            PrintBanner(simulation, continuing, worldClockSurface.Active);
 
             if (options.Once)
             {
@@ -50,7 +52,7 @@ internal static class Program
             }
 
             SaveCurrent(store, savePath, simulation, realTime);
-            int exitCode = RunConsole(simulation, store, savePath, realTime);
+            int exitCode = RunConsole(simulation, store, savePath, realTime, worldClockSurface);
             ConsoleTheme.ResetToShell();
             return exitCode;
         }
@@ -62,41 +64,44 @@ internal static class Program
         }
     }
 
-    private static void PrintBanner(OracleSimulation simulation, bool continuing)
+    private static void PrintBanner(OracleSimulation simulation, bool continuing, bool anchoredWorldClockActive)
     {
+        if (!anchoredWorldClockActive)
+        {
+            ConsoleTheme.WriteLine(LiveWorldClockSurface.Describe(simulation));
+        }
         ConsoleTheme.WriteLine(ProjectVersion.Display);
         ConsoleTheme.WriteLine($"World Seed: {simulation.State.Seed}");
-        if (!simulation.InWorldTimeExists)
-        {
-            ConsoleTheme.WriteLine($"Yala is in {simulation.State.Yala.Location}. In-world Time does not exist yet.");
-            ConsoleTheme.WriteLine("Oracle runtime can continue processing cognition without pretending that world Time already exists.");
-        }
-        else
-        {
-            ConsoleTheme.WriteLine($"In-world Time: {simulation.Clock.Describe()}");
-        }
-        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.19 world started at Yala's Void state.");
-        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 3 with self-model, concept lexicon, provenance, memory, drives, and deliberation.");
+        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.20 world started at Yala's Void state.");
+        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 3 with self-model, concept lexicon, provenance, memory, drives, deliberation, and expanded conversational reachability.");
+        ConsoleTheme.WriteLine("Ctrl+Y enters persistent Yala conversation mode. Escape returns to the normal system prompt.");
         ConsoleTheme.WriteLine("Type help for system-console commands and direct-call syntax.");
         PrintRecords(simulation.Ledger.WorldRecords, "WORLD RECORD");
     }
 
-    private static int RunConsole(OracleSimulation simulation, OracleSaveStore store, string savePath, IRealTimeSource realTime)
+    private static int RunConsole(
+        OracleSimulation simulation,
+        OracleSaveStore store,
+        string savePath,
+        IRealTimeSource realTime,
+        LiveWorldClockSurface worldClockSurface)
     {
         long lastRefresh = 0;
+        ConsoleConversationMode conversationMode = new();
         while (true)
         {
             ConsoleInput input = ReadConsoleInput(() =>
             {
                 long now = realTime.GetUnixTimeMilliseconds();
-                if (now - lastRefresh < 1_000)
+                if (now - lastRefresh < 250)
                 {
                     return;
                 }
                 lastRefresh = now;
                 simulation.SynchroniseClock(now, recordAdvance: false);
                 simulation.TryRunYalaAutonomousStep(now);
-            });
+                worldClockSurface.Refresh(simulation);
+            }, conversationMode);
 
             if (input.EndOfInput)
             {
@@ -111,6 +116,7 @@ internal static class Program
             }
             long now = realTime.GetUnixTimeMilliseconds();
             simulation.SynchroniseClock(now, recordAdvance: false);
+            worldClockSurface.Refresh(simulation);
             if (command.Equals("quit", StringComparison.OrdinalIgnoreCase) || command.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
                 SaveCurrent(store, savePath, simulation, realTime);
@@ -119,10 +125,11 @@ internal static class Program
 
             ExecuteCommand(simulation, store, savePath, realTime, command, now);
             SaveCurrent(store, savePath, simulation, realTime);
+            worldClockSurface.Refresh(simulation, force: true);
         }
     }
 
-    private static ConsoleInput ReadConsoleInput(Action onIdle)
+    private static ConsoleInput ReadConsoleInput(Action onIdle, ConsoleConversationMode conversationMode)
     {
         if (System.Console.IsInputRedirected)
         {
@@ -130,11 +137,9 @@ internal static class Program
             return redirected is null ? ConsoleInput.End() : ConsoleInput.CommandText(redirected);
         }
 
-        // Repair 2/3: the prompt exclusively owns the terminal body while input is pending.
-        // Idle simulation may continue, but it is terminal-silent. There is no LIVE row,
-        // cursor repositioning, or dynamic status/title painting in this path.
+        ArgumentNullException.ThrowIfNull(conversationMode);
         ConsoleInputLine line = new();
-        ConsoleTheme.WritePrompt("> ");
+        WriteInteractivePrompt(conversationMode, line);
 
         while (true)
         {
@@ -146,10 +151,23 @@ internal static class Program
             }
 
             ConsoleKeyInfo key = System.Console.ReadKey(intercept: true);
+            bool control = (key.Modifiers & ConsoleModifiers.Control) != 0;
+            if (control && key.Key == ConsoleKey.Y)
+            {
+                conversationMode.EnterYala();
+                RedrawInteractivePrompt(conversationMode, line);
+                continue;
+            }
+            if (key.Key == ConsoleKey.Escape)
+            {
+                conversationMode.Escape(line);
+                RedrawInteractivePrompt(conversationMode, line);
+                continue;
+            }
             if (key.Key == ConsoleKey.Enter)
             {
                 System.Console.WriteLine();
-                return ConsoleInput.CommandText(line.Text);
+                return ConsoleInput.CommandText(conversationMode.BuildCommand(line.Text));
             }
             if (key.Key == ConsoleKey.Backspace)
             {
@@ -165,6 +183,19 @@ internal static class Program
                 System.Console.Write(key.KeyChar);
             }
         }
+    }
+
+    private static void WriteInteractivePrompt(ConsoleConversationMode conversationMode, ConsoleInputLine line)
+    {
+        ConsoleTheme.WritePrompt(conversationMode.Prompt);
+        if (!line.IsEmpty) System.Console.Write(line.Text);
+    }
+
+    private static void RedrawInteractivePrompt(ConsoleConversationMode conversationMode, ConsoleInputLine line)
+    {
+        System.Console.Write("\r");
+        System.Console.Write(ConsoleTheme.ClearLine);
+        WriteInteractivePrompt(conversationMode, line);
     }
 
     private static void ExecuteCommand(
@@ -222,7 +253,6 @@ internal static class Program
         {
             YalaDirectReply reply = simulation.CallYala(call.Message, now);
             ConsoleTheme.WriteLine($"Yala: {reply.Reply}");
-            ConsoleTheme.WriteLine($"[Soar selected: {reply.Decision.Action}]");
             return;
         }
 
@@ -234,7 +264,7 @@ internal static class Program
         }
         else
         {
-            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.19.");
+            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.20.");
         }
     }
 
@@ -366,6 +396,8 @@ internal static class Program
         ConsoleTheme.WriteLine("(Wisdom <message>               Contact Wisdom from the system console.");
         ConsoleTheme.WriteLine("calls                           Show current direct-call targets.");
         ConsoleTheme.WriteLine("status                          Show current cosmology and Yala state.");
+        ConsoleTheme.WriteLine("Ctrl+Y                          Enter persistent Yala conversation mode; the mode stays active after each reply.");
+        ConsoleTheme.WriteLine("Escape                          Leave Yala conversation mode and return to the normal system prompt.");
         ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 3 state, lexicon, self-model, and memory diagnostics.");
         ConsoleTheme.WriteLine("creation / powers               Show currently existing in-world powers.");
         ConsoleTheme.WriteLine("records world                   Show settled in-world history.");

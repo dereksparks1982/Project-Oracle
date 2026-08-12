@@ -2,7 +2,7 @@
 set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 live_console="$project_root/scripts/run-live-console.sh"
-window_title='Project Oracle v0.0.19 - Yala Soar Console'
+window_title='Project Oracle v0.0.20 - Yala Soar Console'
 
 fail() { echo "Project Oracle could not open a separate console window: $*" >&2; exit 1; }
 [[ -x "$live_console" ]] || fail 'scripts/run-live-console.sh is missing or not executable.'

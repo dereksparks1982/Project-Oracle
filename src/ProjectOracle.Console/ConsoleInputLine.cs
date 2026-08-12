@@ -26,4 +26,6 @@ public sealed class ConsoleInputLine
         _buffer.Remove(_buffer.Length - 1, 1);
         return true;
     }
+
+    public void Clear() => _buffer.Clear();
 }

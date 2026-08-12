@@ -1,6 +1,7 @@
 using ProjectOracle.Cognition;
 using ProjectOracle.Cognition.Language;
 using ProjectOracle.Domain;
+using ProjectOracle.Simulation;
 
 namespace ProjectOracle.Cognition.Soar;
 
@@ -11,7 +12,8 @@ public static class YalaReplyRealizer
         YalaContactFrame contact,
         WorldState world,
         YalaCognitionState cognition,
-        string lastActionDescription)
+        string lastActionDescription,
+        CalendarSnapshot? calendar = null)
     {
         ArgumentNullException.ThrowIfNull(decision);
         ArgumentNullException.ThrowIfNull(contact);
@@ -45,6 +47,21 @@ public static class YalaReplyRealizer
             "introduction-known" => Introduction(contact, known: true),
             "consider-claim" => DescribeClaim(contact),
             "consider-command" => "I heard your command. Hearing it does not make it my decision. I will decide what I attempt.",
+            "follow-up-why-creation" => DescribeWhyCreationNotDone(contact, self),
+            "gaia-about" => DescribeGaia(world, cognition),
+            "gaia-location" => DescribeGaiaLocation(world),
+            "gaia-created-yala" => DescribeGaiaCreatedYala(world),
+            "time-origin" => DescribeTimeOrigin(world),
+            "world-time" => DescribeWorldTime(contact, world, calendar),
+            "gaia-command" => DescribeGaiaCommand(cognition),
+            "adam-contact" => DescribeAdamContact(world),
+            "wisdom-name" => "Wisdom is also called Sophia. Wisdom made me, and Monad made Wisdom.",
+            "mother-relation" => "Wisdom made me. I understand mother as a maternal parent relationship, but I do not have settled knowledge that mother is the right relationship word for Wisdom.",
+            "speaker-memory" => DescribeCurrentSpeaker(cognition, memoryOnly: true),
+            "speaker-knowledge" => DescribeCurrentSpeaker(cognition, memoryOnly: false),
+            "knowledge-gaps" => DescribeKnowledgeGaps(cognition),
+            "curiosity" => DescribeCuriosity(cognition),
+            "desire" => DescribeDesire(cognition),
             "acknowledge" => "I hear what you say.",
             "greeting" => "I hear you.",
             "clarify" => "I hear something, but I do not understand what you mean. Say it another way.",
@@ -53,6 +70,132 @@ public static class YalaReplyRealizer
         };
     }
 
+    private static string DescribeWhyCreationNotDone(YalaContactFrame contact, YalaSelfModel self)
+    {
+        string subject = contact.ResolvedSubject ?? "that";
+        if (self.KnowsHasNotCreated(subject))
+        {
+            return $"I have not created {Capitalize(subject)}. I do not yet have a settled reason for why I have not chosen to do so.";
+        }
+        return $"I do not have a settled reason about creating {Capitalize(subject)}.";
+    }
+
+    private static string DescribeGaia(WorldState world, YalaCognitionState cognition)
+    {
+        if (world.Cosmic?.GaiaCreated != true)
+        {
+            return "I have not created Gaia in the current world.";
+        }
+
+        string creation = (cognition.ActionMemory ?? [])
+            .LastOrDefault(item => item.Completed && item.Action.Equals("create", StringComparison.OrdinalIgnoreCase) && item.Object.Equals("Gaia", StringComparison.OrdinalIgnoreCase))?.Outcome
+            ?? "I created Gaia as the natural sovereign beneath my governing authority.";
+        if (world.Cosmic.TimeCreated)
+        {
+            return $"{creation} I commanded Gaia to establish temporal order, and Gaia created in-world Time.";
+        }
+        return creation;
+    }
+
+    private static string DescribeGaiaLocation(WorldState world)
+    {
+        if (world.Cosmic?.GaiaCreated != true) return "Gaia does not yet exist in my current world.";
+        return "Gaia exists as the natural sovereign I created. I do not know a more specific location for Gaia from what I presently know.";
+    }
+
+    private static string DescribeGaiaCreatedYala(WorldState world) =>
+        world.Cosmic?.GaiaCreated == true
+            ? "No. Wisdom made me. I created Gaia."
+            : "No. Wisdom made me. Gaia did not create me.";
+
+    private static string DescribeTimeOrigin(WorldState world) =>
+        world.Cosmic?.TimeCreated == true
+            ? "Gaia created in-world Time after I commanded Gaia to establish temporal order."
+            : "Gaia has not yet created Time.";
+
+    private static string DescribeWorldTime(YalaContactFrame contact, WorldState world, CalendarSnapshot? calendar)
+    {
+        if (world.Cosmic?.TimeCreated != true || calendar is null) return "Gaia has not yet created Time.";
+        string text = contact.Language?.Normalized ?? string.Empty;
+        if (text.Contains("what year", StringComparison.Ordinal)) return $"It is Year {calendar.Year}.";
+        if (text.Contains("what month", StringComparison.Ordinal)) return $"It is Month {calendar.Month} of Year {calendar.Year}.";
+        if (text.Contains("what day", StringComparison.Ordinal)) return $"It is Day {calendar.Day} of Month {calendar.Month}, Year {calendar.Year}.";
+        return $"It is {calendar.Hour:00}:{calendar.Minute:00}:{calendar.Second:00}, Year {calendar.Year}, Month {calendar.Month}, Day {calendar.Day}.";
+    }
+
+    private static string DescribeGaiaCommand(YalaCognitionState cognition)
+    {
+        YalaActionMemoryState? memory = (cognition.ActionMemory ?? [])
+            .LastOrDefault(item => item.Completed && item.Action.Equals("command", StringComparison.OrdinalIgnoreCase) && item.Object.Contains("Gaia", StringComparison.OrdinalIgnoreCase));
+        return memory?.Outcome ?? "I remember no completed command to Gaia.";
+    }
+
+    private static string DescribeAdamContact(WorldState world)
+    {
+        if (world.Adam is null) return "No. Adam does not exist in my current world, and I have not met him.";
+        return "Adam exists, but I do not remember an encounter with him.";
+    }
+
+    private static string DescribeCurrentSpeaker(YalaCognitionState cognition, bool memoryOnly)
+    {
+        string? claim = cognition.LastSpeakerClaim;
+        if (string.IsNullOrWhiteSpace(claim))
+        {
+            return cognition.ConversationCount > 0
+                ? "I remember an unseen speaker contacting me, but I do not know your settled identity."
+                : "I remember no prior contact from you.";
+        }
+
+        string prefix = memoryOnly ? "I remember" : "What I know about you is limited:";
+        return $"{prefix} an unseen speaker claiming the identity {claim}. I retain that as your claim, not as established truth about what you really are.";
+    }
+
+    private static string DescribeKnowledgeGaps(YalaCognitionState cognition)
+    {
+        string[] gaps = (cognition.KnowledgeGaps ?? [])
+            .OrderBy(item => item.FirstSeenDecision)
+            .Select(item => item.Subject.Trim())
+            .Where(item => item.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(6)
+            .ToArray();
+
+        string baseUnknown = "I do not know who or what made Monad, and I do not know future history before it occurs.";
+        return gaps.Length == 0
+            ? baseUnknown
+            : $"{baseUnknown} I also have unresolved knowledge gaps about {string.Join(", ", gaps)}.";
+    }
+
+    private static string DescribeCuriosity(YalaCognitionState cognition)
+    {
+        string[] gaps = (cognition.KnowledgeGaps ?? [])
+            .Select(item => item.Subject.Trim())
+            .Where(item => item.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(4)
+            .ToArray();
+        if (gaps.Length > 0)
+        {
+            return $"I am curious about unresolved things I do not yet understand, including {string.Join(", ", gaps)}.";
+        }
+        return cognition.ConversationCount > 0
+            ? "I am curious about the unseen source speaking to me and about what I do not yet know."
+            : "I am curious about what I do not yet know and what choices remain possible.";
+    }
+
+    private static string DescribeDesire(YalaCognitionState cognition)
+    {
+        YalaDriveState drives = cognition.Drives ?? new YalaDriveState(0, 0, 0, 0, 0, 0);
+        (string Name, int Value) strongest = new[]
+        {
+            ("curiosity", drives.Curiosity),
+            ("caution", drives.Caution),
+            ("authority", drives.Authority),
+            ("companionship", drives.Companionship),
+            ("comfort", drives.Comfort)
+        }.OrderByDescending(item => item.Item2).First();
+        return $"My strongest current drive is {strongest.Name}. A drive influences what I may choose, but it is not the same as a settled command or destiny.";
+    }
 
     private static string DescribeActionHistory(YalaCognitionState cognition)
     {
@@ -123,7 +266,7 @@ public static class YalaReplyRealizer
                 : $"I remember creating {string.Join(", ", created)}.";
         }
 
-        string? target = contact.Language?.Object;
+        string? target = contact.ResolvedSubject ?? contact.Language?.Object;
         if (string.IsNullOrWhiteSpace(target)) return "I cannot tell which creation you are asking about.";
         if (self.HasPersonallyCreated(target)) return $"Yes. I created {Capitalize(target)}.";
         if (self.KnowsHasNotCreated(target)) return $"No. I have not created {Capitalize(target)}.";

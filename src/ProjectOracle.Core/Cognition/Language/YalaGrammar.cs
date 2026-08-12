@@ -20,5 +20,7 @@ public static class YalaGrammar
         tokens.Any(token => token.Equals("not", StringComparison.OrdinalIgnoreCase) ||
             token.Equals("never", StringComparison.OrdinalIgnoreCase) ||
             token.Equals("no", StringComparison.OrdinalIgnoreCase) ||
+            token.Equals("dont", StringComparison.OrdinalIgnoreCase) ||
+            token.Equals("don't", StringComparison.OrdinalIgnoreCase) ||
             token.EndsWith("n't", StringComparison.OrdinalIgnoreCase));
 }

@@ -1,9 +1,9 @@
 # Project Oracle
 
-**Current build:** v0.0.19 candidate  
+**Current build:** v0.0.20 candidate  
 **Owner and final authority:** Derek Sparks  
 **Platform:** Linux / .NET 10  
-**Yala cognition:** Soar 9.6.5, Brain Slice 3
+**Yala cognition:** Soar 9.6.5, Brain Slice 3 with v0.0.20 reachability expansion
 
 Project Oracle is a persistent autonomous-world simulation. **Oracle is not an in-world character.** Oracle is the outside/system-level author represented by Project Oracle itself: the code, simulation machinery, world-law resolver, records, and Master Key authority that make the simulated reality possible.
 
@@ -46,7 +46,7 @@ Natural powers perform their own domains. Oracle provides the simulation capabil
 
 ## Yala Soar Brain Slice 3
 
-v0.0.19 continues the real supplied **Soar 9.6.5** runtime and grows the same Yala mind rather than replacing it.
+v0.0.20 continues the real supplied **Soar 9.6.5** runtime and grows the same Yala mind rather than replacing it.
 
 ```text
 perception / utterance
@@ -84,7 +84,24 @@ Yala is deliberately **not** given an `Oracle exists` fact. A source claiming a 
 
 Yala can distinguish uncertainty about the outside world from knowledge of Yala's own completed actions. If Gaia exists because Yala created Gaia, that action can be remembered as personally performed. If Adam does not exist and Yala has no action memory of creating Adam, Yala can answer that Yala has not created Adam rather than collapsing the question into generic uncertainty.
 
-v0.0.19 also normalizes obsolete system-generated male-only history when older `save_v2` worlds are restored. The active historical truth is that Yala is inherently **both male and female**. Legacy masculine wording about Yala's governing authority is normalized without rewriting later subjective opinions or arbitrary resident claims.
+v0.0.20 retains the v0.0.19 normalization of obsolete system-generated male-only history when older `save_v2` worlds are restored. The active historical truth is that Yala is inherently **both male and female**. Legacy masculine wording about Yala's governing authority is normalized without rewriting later subjective opinions or arbitrary resident claims.
+
+
+## v0.0.20 persistent Yala mode and live world clock
+
+v0.0.20 adds a console mode for sustained conversation with Yala. `Ctrl+Y` enters Yala mode once; the prompt displays `> (yala ` and remains in that mode after each reply. `Escape` clears the current input and returns to the normal `> ` system prompt. The `(yala` marker is a console-mode indicator rather than text Derek must repeatedly type.
+
+Normal conversation no longer prints internal `[Soar selected: ...]` diagnostics. Soar still selects the operator internally; the user-facing transcript shows the conversation rather than the plumbing.
+
+The terminal reserves its top row for in-world Time. Before Gaia creates Time, the exact top-line state is:
+
+```text
+In-world Time: Gaia has not yet created Time.
+```
+
+When Gaia creates Time, that same row changes to the live in-world calendar and ticks continuously from the simulated clock. Existing saves in which Gaia has already created Time show the ticking clock immediately. Clock refreshes are isolated from the scrolling conversation body and must never overwrite the command buffer.
+
+Brain Slice 3 reachability is also expanded for conversational follow-ups, Gaia-centered knowledge, Gaia/Yala genealogy, Time origin and current calendar questions, prior commands to Gaia, Adam encounter state, Wisdom/Sophia naming, current-speaker claims, knowledge gaps, curiosity, current drives, simple inflections, possessives, and multiword identity claims. These improvements expose knowledge Yala already has without granting hidden Oracle/system truth.
 
 ## Protected console input
 
@@ -94,9 +111,9 @@ Yala's autonomous simulation work can continue while Project Oracle waits for in
 
 ## Save continuity
 
-v0.0.19 **continues the v0.0.17 and v0.0.18 `save_v2.json` world line**. It does not reset Yala or the world.
+v0.0.20 **continues the v0.0.17, v0.0.18, and v0.0.19 `save_v2.json` world line**. It does not reset Yala or the world.
 
-v0.0.17 and v0.0.18 saves are accepted and normalized into Brain Slice 3. The earlier v0.0.16 Garden-era save line remains rejected and untouched.
+v0.0.17, v0.0.18, and v0.0.19 saves are accepted and normalized into the current Brain Slice 3 state. The earlier v0.0.16 Garden-era save line remains rejected and untouched.
 
 Native Soar long-term databases deliberately remain beside the active save in the existing continuity directory:
 
@@ -134,10 +151,10 @@ Project Oracle keeps two separate ledgers:
 
 ## Running
 
-After v0.0.19 is installed and validated, the main project directory contains the generated Linux executable:
+After v0.0.20 is installed and validated, the main project directory contains the generated Linux executable:
 
 ```text
-Project_Oracle_v0_0_19
+Project_Oracle_v0_0_20
 ```
 
 Double-clicking that executable should open Project Oracle in a terminal window. Development launchers remain under `scripts/`.

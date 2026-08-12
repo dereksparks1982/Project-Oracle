@@ -16,6 +16,7 @@ internal static class ConsoleTheme
     public static void ResetToShell() { if (Enabled) System.Console.Write(Reset); }
     public static void WriteLine(string value = "") => System.Console.WriteLine(Enabled ? Colorise(value) : value);
     public static void WritePrompt(string value) => System.Console.Write(Enabled ? $"{Prompt}{value}{Base}" : value);
+    public static void WriteWorldTime(string value) => System.Console.Write(Enabled ? $"{Live}{value}{Base}" : value);
     public static string LiveLine(string value) => Enabled ? $"{Live}{Colorise(value)}{Base}" : value;
     public static string ClearLine => Enabled ? $"{Dim}\u001b[2K{Base}" : "\u001b[2K";
 

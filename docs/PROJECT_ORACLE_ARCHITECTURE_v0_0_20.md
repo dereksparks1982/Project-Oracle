@@ -1,4 +1,4 @@
-# Project Oracle Architecture v0.0.19
+# Project Oracle Architecture v0.0.20
 
 ## Runtime layers
 
@@ -40,8 +40,12 @@ Knowledge propositions identify their source class, including personally perform
 
 ## Save and Soar continuity
 
-`save_v2.json` remains the world/cognition save line. v0.0.17 and v0.0.18 snapshots are supported predecessors for v0.0.19 normalization. Native Soar long-term databases deliberately remain in `yala_soar_v0_0_18` so Brain Slice 3 continues the same Yala memory.
+`save_v2.json` remains the world/cognition save line. v0.0.17, v0.0.18, and v0.0.19 snapshots are supported predecessors for v0.0.20 normalization. Native Soar long-term databases deliberately remain in `yala_soar_v0_0_18` so Brain Slice 3 continues the same Yala memory.
 
-## Console isolation
+## Console isolation and live header
 
-Interactive input owns the terminal body. No asynchronous LIVE body write, cursor reposition, or status/title repaint is permitted through the input path. Background simulation while awaiting input is terminal-silent.
+Interactive input owns the scrolling terminal body. The only asynchronous visible surface is the dedicated top-row in-world Time header. `LiveWorldClockSurface` reserves row 1 and constrains scrolling to rows 2 through the terminal height. A refresh saves the current cursor, paints only row 1, then restores the cursor.
+
+Before Gaia creates Time the header states `In-world Time: Gaia has not yet created Time.` After Gaia creates Time, the same header displays the live `PersistentWorldClock` calendar and updates continuously. No clock refresh may append a body line or mutate `ConsoleInputLine`.
+
+`ConsoleConversationMode` holds Yala-targeting state separately from editable text. `Ctrl+Y` enters Yala mode, replies preserve the mode, and `Escape` clears pending text and returns to the system prompt.

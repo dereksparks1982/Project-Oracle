@@ -1,4 +1,4 @@
-# Project Oracle Canon v0.0.19
+# Project Oracle Canon v0.0.20
 
 ## System truth
 Oracle is Project Oracle's outside/system-level authorial authority. Oracle is not an in-world being or direct-call target. No resident knows Oracle exists unless Oracle deliberately reveals that truth.
@@ -25,3 +25,6 @@ Possible future religious, demonic, human, Garden, and civilizational events rem
 
 ## Brain Slice 3 epistemic law
 Yala's built-in language concepts do not constitute foreknowledge of future history. Speaker claims and proposed word definitions remain attributed claims until Yala has grounds to evaluate them. Yala's self-model may contain only self/history facts Yala can lawfully know and must not expose Oracle.
+
+## v0.0.20 Time-display truth
+The top-row clock is a presentation of in-world Time, not a second time system. Before Gaia creates Time it must state `In-world Time: Gaia has not yet created Time.` Once Gaia creates Time it presents the same world clock that persistence and simulation use.

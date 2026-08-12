@@ -1,8 +1,8 @@
 # Project Oracle Future Implementation Requirements Roadmap
 
-**Current authority alignment:** v0.0.19
+**Current authority alignment:** v0.0.20
 
-This roadmap follows the current Project Oracle ontology and Brain Slice 3 architecture.
+This roadmap follows the current Project Oracle ontology, Brain Slice 3 architecture, persistent Yala conversation mode, and live in-world clock contract.
 
 ## Foundation now in place
 
@@ -12,6 +12,7 @@ This roadmap follows the current Project Oracle ontology and Brain Slice 3 archi
 - Gaia creates in-world Time.
 - Yala uses Soar 9.6.5 with a persistent session, semantic memory, episodic memory, drives, substate deliberation, self-model, concept lexicon, provenance, and language/introspection foundation.
 - Future history remains open until actions occur and world law resolves them.
+- The console exposes a persistent Yala mode and an anchored live in-world clock without allowing asynchronous status output to corrupt conversation input.
 
 ## Next cognition growth
 

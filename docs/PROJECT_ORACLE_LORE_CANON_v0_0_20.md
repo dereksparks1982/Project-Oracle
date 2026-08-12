@@ -1,4 +1,4 @@
-# Project Oracle Lore Canon v0.0.19
+# Project Oracle Lore Canon v0.0.20
 
 ## The beginning
 Monad is the first settled in-world divine being. Monad made Sophia, also called Wisdom. Wisdom made Yala alone, outside the intended order.

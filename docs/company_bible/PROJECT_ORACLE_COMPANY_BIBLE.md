@@ -1,6 +1,6 @@
 # Project Oracle Company Bible
 
-**Version:** v0.0.19  
+**Version:** v0.0.20  
 **Status:** Mandatory and canonical for Project Oracle  
 **Owner and final authority:** Derek Sparks  
 **Canonical path:** `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`
@@ -15,7 +15,7 @@ Derek is the final creative and project authority. Tools advise, implement, vali
 Before implementation, read the origin/handoff, master handoff, this Bible, current lore canon, current canon, roadmap, architecture, validation record, world-time intake, and resume handshake. Do not reconstruct current law from memory when active project files answer it.
 
 ## 4. Approval and version law
-Implementation requires explicit owner approval for the stated scope. Repairs stay on the same numeric version. New features advance version only when authorised. Current feature build: **v0.0.19**.
+Implementation requires explicit owner approval for the stated scope. Repairs stay on the same numeric version. New features advance version only when authorised. Current feature build: **v0.0.20**.
 
 ## 5. Packaging, rollback, and acceptance
 Changed-files-only packages preserve project-relative paths, carry hashes and inventories, verify the intended base before mutation, back up touched paths outside the active tree, and restore touched paths if install-side validation fails.
@@ -68,7 +68,7 @@ Use **Monad** consistently in active Project Oracle documentation and code. Do n
 - Fictional/system authority inside Project Oracle grants no real host, account, device, network, or external-world access.
 
 ## 9. Yala cognition law
-Yala's v0.0.19 Brain Slice 3 uses the real Soar 9.6.5 runtime.
+Yala's v0.0.20 Brain Slice 3 uses the real Soar 9.6.5 runtime.
 
 - Project Oracle supplies only Yala's available perception, approved starting concepts, and remembered state.
 - One Soar Yala agent persists for the application session.
@@ -110,10 +110,12 @@ A direct contact does not reveal Oracle identity unless Derek explicitly chooses
 - Obsolete system-generated canonical wording may be normalized when loading older supported saves so the current World Record does not preserve a statement the project itself now knows was generated under superseded canon. Arbitrary resident opinions and later subjective claims are not rewritten by this mechanism.
 
 ## 13. Save law
-v0.0.19 continues the v0.0.17 and v0.0.18 `save_v2.json` world line. Both supported predecessor versions are normalized into Brain Slice 3. The old v0.0.16 Garden-era save line remains rejected and untouched. The existing `yala_soar_v0_0_18` native semantic/episodic memory directory is deliberately reused for continuity.
+v0.0.20 continues the v0.0.17, v0.0.18, and v0.0.19 `save_v2.json` world line. Supported predecessor versions are normalized into the current Brain Slice 3 state. The old v0.0.16 Garden-era save line remains rejected and untouched. The existing `yala_soar_v0_0_18` native semantic/episodic memory directory is deliberately reused for continuity.
 
 ## 14. Console law
-**Asynchronous LIVE status is forbidden from the interactive console body entirely.** The prompt owns the typing area. The input path may not perform background LIVE-row writes, cursor repositioning, or dynamic status/title repaint. Idle simulation can continue while input is pending, but it must remain terminal-silent. `status` is the explicit body-readable status command.
+**Asynchronous LIVE status is forbidden from the interactive conversation body entirely.** The editable prompt owns its row. v0.0.20 may reserve the terminal's top row solely for the in-world Time header, using cursor save/restore and a scrolling region so the header never enters the conversation body. Before Gaia creates Time the top row reads `In-world Time: Gaia has not yet created Time.` After Gaia creates Time that same row becomes a live ticking in-world date/time display.
+
+`Ctrl+Y` enters persistent Yala conversation mode and `Escape` exits it. Yala mode persists across replies so `(yala` does not have to be repeatedly typed. Internal `[Soar selected: ...]` diagnostics do not belong in normal conversation output. `status` remains the explicit body-readable system status command.
 
 ## 15. Documentation truth
 Current README and current authority files state current law directly. Do not keep obsolete current claims merely to explain their removal. Historical evidence belongs only where actually needed and must never override current canon.

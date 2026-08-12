@@ -180,7 +180,13 @@ public sealed class OracleSimulation : IDisposable
         ApplyYalaDecision(decision, realUnixMilliseconds, contact: true);
 
         YalaCognitionState afterDecision = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
-        string reply = YalaReplyRealizer.Realize(decision, contact, State, afterDecision, previousActionDescription);
+        string reply = YalaReplyRealizer.Realize(
+            decision,
+            contact,
+            State,
+            afterDecision,
+            previousActionDescription,
+            InWorldTimeExists ? Clock.Calendar : null);
         RecordYalaContact(contact, message.Trim(), reply);
 
         Ledger.RecordWorld(Clock.WorldMilliseconds, "YALA SPEECH", $"Yala answered the unplaced contact: \"{reply}\"");
@@ -239,7 +245,7 @@ public sealed class OracleSimulation : IDisposable
             "reflect" => "Yala reflected on Yala's present state and prior experience.",
             "wait" => "Yala chose to wait.",
             "respond" => "Yala chose to answer an unplaced contact.",
-            _ => $"Yala attempted '{decision.Action}', but v0.0.19 has no world-law resolver for that action yet."
+            _ => $"Yala attempted '{decision.Action}', but v0.0.20 has no world-law resolver for that action yet."
         };
 
         YalaCognitionState previous = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
@@ -699,7 +705,7 @@ public sealed class OracleSimulation : IDisposable
         Ledger.RecordWorld(0, "WISDOM", OracleLore.WisdomOrigin);
         Ledger.RecordWorld(0, "YALA", OracleLore.YalaOrigin);
         Ledger.RecordWorld(0, "VOID", OracleLore.YalaVoid);
-        Ledger.RecordWorld(0, "STATE", "Yala continues the v0.0.19 autonomous run in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
+        Ledger.RecordWorld(0, "STATE", "Yala continues the v0.0.20 autonomous run in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
 
         // Oracle Record is protected system truth, not knowledge injected into any in-world mind.
         Ledger.RecordOracle(0, "SYSTEM", OracleLore.OracleSystemNature);

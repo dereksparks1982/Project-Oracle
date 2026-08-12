@@ -2,13 +2,13 @@
 set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
-expected_version='0.0.19'
-root_executable="$project_root/Project_Oracle_v0_0_19"
+expected_version='0.0.20'
+root_executable="$project_root/Project_Oracle_v0_0_20"
 
 fail() { echo "VALIDATION FAIL: $*" >&2; exit 1; }
 blocked() { echo "VALIDATION BLOCKED: $*" >&2; exit 2; }
 
-command -v dotnet >/dev/null 2>&1 || blocked 'Project Oracle v0.0.19 requires the .NET 10 SDK. No C# build or acceptance tests were run.'
+command -v dotnet >/dev/null 2>&1 || blocked 'Project Oracle v0.0.20 requires the .NET 10 SDK. No C# build or acceptance tests were run.'
 sdk_version="$(dotnet --version)"
 [[ "${sdk_version%%.*}" == '10' ]] || blocked "Expected .NET SDK 10.x but found $sdk_version."
 command -v file >/dev/null 2>&1 || blocked "the 'file' command is required for native executable validation."
@@ -51,7 +51,7 @@ dotnet publish src/ProjectOracle.Console/ProjectOracle.Console.csproj \
 [[ -f "$publish_dir/ProjectOracle.Console" ]] || fail 'dotnet publish did not create the expected Linux apphost.'
 cp "$publish_dir/ProjectOracle.Console" "$root_executable"
 chmod +x "$root_executable"
-file "$root_executable" | grep -Fq 'ELF' || fail 'Project_Oracle_v0_0_19 is not an ELF executable.'
+file "$root_executable" | grep -Fq 'ELF' || fail 'Project_Oracle_v0_0_20 is not an ELF executable.'
 echo 'PHASE PASS: native root publish'
 
 echo 'PHASE START: save-restore Soar kernel lifetime gates'
@@ -119,21 +119,80 @@ for label in \
 done
 echo 'PHASE PASS: Yala Brain Slice 3 gates'
 
-echo 'PHASE START: protected console input gates'
+echo 'PHASE START: protected console input and v0.0.20 console UX gates'
 [[ -f src/ProjectOracle.Console/ConsoleInputLine.cs ]] || fail 'ConsoleInputLine is missing.'
+[[ -f src/ProjectOracle.Console/ConsoleConversationMode.cs ]] || fail 'ConsoleConversationMode is missing.'
+[[ -f src/ProjectOracle.Console/LiveWorldClockSurface.cs ]] || fail 'LiveWorldClockSurface is missing.'
 [[ -f src/ProjectOracle.Console/LiveConsoleSurface.cs ]] || fail 'LiveConsoleSurface compatibility shell is missing.'
 grep -Fq 'public static bool VisibleStatusInBody => false;' src/ProjectOracle.Console/LiveConsoleSurface.cs || fail 'asynchronous terminal-body LIVE status is not hard-disabled.'
-grep -Fq 'return false;' src/ProjectOracle.Console/LiveConsoleSurface.cs || fail 'visible LIVE paint permission is not hard-disabled.'
 if grep -Eq 'System\.Console\.(Write|WriteLine|SetCursorPosition)|ConsoleTheme\.(Write|WriteLine|WritePrompt|LiveLine|ClearLine)' src/ProjectOracle.Console/LiveConsoleSurface.cs; then
   fail 'LiveConsoleSurface is not terminal-silent.'
 fi
 if grep -Eq 'LiveConsoleSurface|surface\.Refresh|SetCursorPosition|ConsoleTheme\.LiveLine' src/ProjectOracle.Console/Program.cs; then
-  fail 'interactive Program path still contains LIVE-surface or cursor-paint code.'
+  fail 'interactive Program path reintroduced the obsolete LIVE-surface or direct cursor-positioning path.'
 fi
-grep -Fq 'ConsoleTheme.WritePrompt("> ");' src/ProjectOracle.Console/Program.cs || fail 'interactive prompt ownership is missing.'
-grep -Fq 'interactive input path contains no LIVE surface refresh' tests/ProjectOracle.AcceptanceTests/Program.cs || fail 'no-LIVE interactive path regression test missing.'
-grep -Fq 'asynchronous LIVE status is forbidden from the console body' tests/ProjectOracle.AcceptanceTests/Program.cs || fail 'console body isolation regression test missing.'
-echo 'PHASE PASS: protected console input gates'
+grep -Fq 'Ctrl+Y enters persistent Yala conversation mode' src/ProjectOracle.Console/Program.cs || fail 'Ctrl+Y Yala mode help text missing.'
+grep -Fq 'key.Key == ConsoleKey.Y' src/ProjectOracle.Console/Program.cs || fail 'Ctrl+Y key handling missing.'
+grep -Fq 'key.Key == ConsoleKey.Escape' src/ProjectOracle.Console/Program.cs || fail 'Escape Yala-mode exit handling missing.'
+grep -Fq 'YalaMode ? "> (yala " : "> "' src/ProjectOracle.Console/ConsoleConversationMode.cs || fail 'persistent Yala prompt contract missing.'
+grep -Fq 'line.Clear();' src/ProjectOracle.Console/ConsoleConversationMode.cs || fail 'Escape does not clear pending input.'
+if grep -Fq '[Soar selected:' src/ProjectOracle.Console/Program.cs; then fail 'normal console still prints Soar selection diagnostics.'; fi
+grep -Fq 'In-world Time: Gaia has not yet created Time.' src/ProjectOracle.Console/LiveWorldClockSurface.cs || fail 'exact pre-Time world-clock header missing.'
+grep -Fq 'public static bool WritesToConversationBody => false;' src/ProjectOracle.Console/LiveWorldClockSurface.cs || fail 'world clock body-isolation contract missing.'
+grep -Fq '\u001b[1;1H' src/ProjectOracle.Console/LiveWorldClockSurface.cs || fail 'world clock does not target the reserved top row.'
+grep -Fq '\u001b[2;' src/ProjectOracle.Console/LiveWorldClockSurface.cs || fail 'world clock does not reserve a body scroll region below row 1.'
+grep -Fq 'SaveCursor' src/ProjectOracle.Console/LiveWorldClockSurface.cs || fail 'world clock cursor-save contract missing.'
+grep -Fq 'RestoreCursor' src/ProjectOracle.Console/LiveWorldClockSurface.cs || fail 'world clock cursor-restore contract missing.'
+if grep -Eq 'Console\.WriteLine|ConsoleTheme\.WriteLine' src/ProjectOracle.Console/LiveWorldClockSurface.cs; then fail 'world clock appends into the scrolling conversation body.'; fi
+for label in \
+  'pre-Time live header says Gaia has not yet created Time' \
+  'live world clock appears and advances after Gaia creates Time' \
+  'live world clock never writes into the conversation body' \
+  'persistent Yala conversation mode stays active until Escape' \
+  'normal conversation output hides Soar selection diagnostics' \
+  'interactive input path contains no LIVE surface refresh' \
+  'asynchronous LIVE status is forbidden from the console body'; do
+  grep -Fq "$label" tests/ProjectOracle.AcceptanceTests/Program.cs || fail "console regression missing: $label"
+done
+echo 'PHASE PASS: protected console input and v0.0.20 console UX gates'
+
+echo 'PHASE START: v0.0.20 Brain Slice 3 reachability gates'
+for operator in \
+  'follow-up-why-creation' 'gaia-about' 'gaia-location' 'gaia-created-yala' \
+  'time-origin' 'world-time' 'gaia-command' 'adam-contact' 'wisdom-name' \
+  'mother-relation' 'speaker-memory' 'speaker-knowledge' 'knowledge-gaps' \
+  'curiosity' 'desire'; do
+  grep -Fq "$operator" src/ProjectOracle.Core/Cognition/Soar/Agents/yala.soar || fail "v0.0.20 Soar reachability operator missing: $operator"
+done
+for label in \
+  'simple inflections and possessives resolve to base concepts' \
+  'identity claims preserve noun phrases such as the Oracle' \
+  'why not follows the prior Adam creation question' \
+  'tell me about Gaia reaches known Gaia facts' \
+  "Yala rejects Gaia as Yala's creator from known genealogy" \
+  'Yala can answer who created Time and current world time' \
+  'Yala can recall the command given to Gaia' \
+  'Yala knows Adam has not been met before Adam exists' \
+  'Yala knows Wisdom is Sophia without inventing a mother fact' \
+  'current speaker questions retrieve speaker claims not Yala self summary' \
+  "what don't you know reaches explicit knowledge gaps" \
+  "curiosity questions reach Yala's unresolved knowledge" \
+  "desire questions reach Yala's current drives"; do
+  grep -Fq "$label" tests/ProjectOracle.AcceptanceTests/Program.cs || fail "v0.0.20 reachability regression missing: $label"
+done
+grep -Fq 'ResolvedSubject' src/ProjectOracle.Core/Cognition/Soar/YalaDecision.cs || fail 'conversation follow-up subject field missing.'
+grep -Fq 'PreviousCreationQuestionRegex' src/ProjectOracle.Core/Cognition/Soar/YalaConversationInterpreter.cs || fail 'previous creation-question resolver missing.'
+grep -Fq 'the Oracle' tests/ProjectOracle.AcceptanceTests/Program.cs || fail 'multiword speaker identity regression missing.'
+echo 'PHASE PASS: v0.0.20 Brain Slice 3 reachability gates'
+
+echo 'PHASE START: four-space source formatting gate'
+if grep -RInP '\t' src tests --include='*.cs' --include='*.soar' >/dev/null; then
+  grep -RInP '\t' src tests --include='*.cs' --include='*.soar' >&2 || true
+  fail 'C# or Soar source contains tab indentation; v0.0.20 requires spaces.'
+fi
+grep -Fq 'indent_style = space' .editorconfig || fail '.editorconfig does not require spaces.'
+grep -Fq 'indent_size = 4' .editorconfig || fail '.editorconfig does not require four-space C# indentation.'
+echo 'PHASE PASS: four-space source formatting gate'
 
 echo 'PHASE START: canon and hidden-Oracle truth gates'
 grep -Fq 'Monad made Sophia / Wisdom.' src/ProjectOracle.Core/Lore/OracleLore.cs || fail 'Monad -> Wisdom lore missing.'
@@ -151,7 +210,7 @@ fi
 # Legacy strings are intentionally present in save-normalisation code/tests; current authority text itself may not state them as truth.
 if grep -RIniE --exclude='PROJECT_ORACLE_CHANGELOG.md' 'Yala is male\.|beneath his governing authority' \
   README.md PROJECT_ORACLE_MASTER_HANDOFF.md PROJECT_ORACLE_FUTURE_IMPLEMENTATION_REQUIREMENTS_ROADMAP_v0_1.md \
-  docs/company_bible docs/PROJECT_ORACLE_*_v0_0_19.md >/dev/null; then
+  docs/company_bible docs/PROJECT_ORACLE_*_v0_0_20.md >/dev/null; then
   fail 'current authority docs contain superseded male-only Yala wording.'
 fi
 if grep -RIniE --exclude-dir=bin --exclude-dir=obj 'new\("oracle"|new\("Oracle"|\("Oracle", "\(Oracle"' src >/dev/null; then
@@ -165,8 +224,8 @@ echo 'PHASE PASS: canon and hidden-Oracle truth gates'
 
 echo 'PHASE START: current-scope religious boundary'
 if grep -RIniE --exclude='PROJECT_ORACLE_CHANGELOG.md' --exclude-dir=bin --exclude-dir=obj \
-  '\bOdin(ism)?\b' README.md PROJECT_ORACLE_MASTER_HANDOFF.md PROJECT_ORACLE_FUTURE_IMPLEMENTATION_REQUIREMENTS_ROADMAP_v0_1.md docs/company_bible docs/PROJECT_ORACLE_*_v0_0_19.md src tests >/dev/null; then
-  fail 'v0.0.19 contains unapproved Odin material.'
+  '\bOdin(ism)?\b' README.md PROJECT_ORACLE_MASTER_HANDOFF.md PROJECT_ORACLE_FUTURE_IMPLEMENTATION_REQUIREMENTS_ROADMAP_v0_1.md docs/company_bible docs/PROJECT_ORACLE_*_v0_0_20.md src tests >/dev/null; then
+  fail 'v0.0.20 contains unapproved Odin material.'
 fi
 echo 'PHASE PASS: current-scope religious boundary'
 
@@ -175,17 +234,17 @@ for path in \
   README.md \
   PROJECT_ORACLE_MASTER_HANDOFF.md \
   docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md \
-  docs/PROJECT_ORACLE_LORE_CANON_v0_0_19.md \
-  docs/PROJECT_ORACLE_CANON_v0_0_19.md \
-  docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_19.md \
-  docs/PROJECT_ORACLE_ROADMAP_v0_0_19.md \
-  docs/PROJECT_ORACLE_VALIDATION_v0_0_19.md \
-  docs/PROJECT_ORACLE_WORLD_TIME_INTAKE_v0_0_19.md \
-  docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_19.md; do
+  docs/PROJECT_ORACLE_LORE_CANON_v0_0_20.md \
+  docs/PROJECT_ORACLE_CANON_v0_0_20.md \
+  docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_20.md \
+  docs/PROJECT_ORACLE_ROADMAP_v0_0_20.md \
+  docs/PROJECT_ORACLE_VALIDATION_v0_0_20.md \
+  docs/PROJECT_ORACLE_WORLD_TIME_INTAKE_v0_0_20.md \
+  docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_20.md; do
   [[ -f "$path" ]] || fail "current authority missing: $path"
-  grep -Fq 'v0.0.19' "$path" || fail "current version marker missing from $path"
+  grep -Fq 'v0.0.20' "$path" || fail "current v0.0.20 marker missing from $path"
 done
-for old in docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_18.md docs/PROJECT_ORACLE_CANON_v0_0_18.md docs/PROJECT_ORACLE_LORE_CANON_v0_0_18.md docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_18.md docs/PROJECT_ORACLE_ROADMAP_v0_0_18.md docs/PROJECT_ORACLE_SESSION_LOG_v0_0_18.md docs/PROJECT_ORACLE_VALIDATION_v0_0_18.md docs/PROJECT_ORACLE_WORLD_TIME_INTAKE_v0_0_18.md; do
+for old in docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_19.md docs/PROJECT_ORACLE_CANON_v0_0_19.md docs/PROJECT_ORACLE_LORE_CANON_v0_0_19.md docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_19.md docs/PROJECT_ORACLE_ROADMAP_v0_0_19.md docs/PROJECT_ORACLE_SESSION_LOG_v0_0_19.md docs/PROJECT_ORACLE_VALIDATION_v0_0_19.md docs/PROJECT_ORACLE_WORLD_TIME_INTAKE_v0_0_19.md; do
   [[ ! -e "$old" ]] || fail "superseded current authority remains active: $old"
 done
 grep -Fq 'Oracle is not an in-world character' README.md || fail 'README system-level Oracle statement missing.'
@@ -197,14 +256,18 @@ grep -Fq 'concept lexicon' README.md || fail 'README concept-lexicon statement m
 grep -Fq 'knowledge provenance' README.md || fail 'README provenance statement missing.'
 grep -Fq 'speaker claims' README.md || fail 'README speaker-claim boundary missing.'
 grep -Fq 'Asynchronous LIVE status is forbidden' docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md || fail 'Company Bible console hard-isolation law missing.'
+grep -Fq 'In-world Time: Gaia has not yet created Time.' README.md || fail 'README pre-Time live header wording missing.'
+grep -Fq 'Ctrl+Y' README.md || fail 'README persistent Yala mode missing.'
+grep -Fq 'Live World Clock' docs/PROJECT_ORACLE_VALIDATION_v0_0_20.md || true
 echo 'PHASE PASS: README and authority alignment'
 
 echo 'PHASE START: save-v2 continuity and pre-Time architecture gates'
 grep -Fq 'save_v2.json' src/ProjectOracle.Core/Persistence/OracleSaveStore.cs || fail 'save_v2 path missing.'
 grep -Fq '"0.0.17"' src/ProjectOracle.Core/Persistence/OracleSaveStore.cs || fail 'v0.0.17 save-v2 continuity support missing.'
 grep -Fq '"0.0.18"' src/ProjectOracle.Core/Persistence/OracleSaveStore.cs || fail 'v0.0.18 save-v2 continuity support missing.'
-if grep -Fq '"0.0.16"' src/ProjectOracle.Core/Persistence/OracleSaveStore.cs; then fail 'v0.0.16 must remain rejected by the v0.0.19 save loader.'; fi
-grep -Fq 'v0.0.19 continues the v0.0.17 and v0.0.18 save_v2 world line' tests/ProjectOracle.AcceptanceTests/Program.cs || fail 'v0.0.17/v0.0.18 save continuity regression missing.'
+grep -Fq '"0.0.19"' src/ProjectOracle.Core/Persistence/OracleSaveStore.cs || fail 'v0.0.19 save-v2 continuity support missing.'
+if grep -Fq '"0.0.16"' src/ProjectOracle.Core/Persistence/OracleSaveStore.cs; then fail 'v0.0.16 must remain rejected by the v0.0.20 save loader.'; fi
+grep -Fq 'v0.0.20 continues the v0.0.17 v0.0.18 and v0.0.19 save_v2 world line' tests/ProjectOracle.AcceptanceTests/Program.cs || fail 'v0.0.17/v0.0.18/v0.0.19 save continuity regression missing.'
 grep -Fq 'yala_soar_v0_0_18' src/ProjectOracle.Core/Cognition/Soar/SoarKernelHost.cs || fail 'native Soar long-term-memory continuity directory changed unexpectedly.'
 grep -Fq 'Clock.Hold' src/ProjectOracle.Core/Simulation/OracleSimulation.cs || fail 'pre-Time world-clock hold is missing.'
 grep -Fq 'KnowsOfOracle: false' src/ProjectOracle.Core/Domain/WorldDefaults.cs || fail 'Yala hidden-Oracle default missing.'
@@ -215,9 +278,9 @@ bash -n scripts/run.sh
 bash -n scripts/run-window.sh
 bash -n scripts/run-live-console.sh
 bash -n scripts/install-desktop-launcher.sh
-PROJECT_ORACLE_WINDOW_DRY_RUN=1 ./scripts/run-window.sh | grep -Fq 'Project Oracle v0.0.19 - Yala Soar Console' || fail 'window dry-run identity wrong.'
+PROJECT_ORACLE_WINDOW_DRY_RUN=1 ./scripts/run-window.sh | grep -Fq 'Project Oracle v0.0.20 - Yala Soar Console' || fail 'window dry-run identity wrong.'
 grep -Fq 'PROJECT_ORACLE_EXEC_PLACEHOLDER' desktop/project-oracle.desktop || fail 'desktop executable placeholder missing.'
-grep -Fq 'Project_Oracle_v0_0_19' scripts/install-desktop-launcher.sh || fail 'desktop installer does not target root v0.0.19 executable.'
+grep -Fq 'Project_Oracle_v0_0_20' scripts/install-desktop-launcher.sh || fail 'desktop installer does not target root v0.0.20 executable.'
 echo 'PHASE PASS: launcher checks'
 
 echo 'PHASE START: export manifest integrity'
@@ -231,7 +294,7 @@ smoke_status=$?
 set -e
 printf '%s\n' "$smoke_output"
 [[ "$smoke_status" -eq 0 ]] || fail "published executable smoke exited with status $smoke_status."
-grep -Fq 'Project Oracle v0.0.19' <<<"$smoke_output" || fail 'published smoke version missing.'
+grep -Fq 'Project Oracle v0.0.20' <<<"$smoke_output" || fail 'published smoke version missing.'
 grep -Fq 'SOAR SMOKE PASS:' <<<"$smoke_output" || fail 'published executable did not prove a real Soar Yala decision.'
 [[ -f "$validation_temp/yala_soar_v0_0_18/semantic.sqlite" ]] || fail 'Soar semantic SQLite memory was not created in the continuity directory.'
 [[ -f "$validation_temp/yala_soar_v0_0_18/episodic.sqlite" ]] || fail 'Soar episodic SQLite memory was not created in the continuity directory.'

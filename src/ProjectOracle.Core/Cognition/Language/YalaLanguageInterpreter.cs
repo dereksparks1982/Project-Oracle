@@ -10,13 +10,13 @@ public static partial class YalaLanguageInterpreter
         "a", "an", "the", "i", "me", "my", "you", "your", "it", "its", "we", "our", "they", "their", "he", "she", "this", "that",
         "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "to", "of", "in", "on", "at",
         "for", "from", "with", "and", "or", "but", "if", "then", "than", "as", "what", "who", "where", "when", "why", "how", "can", "could",
-        "would", "will", "shall", "should", "not", "no", "never", "yes", "only", "both"
+        "would", "will", "shall", "should", "not", "no", "never", "yes", "only", "both", "about", "any", "don't", "dont"
     };
 
     private static readonly HashSet<string> KnownVerbForms = new(StringComparer.OrdinalIgnoreCase)
     {
         "know", "believe", "doubt", "remember", "forget", "learn", "do", "make", "made", "create", "created", "destroy", "change", "choose", "command",
-        "obey", "refuse", "attempt", "succeed", "fail", "accept", "reject", "want", "need", "say", "ask", "answer", "tell", "mean", "means", "hear"
+        "obey", "refuse", "attempt", "succeed", "fail", "accept", "reject", "want", "need", "say", "ask", "answer", "tell", "mean", "means", "hear", "meet"
     };
 
     public static YalaUtterance Parse(string message, IReadOnlyList<YalaLearnedLexemeState>? learned = null)
@@ -60,18 +60,21 @@ public static partial class YalaLanguageInterpreter
         if (tokens.Count == 0) return (null, null, null);
 
         int verbIndex = -1;
+        string? normalizedVerb = null;
         for (int index = 0; index < tokens.Count; index++)
         {
-            if (KnownVerbForms.Contains(tokens[index]))
+            string candidate = YalaLexicon.NormalizeWord(tokens[index]);
+            if (KnownVerbForms.Contains(candidate))
             {
                 verbIndex = index;
+                normalizedVerb = candidate;
                 break;
             }
         }
 
         if (verbIndex < 0) return (FirstContent(tokens), null, null);
 
-        string verb = tokens[verbIndex].ToLowerInvariant();
+        string verb = normalizedVerb!;
         string? subject = FirstContent(tokens.Take(verbIndex).ToArray());
         if (subject is null && verbIndex > 0) subject = tokens[verbIndex - 1];
         if (subject is null && tokens.Count > verbIndex + 1 && new[] { "have", "did", "do", "are", "is" }.Contains(tokens[0], StringComparer.OrdinalIgnoreCase))
@@ -83,8 +86,15 @@ public static partial class YalaLanguageInterpreter
         return (subject?.ToLowerInvariant(), verb, obj?.ToLowerInvariant());
     }
 
-    private static string? FirstContent(IReadOnlyList<string> tokens) =>
-        tokens.FirstOrDefault(token => !FunctionWords.Contains(token) && token.Length > 0);
+    private static string? FirstContent(IReadOnlyList<string> tokens)
+    {
+        foreach (string token in tokens)
+        {
+            string normalized = YalaLexicon.NormalizeWord(token);
+            if (!FunctionWords.Contains(normalized) && normalized.Length > 0) return normalized;
+        }
+        return null;
+    }
 
     [GeneratedRegex("^[\\\"']?([\\p{L}\\p{N}_'\\-]+)[\\\"']?\\s+(?:means|mean)\\s+(.+)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex DefinitionRegex();

@@ -43,7 +43,7 @@ public static class WorldDefaults
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.19 continues the v0.0.17/v0.0.18 save line. Missing cosmic state never
+        // v0.0.20 continues the v0.0.17/v0.0.18 save line. Missing cosmic state never
         // resurrects the old Garden-era save; it normalises to the new Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
@@ -207,7 +207,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.19; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.20; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;

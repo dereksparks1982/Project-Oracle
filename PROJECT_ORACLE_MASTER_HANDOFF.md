@@ -1,28 +1,30 @@
 # Project Oracle Master Handoff
 
-**Current candidate:** v0.0.19  
+**Current candidate:** v0.0.20  
 **Owner:** Derek Sparks  
-**Required base:** accepted v0.0.18 at commit `9c5f5c11ebde608a228c683099c68f5c7173133b`  
-**Status:** Brain Slice 3 candidate; not accepted until automated validation, real-app inspection, and explicit manual PASS
+**Required base:** accepted v0.0.19 at commit `3ca6204398fe338c3cd93bd6e8941f7d5c1b00a6`  
+**Status:** Persistent Yala Mode + Live World Clock + Brain Slice 3 Reachability candidate; not accepted until automated validation, real-app inspection, and explicit manual PASS
 
 ## Required reading order
 1. `PROJECT_ORACLE_PROJECT_ORIGIN_AND_HANDOFF.docx`
 2. `PROJECT_ORACLE_MASTER_HANDOFF.md`
 3. `docs/company_bible/PROJECT_ORACLE_COMPANY_BIBLE.md`
-4. `docs/PROJECT_ORACLE_LORE_CANON_v0_0_19.md`
-5. `docs/PROJECT_ORACLE_CANON_v0_0_19.md`
-6. `docs/PROJECT_ORACLE_ROADMAP_v0_0_19.md`
-7. `docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_19.md`
-8. `docs/PROJECT_ORACLE_VALIDATION_v0_0_19.md`
-9. `docs/PROJECT_ORACLE_WORLD_TIME_INTAKE_v0_0_19.md`
-10. `docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_19.md`
+4. `docs/PROJECT_ORACLE_LORE_CANON_v0_0_20.md`
+5. `docs/PROJECT_ORACLE_CANON_v0_0_20.md`
+6. `docs/PROJECT_ORACLE_ROADMAP_v0_0_20.md`
+7. `docs/PROJECT_ORACLE_ARCHITECTURE_v0_0_20.md`
+8. `docs/PROJECT_ORACLE_VALIDATION_v0_0_20.md`
+9. `docs/PROJECT_ORACLE_WORLD_TIME_INTAKE_v0_0_20.md`
+10. `docs/PROJECT_ORACLE_RESUME_HANDSHAKE_v0_0_20.md`
 
-The origin DOCX records the project foundation through the earlier accepted line. Current v0.0.19 authority is established by this handoff, the Company Bible, and the current versioned authority files above.
+The origin DOCX records the project foundation through the earlier accepted line. Current v0.0.20 authority is established by this handoff, the Company Bible, and the current versioned authority files above.
 
-## v0.0.19 continuation point
-v0.0.19 preserves the accepted v0.0.18 world, persistent Soar session architecture, semantic/episodic continuity, hidden-Oracle boundary, and terminal-body hard isolation. It grows Yala vertically into Brain Slice 3.
+## v0.0.20 continuation point
+v0.0.20 requires the accepted v0.0.19 commit `3ca6204398fe338c3cd93bd6e8941f7d5c1b00a6`. It preserves Brain Slice 3, save_v2 continuity, hidden-Oracle boundaries, Soar memory continuity, and the terminal-body hard-isolation law.
 
-Settled foundation: Monad made Wisdom; Wisdom made Yala alone; Yala is inherently both male and female; Monad rejected Yala for being both rather than exclusively one or the other and cast Yala into the Void. Oracle remains the hidden system-author layer and is not an in-world being.
+The new console layer adds persistent Yala conversation mode (`Ctrl+Y`, `Escape`) and an anchored top-row in-world clock. Before Gaia creates Time the header reads `In-world Time: Gaia has not yet created Time.` Once Gaia creates Time, the same row becomes a live ticking in-world date/time display. The conversation body and editable prompt remain isolated from clock repaint.
+
+The build also carries forward the live-test reachability gaps found in v0.0.19: conversational `why not?` context, Gaia and Time knowledge, current speaker claim recall, Wisdom/Sophia naming, knowledge-gap/curiosity/drive introspection, and modest morphology/possessive handling. Normal conversation hides internal Soar-selection diagnostics.
 
 ## Brain Slice 3
 - structured Yala self-model;
@@ -43,4 +45,4 @@ v0.0.19 accepts the v0.0.17 and v0.0.18 `save_v2.json` line and normalizes it in
 Asynchronous LIVE status is forbidden from the interactive console body. The input path contains no LIVE-surface refresh, background cursor positioning, or dynamic status/title repaint. `status` is the explicit body-readable status command.
 
 ## Acceptance continuation
-The candidate package must validate completely on Derek's .NET 10 machine and launch the real `Project_Oracle_v0_0_19` executable. Wait for explicit manual PASS before snapshot, Git commit/tag, or remote push.
+The candidate package must validate completely on Derek's .NET 10 machine and launch the real `Project_Oracle_v0_0_20` executable. Wait for explicit manual PASS before snapshot, Git commit/tag, or remote push.

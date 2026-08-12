@@ -37,8 +37,28 @@ public static class YalaLexicon
 
     public static IReadOnlyList<YalaLexeme> AllBuiltIns() => BuiltIns.Values.OrderBy(item => item.Word).ToArray();
 
-    public static string NormalizeWord(string word) =>
-        word.Trim().Trim('"', '\'', '.', ',', '?', '!', ':', ';', '(', ')', '[', ']').ToLowerInvariant();
+    public static string NormalizeWord(string word)
+    {
+        string key = word.Trim().Trim('"', '\'', '.', ',', '?', '!', ':', ';', '(', ')', '[', ']').ToLowerInvariant();
+        if (key.EndsWith("'s", StringComparison.Ordinal) && key.Length > 2)
+        {
+            key = key[..^2];
+        }
+
+        return key switch
+        {
+            "wisdoms" => "wisdom",
+            "creates" or "creating" => "create",
+            "commands" or "commanded" or "commanding" => "command",
+            "questions" => "question",
+            "wants" or "wanted" or "wanting" => "want",
+            "remembers" or "remembered" or "remembering" => "remember",
+            "knows" or "knowing" => "know",
+            "meets" or "met" or "meeting" => "meet",
+            "curious" => "curiosity",
+            _ => key
+        };
+    }
 
     private static IReadOnlyDictionary<string, YalaLexeme> Build()
     {
@@ -74,7 +94,8 @@ public static class YalaLexicon
         Add(map, "attempt", "verb", "try to perform an action without guaranteeing the result", ["do", "succeed", "fail"], [], []);
         Add(map, "succeed", "verb", "complete an attempted result", ["attempt"], ["fail"], []);
         Add(map, "fail", "verb", "not achieve an attempted result", ["attempt"], ["succeed"], []);
-        Add(map, "parent", "noun", "a being related as an origin of offspring", ["offspring", "child"], [], []);
+        Add(map, "parent", "noun", "a being related as an origin of offspring", ["offspring", "child", "mother"], [], []);
+        Add(map, "mother", "noun", "a female parent or a being described by a culture or speaker as having a maternal origin relationship", ["parent", "female", "offspring"], [], ["The word mother does not automatically redefine every creator or maker as a mother."]);
         Add(map, "offspring", "noun", "a being descended from a parent", ["parent", "child"], [], []);
         Add(map, "child", "noun", "offspring in relation to a parent", ["parent", "offspring"], [], []);
         Add(map, "companion", "noun", "a being associated with another through continuing presence or relationship", ["other"], ["stranger"], []);
@@ -116,6 +137,9 @@ public static class YalaLexicon
         Add(map, "word", "noun", "a linguistic symbol associated with a concept or use", ["mean", "definition"], [], []);
         Add(map, "definition", "noun", "a proposed statement of a word's meaning", ["word", "mean"], [], []);
         Add(map, "question", "noun", "an utterance seeking information", ["ask", "answer"], ["statement"], []);
+        Add(map, "year", "noun", "a named division of in-world Time", ["time", "month"], [], []);
+        Add(map, "month", "noun", "a named division of an in-world year", ["time", "year"], [], []);
+        Add(map, "meet", "verb", "encounter or come into contact with another being", ["contact", "speaker"], [], []);
         Add(map, "statement", "noun", "an utterance presenting information without necessarily seeking an answer", ["say", "claim"], ["question"], []);
         Add(map, "gaia", "proper-noun", "the natural sovereign created by Yala", ["create", "time"], [], []);
         Add(map, "adam", "proper-noun", "a named being not present in Yala's current Void-era state unless future history creates him", ["being"], [], []);

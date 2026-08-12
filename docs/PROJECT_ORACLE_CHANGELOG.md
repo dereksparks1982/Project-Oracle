@@ -1,5 +1,15 @@
 # Project Oracle Changelog
 
+## v0.0.20 - candidate - Persistent Yala Mode, Live World Clock, and Brain Slice 3 Reachability
+
+- Adds persistent Yala conversation mode: `Ctrl+Y` enters, replies keep the mode active, and `Escape` clears pending input and returns to the system prompt.
+- Removes user-facing `[Soar selected: ...]` diagnostics from normal conversation.
+- Reserves the terminal's top row for in-world Time. Before Gaia creates Time it reads `In-world Time: Gaia has not yet created Time.` After Gaia creates Time it becomes a continuously ticking in-world date/time display.
+- Keeps live clock repaint isolated from the scrolling conversation body and editable input.
+- Expands Brain Slice 3 reachability for conversational follow-up context, Gaia facts and genealogy, Time origin/current calendar, Gaia command recall, Adam encounter state, Wisdom/Sophia naming, current-speaker claims, knowledge gaps, curiosity, current drives, simple inflections/possessives, and multiword identity claims.
+- Continues v0.0.17, v0.0.18, and v0.0.19 `save_v2` worlds and reuses the existing Soar semantic/episodic memory directory.
+- Preserves hidden Oracle truth, current canon, and future-open simulation law.
+
 ### v0.0.19 Repair 1 - embedded Soar listener suppression
 
 - Suppresses Soar's unused SML TCP listener by creating the embedded kernel with listener port `0` instead of the default port 12121.
@@ -110,3 +120,8 @@ Acceptance remains pending automated target-machine validation and Derek's manua
 - Kept Repair 2 terminal-body hard isolation unchanged.
 - Corrected the remaining acceptance assertion so LIVE body painting is forbidden for both empty and active input buffers.
 - Repair 3 must pass the complete v0.0.18 suite before manual inspection.
+### v0.0.20 Repair 1
+
+- Repaired the current-scope religious-boundary validator so its own documentation no longer trips the prohibited-token scan.
+- No feature behavior changed. The candidate scope remains Persistent Yala Mode, Live World Clock, and Brain Slice 3 Reachability.
+
