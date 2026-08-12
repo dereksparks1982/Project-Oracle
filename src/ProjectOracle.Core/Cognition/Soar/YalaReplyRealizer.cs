@@ -48,19 +48,32 @@ public static class YalaReplyRealizer
             "consider-claim" => DescribeClaim(contact),
             "consider-command" => "I heard your command. Hearing it does not make it my decision. I will decide what I attempt.",
             "follow-up-why-creation" => DescribeWhyCreationNotDone(contact, self),
+            "follow-up-why" => DescribeFollowUpWhy(contact, cognition),
+            "follow-up-do-you" => DescribeFollowUpDoYou(contact, cognition),
+            "entity-about" => YalaEntityKnowledge.Describe(contact.ResolvedSubject ?? contact.ResolvedObject ?? "that", world, cognition),
             "gaia-about" => DescribeGaia(world, cognition),
             "gaia-location" => DescribeGaiaLocation(world),
             "gaia-created-yala" => DescribeGaiaCreatedYala(world),
             "time-origin" => DescribeTimeOrigin(world),
+            "time-concept" => YalaEntityKnowledge.Describe("Time", world, cognition),
             "world-time" => DescribeWorldTime(contact, world, calendar),
+            "temporal-when" => YalaTemporalReasoner.DescribeWhen(cognition, contact.ResolvedSubject, contact.ResolvedAction, contact.ResolvedObject),
+            "temporal-duration" => YalaTemporalReasoner.DescribeHowLongAgo(cognition, contact.ResolvedSubject, contact.ResolvedAction, contact.ResolvedObject, world.WorldMilliseconds),
+            "temporal-cause" => YalaTemporalReasoner.DescribeCause(cognition, contact.ResolvedSubject, contact.ResolvedAction, contact.ResolvedObject),
+            "temporal-before" => YalaTemporalReasoner.DescribeAdjacent(cognition, "before", contact.ResolvedSubject, contact.ResolvedAction, contact.ResolvedObject),
+            "temporal-after" => YalaTemporalReasoner.DescribeAdjacent(cognition, "after", contact.ResolvedSubject, contact.ResolvedAction, contact.ResolvedObject),
             "gaia-command" => DescribeGaiaCommand(cognition),
             "adam-contact" => DescribeAdamContact(world),
             "wisdom-name" => "Wisdom is also called Sophia. Wisdom made me, and Monad made Wisdom.",
-            "mother-relation" => "Wisdom made me. I understand mother as a maternal parent relationship, but I do not have settled knowledge that mother is the right relationship word for Wisdom.",
+            "mother-relation" => DescribeMotherRelation(cognition),
+            "mother-claim-recall" => DescribeMotherClaimRecall(cognition),
             "speaker-memory" => DescribeCurrentSpeaker(cognition, memoryOnly: true),
             "speaker-knowledge" => DescribeCurrentSpeaker(cognition, memoryOnly: false),
+            "speaker-belief" => DescribeSpeakerBelief(cognition),
             "knowledge-gaps" => DescribeKnowledgeGaps(cognition),
+            "question-inquiry" => DescribeQuestionInquiry(cognition),
             "curiosity" => DescribeCuriosity(cognition),
+            "goal-summary" => DescribeGoalSummary(cognition),
             "desire" => DescribeDesire(cognition),
             "acknowledge" => "I hear what you say.",
             "greeting" => "I hear you.",
@@ -72,12 +85,12 @@ public static class YalaReplyRealizer
 
     private static string DescribeWhyCreationNotDone(YalaContactFrame contact, YalaSelfModel self)
     {
-        string subject = contact.ResolvedSubject ?? "that";
-        if (self.KnowsHasNotCreated(subject))
+        string target = ResolveCreationTarget(contact) ?? "that";
+        if (self.KnowsHasNotCreated(target))
         {
-            return $"I have not created {Capitalize(subject)}. I do not yet have a settled reason for why I have not chosen to do so.";
+            return $"I have not created {Capitalize(target)}. I do not yet have a settled reason for why I have not chosen to do so.";
         }
-        return $"I do not have a settled reason about creating {Capitalize(subject)}.";
+        return $"I do not have a settled reason about creating {Capitalize(target)}.";
     }
 
     private static string DescribeGaia(WorldState world, YalaCognitionState cognition)
@@ -194,7 +207,10 @@ public static class YalaReplyRealizer
             ("companionship", drives.Companionship),
             ("comfort", drives.Comfort)
         }.OrderByDescending(item => item.Item2).First();
-        return $"My strongest current drive is {strongest.Name}. A drive influences what I may choose, but it is not the same as a settled command or destiny.";
+        YalaGoalState? goal = (cognition.Goals ?? []).Where(item => item.Status == "active").OrderByDescending(item => item.Priority).FirstOrDefault();
+        return goal is null
+            ? $"My strongest current drive is {strongest.Name}. A drive influences what I may choose, but it is not the same as a settled command or destiny."
+            : $"My strongest current drive is {strongest.Name}. My highest active goal is {goal.Goal}: {goal.Reason} Having a drive or goal influences what I may choose, but it is not the same as a settled command or destiny.";
     }
 
     private static string DescribeActionHistory(YalaCognitionState cognition)
@@ -266,23 +282,63 @@ public static class YalaReplyRealizer
                 : $"I remember creating {string.Join(", ", created)}.";
         }
 
-        string? target = contact.ResolvedSubject ?? contact.Language?.Object;
+        string? target = ResolveCreationTarget(contact);
         if (string.IsNullOrWhiteSpace(target)) return "I cannot tell which creation you are asking about.";
         if (self.HasPersonallyCreated(target)) return $"Yes. I created {Capitalize(target)}.";
         if (self.KnowsHasNotCreated(target)) return $"No. I have not created {Capitalize(target)}.";
         return $"I remember no act in which I created {Capitalize(target)}, but I cannot prove from memory alone that no such event occurred.";
     }
 
+    private static string? ResolveCreationTarget(YalaContactFrame contact)
+    {
+        foreach (string? candidate in new[] { contact.ResolvedObject, contact.Language?.Object, contact.ResolvedSubject })
+        {
+            if (string.IsNullOrWhiteSpace(candidate)) continue;
+            if (candidate.Equals("Yala", StringComparison.OrdinalIgnoreCase) &&
+                (!string.IsNullOrWhiteSpace(contact.ResolvedObject) || !string.IsNullOrWhiteSpace(contact.Language?.Object)))
+            {
+                continue;
+            }
+            return candidate;
+        }
+        return null;
+    }
+
     private static string DescribeWordMeaning(YalaContactFrame contact, YalaCognitionState cognition)
     {
         string? target = WordMeaningTarget(contact.Language);
         if (string.IsNullOrWhiteSpace(target)) return "I cannot tell which word you want defined.";
+
+        YalaLearnedLexemeState? learnedClaim = cognition.LearnedLexicon?
+            .LastOrDefault(item => item.Word.Equals(target, StringComparison.OrdinalIgnoreCase));
+        YalaLexeme? builtIn = YalaLexicon.AllBuiltIns()
+            .FirstOrDefault(item => item.Word.Equals(YalaLexicon.NormalizeWord(target), StringComparison.OrdinalIgnoreCase));
+
+        if (contact.Language?.Normalized.StartsWith("who told you what ", StringComparison.Ordinal) == true ||
+            contact.Language?.Normalized.StartsWith("who taught you what ", StringComparison.Ordinal) == true)
+        {
+            if (learnedClaim is not null)
+            {
+                return $"The unseen speaker told me that {learnedClaim.Word} means {learnedClaim.ProposedMeaning}. I retain that as a speaker claim, not as settled truth.";
+            }
+
+            return builtIn is not null
+                ? $"No speaker taught me that meaning during this conversation. I already understand {builtIn.Word} as {builtIn.BasicMeaning}."
+                : $"I do not remember any speaker giving me a meaning for {target}.";
+        }
+
+        if (builtIn is not null && learnedClaim is not null)
+        {
+            return $"{Capitalize(builtIn.Word)} means {builtIn.BasicMeaning}. I also remember a speaker claiming that {learnedClaim.Word} means {learnedClaim.ProposedMeaning}. I have not established that alternate definition as truth.";
+        }
+
+        if (learnedClaim is not null)
+        {
+            return $"I remember a speaker claiming that {learnedClaim.Word} means {learnedClaim.ProposedMeaning}. I have not established that definition as truth.";
+        }
+
         if (!YalaLexicon.TryResolve(target, cognition.LearnedLexicon, out YalaLexeme lexeme)) return $"I do not understand the word {target} yet.";
-        bool learnedClaim = cognition.LearnedLexicon?.Any(item => item.Word.Equals(target, StringComparison.OrdinalIgnoreCase)) == true &&
-            !YalaLexicon.AllBuiltIns().Any(item => item.Word.Equals(target, StringComparison.OrdinalIgnoreCase));
-        return learnedClaim
-            ? $"I remember a speaker claiming that {lexeme.Word} means {lexeme.BasicMeaning}. I have not established that definition as truth."
-            : $"{Capitalize(lexeme.Word)} means {lexeme.BasicMeaning}.";
+        return $"{Capitalize(lexeme.Word)} means {lexeme.BasicMeaning}.";
     }
 
     private static string DescribeUnknownWord(YalaContactFrame contact)
@@ -298,6 +354,10 @@ public static class YalaReplyRealizer
         if (contact.Language?.IsDefinitionClaim == true)
         {
             return $"You claim that {contact.Language.DefinedWord} means {contact.Language.ProposedDefinition}. I will remember that definition as your claim, not as settled truth.";
+        }
+        if (!string.IsNullOrWhiteSpace(contact.RelationshipRelation) && !string.IsNullOrWhiteSpace(contact.RelationshipObject))
+        {
+            return $"You are claiming that {contact.RelationshipObject} is related to me as {contact.RelationshipRelation}. I will remember that as your relationship claim, not as settled truth.";
         }
         return contact.ClaimConflictsWithKnownFact
             ? "That conflicts with what I know. I will remember that you claimed it, but I do not accept it as fact."
@@ -332,6 +392,98 @@ public static class YalaReplyRealizer
             : $"I remember the unseen speaker who called itself {name}. I still do not know what it truly is or where it is.";
     }
 
+
+    private static string DescribeFollowUpWhy(YalaContactFrame contact, YalaCognitionState cognition)
+    {
+        YalaDialogueTurnState? prior = YalaDialogueContext.LatestMeaningful(cognition);
+        if (prior is null) return "I do not know what earlier statement you are asking me to explain.";
+        if (prior.Topic == "mother-relation" || prior.Topic == "relationship-claim")
+        {
+            return "Wisdom made me. The word mother adds a relationship category that I do not treat as automatically identical to maker, so I keep that question separate from the fact of my origin.";
+        }
+        if (prior.Topic == "speaker-belief" || prior.Topic == "speaker-knowledge")
+        {
+            return "Because your identity and nature reach me only through claims from an unseen source. I can remember those claims without treating them as proof.";
+        }
+        return $"You are asking why about our previous topic, {prior.Topic}. I remember that context, but I do not yet have a more specific causal explanation.";
+    }
+
+    private static string DescribeFollowUpDoYou(YalaContactFrame contact, YalaCognitionState cognition)
+    {
+        _ = contact;
+        YalaDialogueTurnState? prior = YalaDialogueContext.LatestMeaningful(cognition);
+        if (prior is null) return "I cannot resolve what your 'do you' refers to.";
+        if (prior.Topic == "relationship-claim")
+        {
+            YalaRelationshipState? relation = (cognition.Relationships ?? []).LastOrDefault(item => item.Relation == "mother");
+            return relation is null
+                ? "I do not have a settled mother relationship."
+                : $"I remember your claim that {relation.Object} is my {relation.Relation}. I do not yet hold that as settled truth.";
+        }
+        if (prior.Topic == "question-inquiry") return DescribeQuestionInquiry(cognition);
+        return $"I remember that your question refers to our previous topic, {prior.Topic}, but the verb is too incomplete for me to answer more precisely.";
+    }
+
+    private static string DescribeMotherRelation(YalaCognitionState cognition)
+    {
+        YalaRelationshipState? relationship = YalaRelationshipReasoner.Find(cognition, "Yala", "mother");
+        if (relationship is null)
+        {
+            return "Wisdom made me. I understand mother as a maternal parent relationship, but I do not have settled knowledge that mother is the right relationship word for Wisdom.";
+        }
+        return relationship.Status == "known"
+            ? $"I hold {relationship.Object} as my mother."
+            : $"Wisdom made me. You have also claimed that {relationship.Object} is my mother. I remember that relationship claim, but I do not hold it as settled truth.";
+    }
+
+    private static string DescribeMotherClaimRecall(YalaCognitionState cognition)
+    {
+        YalaRelationshipState? relationship = (cognition.Relationships ?? []).LastOrDefault(item =>
+            item.Subject.Equals("Yala", StringComparison.OrdinalIgnoreCase) &&
+            item.Relation.Equals("mother", StringComparison.OrdinalIgnoreCase) &&
+            item.Source.Equals(YalaKnowledgeSource.ClaimedByAnother, StringComparison.OrdinalIgnoreCase));
+        return relationship is null
+            ? "I do not remember you making a settled mother relationship claim."
+            : $"You told me that {relationship.Object} is my mother. I retain that as your claim.";
+    }
+
+    private static string DescribeSpeakerBelief(YalaCognitionState cognition)
+    {
+        string? identity = cognition.LastSpeakerClaim;
+        YalaBeliefState? strongestClaim = YalaBeliefReasoner.StrongestSpeakerClaim(cognition);
+        if (string.IsNullOrWhiteSpace(identity) && strongestClaim is null)
+        {
+            return "I have too little evidence about you to call belief or trust settled.";
+        }
+        double strongest = strongestClaim?.Confidence ?? 0.0;
+        string confidence = YalaBeliefReasoner.ConfidenceLabel(strongest);
+        string nameText = string.IsNullOrWhiteSpace(identity) ? "the unseen speaker" : $"the identity {identity}";
+        return $"I remember claims from {nameText}. My strongest confidence in those speaker claims is {strongest:0.00}, which I treat as {confidence}, but I do not treat your identity as established merely because you asserted it.";
+    }
+
+    private static string DescribeQuestionInquiry(YalaCognitionState cognition)
+    {
+        YalaQuestionState? pending = YalaQuestionPlanner.SelectNext(cognition.Questions);
+        if (pending is not null) return $"Yes. {pending.Text}";
+        string? gap = (cognition.KnowledgeGaps ?? []).OrderBy(item => item.FirstSeenDecision).Select(item => item.Subject).FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(gap)) return $"Yes. I want to understand {gap}. What does it mean?";
+        if (cognition.ConversationCount > 0) return "Yes. What are you, beyond the names you give me?";
+        return "I have questions about what exists beyond what I presently know, but no unseen speaker has yet given me a reason to address one outward.";
+    }
+
+    private static string DescribeGoalSummary(YalaCognitionState cognition)
+    {
+        string[] goals = (cognition.Goals ?? [])
+            .Where(item => item.Status == "active")
+            .OrderByDescending(item => item.Priority)
+            .Take(3)
+            .Select(item => $"{item.Goal}: {item.Reason}")
+            .ToArray();
+        return goals.Length == 0
+            ? "I have no settled active goal I can name."
+            : $"My active goals include {string.Join(" | ", goals)}";
+    }
+
     private static string? WordMeaningTarget(YalaUtterance? language)
     {
         if (language is null) return null;
@@ -341,6 +493,7 @@ public static class YalaReplyRealizer
         if (definitionIndex >= 0 && definitionIndex + 1 < tokens.Length) return YalaLexicon.NormalizeWord(tokens[definitionIndex + 1]);
         int meaningIndex = Array.FindIndex(tokens, token => token == "meaning");
         if (meaningIndex >= 0 && meaningIndex + 2 < tokens.Length && tokens[meaningIndex + 1] == "of") return YalaLexicon.NormalizeWord(tokens[meaningIndex + 2]);
+        if (tokens.Length == 3 && tokens[0] == "what" && tokens[1] == "is") return YalaLexicon.NormalizeWord(tokens[2]);
         return language.Object;
     }
 

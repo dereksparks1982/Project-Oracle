@@ -4,13 +4,16 @@ namespace ProjectOracle.ConsoleApp;
 
 /// <summary>
 /// Owns the single reserved top terminal row used for in-world Time.
-/// The conversation body scrolls beneath row 1. Clock refreshes save and restore
-/// the input cursor so the live header never writes into the command buffer.
+/// The conversation body scrolls beneath row 1. Clock refreshes use DEC cursor
+/// save/restore under the shared console-output gate so the header cannot race
+/// prompt or body output.
 /// </summary>
 public sealed class LiveWorldClockSurface : IDisposable
 {
-    private const string SaveCursor = "\u001b[s";
-    private const string RestoreCursor = "\u001b[u";
+    private const string SaveCursor = "\u001b7";
+    private const string RestoreCursor = "\u001b8";
+    private const string HideCursor = "\u001b[?25l";
+    private const string ShowCursor = "\u001b[?25h";
     private const string ClearLine = "\u001b[2K";
     private const string ResetScrollRegion = "\u001b[r";
 
@@ -21,6 +24,7 @@ public sealed class LiveWorldClockSurface : IDisposable
 
     public bool Active => _active;
     public static bool WritesToConversationBody => false;
+    public static bool UsesDeterministicCursorSaveRestore => true;
     public static string PreTimeHeader => "In-world Time: Gaia has not yet created Time.";
 
     public void Begin(OracleSimulation simulation)
@@ -36,9 +40,13 @@ public sealed class LiveWorldClockSurface : IDisposable
         _terminalHeight = Math.Max(3, SafeWindowHeight());
         _active = true;
 
-        System.Console.Write("\u001b[2J\u001b[H");
-        System.Console.Write($"\u001b[2;{_terminalHeight}r");
-        System.Console.Write("\u001b[2;1H");
+        lock (ConsoleTheme.OutputSyncRoot)
+        {
+            System.Console.Write("\u001b[2J\u001b[H");
+            System.Console.Write($"\u001b[2;{_terminalHeight}r");
+            System.Console.Write("\u001b[2;1H");
+            System.Console.Out.Flush();
+        }
         Refresh(simulation, force: true);
     }
 
@@ -59,11 +67,17 @@ public sealed class LiveWorldClockSurface : IDisposable
             return;
         }
 
-        System.Console.Write(SaveCursor);
-        System.Console.Write("\u001b[1;1H");
-        System.Console.Write(ClearLine);
-        ConsoleTheme.WriteWorldTime(header);
-        System.Console.Write(RestoreCursor);
+        lock (ConsoleTheme.OutputSyncRoot)
+        {
+            System.Console.Write(HideCursor);
+            System.Console.Write(SaveCursor);
+            System.Console.Write("\u001b[1;1H");
+            System.Console.Write(ClearLine);
+            ConsoleTheme.WriteWorldTimeUnsafe(header);
+            System.Console.Write(RestoreCursor);
+            System.Console.Write(ShowCursor);
+            System.Console.Out.Flush();
+        }
     }
 
     public static string Describe(OracleSimulation simulation)
@@ -80,7 +94,12 @@ public sealed class LiveWorldClockSurface : IDisposable
         _disposed = true;
         if (_active)
         {
-            System.Console.Write(ResetScrollRegion);
+            lock (ConsoleTheme.OutputSyncRoot)
+            {
+                System.Console.Write(ResetScrollRegion);
+                System.Console.Write(ShowCursor);
+                System.Console.Out.Flush();
+            }
             _active = false;
         }
     }

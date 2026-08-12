@@ -11,12 +11,53 @@ internal static class ConsoleTheme
     private const string Record = "\u001b[38;5;159m";
     private const string Command = "\u001b[38;5;83m";
 
+    internal static object OutputSyncRoot { get; } = new();
+
     public static bool Enabled => !System.Console.IsOutputRedirected && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("NO_COLOR"));
-    public static void ApplyBase() { if (Enabled) System.Console.Write(Base); }
-    public static void ResetToShell() { if (Enabled) System.Console.Write(Reset); }
-    public static void WriteLine(string value = "") => System.Console.WriteLine(Enabled ? Colorise(value) : value);
-    public static void WritePrompt(string value) => System.Console.Write(Enabled ? $"{Prompt}{value}{Base}" : value);
-    public static void WriteWorldTime(string value) => System.Console.Write(Enabled ? $"{Live}{value}{Base}" : value);
+
+    public static void ApplyBase()
+    {
+        lock (OutputSyncRoot)
+        {
+            if (Enabled) System.Console.Write(Base);
+        }
+    }
+
+    public static void ResetToShell()
+    {
+        lock (OutputSyncRoot)
+        {
+            if (Enabled) System.Console.Write(Reset);
+        }
+    }
+
+    public static void WriteLine(string value = "")
+    {
+        lock (OutputSyncRoot)
+        {
+            System.Console.WriteLine(Enabled ? Colorise(value) : value);
+        }
+    }
+
+    public static void WritePrompt(string value)
+    {
+        lock (OutputSyncRoot)
+        {
+            System.Console.Write(Enabled ? $"{Prompt}{value}{Base}" : value);
+        }
+    }
+
+    public static void WriteWorldTime(string value)
+    {
+        lock (OutputSyncRoot)
+        {
+            WriteWorldTimeUnsafe(value);
+        }
+    }
+
+    internal static void WriteWorldTimeUnsafe(string value) =>
+        System.Console.Write(Enabled ? $"{Live}{value}{Base}" : value);
+
     public static string LiveLine(string value) => Enabled ? $"{Live}{Colorise(value)}{Base}" : value;
     public static string ClearLine => Enabled ? $"{Dim}\u001b[2K{Base}" : "\u001b[2K";
 

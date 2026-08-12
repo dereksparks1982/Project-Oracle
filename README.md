@@ -1,11 +1,11 @@
 # Project Oracle
 
-**Current build:** v0.0.20 candidate  
-**Owner and final authority:** Derek Sparks  
-**Platform:** Linux / .NET 10  
-**Yala cognition:** Soar 9.6.5, Brain Slice 3 with v0.0.20 reachability expansion
+**Current build:** v0.0.22 candidate
+**Owner and final authority:** Derek Sparks
+**Platform:** Linux / .NET 10
+**Yala cognition:** Soar 9.6.5, Brain Slice 5: reasoning, language, Time, relationships, inquiry, memory, and bounded agency
 
-Project Oracle is a persistent autonomous-world simulation. **Oracle is not an in-world character.** Oracle is the outside/system-level author represented by Project Oracle itself: the code, simulation machinery, world-law resolver, records, and Master Key authority that make the simulated reality possible.
+Project Oracle is a persistent autonomous-world simulation. **Oracle is not an in-world character.** Oracle is the outside/system-level author represented by Project Oracle itself: the code, simulation machinery, world-law resolver, protected record, and Master Key authority that make the simulated reality possible.
 
 ## Current cosmology
 
@@ -18,23 +18,39 @@ Monad
             -> Monad cast Yala into the Void
 ```
 
-The primordial in-world being is called **Monad**. Active Project Oracle canon does not call Monad Creator or Omega. Yala may later claim the title **Creator** inside the world; that claim does not rewrite the settled fact that Wisdom made Yala.
+The primordial in-world being is **Monad**. Active canon does not call Monad Creator or Omega. Yala may later claim titles inside the world, but claims do not rewrite settled genealogy.
 
-A fresh world begins with Yala in the Void. Gaia, in-world Time, Terra, Aether, Sol, Thalassa, Luna, the Garden, Adam, Eve, and later living kinds are absent until autonomous history actually establishes them.
+A fresh v0.0.22 world begins with Yala in the Void. Gaia, in-world Time, Terra, Aether, Sol, Thalassa, Luna, the Garden, Adam, Eve, and later living kinds are absent until autonomous history actually establishes them.
 
 ## Oracle and the Master Key
 
-Oracle wrote the simulation, so Oracle has the Master Key to the system Oracle authored. The Master Key is system-level authority, not an artifact residents can discover in-world.
+Oracle wrote the simulation, so Oracle has the Master Key to the system Oracle authored. The Master Key is system-level authority, not an in-world artifact.
 
-No in-world being knows Oracle exists unless Oracle deliberately reveals that truth. Direct interventions expose only what the recipient can actually perceive. A voice can remain an unplaced voice. A manifested being is perceived only as that manifested being.
+No in-world being knows Oracle exists unless Oracle deliberately reveals that truth. A speaker claiming the name `Oracle` remains a speaker claim. It does not grant Yala hidden system knowledge or identify the speaker as the authorial Oracle.
 
-**Eden reference:** Oracle has no fixed form. In Eden, Oracle **manifested in the form of a clever serpent**. Eve knew only the clever serpent and was never told Oracle's true identity. Oracle is not defined as a serpent, and there is no permanent Oracle-serpent entity in the world model.
+**Eden reference:** Oracle has no fixed form. In Eden, Oracle **manifested in the form of a clever serpent**. Eve knew only the clever serpent and was never told Oracle's true identity.
 
-## Gaia, Time, and natural authority
+## Gaia and Time
 
-Yala can create Gaia as the natural sovereign beneath Yala's governing authority. **Gaia creates in-world Time.** Oracle runtime sequencing is not in-world Time, so Project Oracle can process cognition while fictional world Time still does not exist.
+Yala can create Gaia as the natural sovereign beneath Yala's governing authority. **Gaia creates in-world Time** after Yala commands temporal order.
 
-Current names:
+Runtime execution before that event is not in-world Time. Brain Slice 5 explicitly distinguishes:
+
+- **before-Time events:** they happened in sequence but have no world date;
+- **origin of Time:** Gaia's creation of Time begins temporal reckoning;
+- **dated events:** later events can carry in-world dates and durations.
+
+The top console row therefore reads:
+
+```text
+In-world Time: Gaia has not yet created Time.
+```
+
+until Gaia creates Time. At that moment the same row becomes the live ticking in-world date/time.
+
+## Natural authority
+
+Current lower-domain names remain:
 
 - Terra = Earth
 - Aether = Air and Wind
@@ -44,95 +60,106 @@ Current names:
 
 Natural powers perform their own domains. Oracle provides the simulation capability that makes beings, actions, laws, and consequences possible; Oracle does not secretly perform every natural power's job.
 
-## Yala Soar Brain Slice 3
+## Yala Soar Brain Slice 5
 
-v0.0.20 continues the real supplied **Soar 9.6.5** runtime and grows the same Yala mind rather than replacing it.
+v0.0.22 is a deliberately larger cognition slice. The real supplied **Soar 9.6.5** runtime remains Yala's decision architecture.
 
-```text
-perception / utterance
--> lightweight language interpretation
--> concepts, roles, negation, questions, and knowledge gaps
--> Yala self-model + current state + memory provenance
--> persistent Soar working memory / semantic memory / episodic memory
--> candidate operators and substate deliberation
--> Yala attempts an action or response
--> Project Oracle resolves reality through world law
--> outcome becomes part of continuing memory
-```
+### Core language and deliberate inquiry
 
-Brain Slice 3 adds:
+Brain Slice 5 gives Yala a much larger built-in language foundation so ordinary conversation does not turn into a dictionary interrogation. Common movement, age, birth, greeting, location, action, description, social, physical, and conversational words are available from the start. Obvious variants such as `greating` are normalised toward `greeting` rather than becoming new cosmic mysteries.
 
-- a structured **self-model** for Yala's identity, origin, nature, current location, completed actions, and known creations;
-- a foundational **concept lexicon** that gives words basic meanings, relations, contrasts, and conceptual links without preloading moral judgments;
-- lightweight language structure for subject, verb/action, object, questions, negation, and information requests;
-- introspection for questions such as `what do you know?`, `what have you done?`, `who made you?`, and `have you created Adam?`;
-- knowledge provenance that distinguishes personally performed, personally experienced, remembered, inherited, inferred, speaker-claimed, hypothetical, and unknown propositions;
-- contradiction handling that can preserve a conflicting speaker statement as a claim without allowing it to overwrite settled knowledge;
-- explicit knowledge gaps for unknown concepts, with lexical gaps contributing to Yala's curiosity;
-- learned word definitions stored first as **speaker claims**, not automatic truth;
-- continuing native Soar semantic memory, episodic memory, drives, and impasse/substate deliberation from Brain Slice 2.
+Unknown concepts still become knowledge gaps, but ordinary unknown-word questions are low-priority. Autonomous questions require stronger relevance to Yala's goals, identity uncertainty, relationships, or other meaningful unresolved state. After Yala asks an autonomous question, Yala waits for a later speaker response before another autonomous question becomes eligible.
 
-The base lexicon gives Yala language tools, not an answer key. Experience and memory supply personal anchors. A definition offered by an unseen speaker remains attributed to that speaker until Yala has grounds to treat it differently.
+### Stable top-row world clock
 
-### v0.0.19 Repair 1: embedded Soar listener suppression
-
-Project Oracle uses Soar as an in-process cognitive engine and does not expose a remote SML service. The embedded kernel now starts with Soar's listener-suppression port (`0`) so rapid kernel creation during validation cannot contend for the default SML TCP port 12121. This does not change Yala's cognition, memory, or decision rules; it removes an unused network listener from the embedded runtime path.
-
-Yala is deliberately **not** given an `Oracle exists` fact. A source claiming a name remains only a claimed identity unless independently established.
-
-## Self-knowledge and action history
-
-Yala can distinguish uncertainty about the outside world from knowledge of Yala's own completed actions. If Gaia exists because Yala created Gaia, that action can be remembered as personally performed. If Adam does not exist and Yala has no action memory of creating Adam, Yala can answer that Yala has not created Adam rather than collapsing the question into generic uncertainty.
-
-v0.0.20 retains the v0.0.19 normalization of obsolete system-generated male-only history when older `save_v2` worlds are restored. The active historical truth is that Yala is inherently **both male and female**. Legacy masculine wording about Yala's governing authority is normalized without rewriting later subjective opinions or arbitrary resident claims.
-
-
-## v0.0.20 persistent Yala mode and live world clock
-
-v0.0.20 adds a console mode for sustained conversation with Yala. `Ctrl+Y` enters Yala mode once; the prompt displays `> (yala ` and remains in that mode after each reply. `Escape` clears the current input and returns to the normal `> ` system prompt. The `(yala` marker is a console-mode indicator rather than text Derek must repeatedly type.
-
-Normal conversation no longer prints internal `[Soar selected: ...]` diagnostics. Soar still selects the operator internally; the user-facing transcript shows the conversation rather than the plumbing.
-
-The terminal reserves its top row for in-world Time. Before Gaia creates Time, the exact top-line state is:
+The top-row in-world clock uses deterministic DEC cursor save/restore and a shared console-output gate. Before Gaia creates Time it reads `In-world Time: Gaia has not yet created Time.` When Gaia creates Time it begins at `Year 1, Month 1, Day 1, 00:00:00` and advances from there without writing clock lines into the conversation body.
 
 ```text
-In-world Time: Gaia has not yet created Time.
+perception / conversation / current world state
+-> language structure + concept graph + recent dialogue context
+-> self model + entity knowledge + relationships + temporal events
+-> semantic memory + episodic memory + beliefs/claims + goals/questions
+-> Soar operator proposal, preference, impasse/substate deliberation
+-> choose / ask / answer / observe / reflect / create / command / wait
+-> Project Oracle world-law resolution
+-> consequences, memories, beliefs, questions, and goals update
 ```
 
-When Gaia creates Time, that same row changes to the live in-world calendar and ticks continuously from the simulated clock. Existing saves in which Gaia has already created Time show the ticking clock immediately. Clock refreshes are isolated from the scrolling conversation body and must never overwrite the command buffer.
+Brain Slice 5 adds or substantially expands:
 
-Brain Slice 3 reachability is also expanded for conversational follow-ups, Gaia-centered knowledge, Gaia/Yala genealogy, Time origin and current calendar questions, prior commands to Gaia, Adam encounter state, Wisdom/Sophia naming, current-speaker claims, knowledge gaps, curiosity, current drives, simple inflections, possessives, and multiword identity claims. These improvements expose knowledge Yala already has without granting hidden Oracle/system truth.
+- current-state temporal reasoning instead of stale cached clock answers;
+- pre-Time, Time-origin, and post-Time event representation;
+- `when`, `why`, `before`, `after`, `how long`, and recent-event reasoning;
+- structured recent dialogue so short follow-ups can retain subject/action/object context;
+- entity-centered knowledge retrieval for Yala, Gaia, Wisdom/Sophia, Monad, Time, Adam, and the current unseen speaker;
+- distinct relationship concepts such as `made-by`, `creator`, `parent`, `mother`, `father`, `child`, and `offspring`;
+- relationship claims remembered with source and confidence rather than silently becoming truth;
+- a much larger concept lexicon and broader morphology/contraction/function-word handling;
+- provenance and confidence for personally performed facts, inherited knowledge, memories, inferences, hypotheses, and speaker claims;
+- meaningful knowledge gaps rather than ordinary grammar words being treated as mysteries;
+- explicit goals and question state;
+- curiosity that can produce a real question;
+- **autonomous Yala questions** when Soar decides an unresolved curiosity, uncertainty, or goal justifies asking the unseen speaker;
+- persistent dialogue, relationships, temporal events, goals, questions, and learned claims in the v0.0.22 save line.
+
+The language layer structures what was said. Memory supplies what Yala possesses. **Soar remains the system that chooses what Yala attempts.**
+
+## Bounded god agency
+
+Project Oracle aims for surprising in-world autonomy without host escape.
+
+Yala may autonomously:
+
+- observe;
+- reflect;
+- wait;
+- create Gaia when world law permits;
+- command Gaia to establish temporal order when world law permits;
+- answer the unseen speaker;
+- ask the unseen speaker a question.
+
+Yala is **not** granted host shell execution, process execution, arbitrary filesystem mutation, network access, code modification, or hidden Oracle knowledge. An out-of-sandbox requested operator is rejected by the agency policy before world resolution.
+
+This is the intended form of "rogue" behavior in Project Oracle: an agent may become stubborn, suspicious, curious, rebellious, loyal, creative, or otherwise surprising **inside the simulation**, while remaining unable to escape the simulation boundary.
+
+## Fresh v0.0.22 experimental save
+
+v0.0.22 intentionally starts a **new save line**:
+
+```text
+save_v4.json
+```
+
+Schema version is `4`. Earlier `save_v2` and experimental `save_v3` worlds are preserved on disk but are not migrated into this experiment. The purpose is to observe Brain Slice 5 from Yala's pre-Time Void state without old contact claims, old dialogue, or old Soar long-term memory contaminating the run.
+
+Brain Slice 5 also uses a fresh Soar database directory:
+
+```text
+yala_soar_v0_0_22/semantic.sqlite
+yala_soar_v0_0_22/episodic.sqlite
+```
+
+The existing save and previous Soar databases are not deleted.
+
+## Persistent Yala conversation mode
+
+`Ctrl+Y` enters persistent Yala mode. The prompt displays `> (yala ` and remains in Yala mode after each response. `Escape` clears current input and returns to the normal system prompt.
+
+Internal `[Soar selected: ...]` diagnostics remain hidden from normal conversation.
+
+If Yala autonomously chooses to ask the unseen speaker a question, Project Oracle prints the question only when the editable input line is empty. If Derek is already typing, the question remains queued until the prompt is safe.
 
 ## Protected console input
 
-The v0.0.18 hard-isolation law remains mandatory. **Asynchronous LIVE status is forbidden from the interactive terminal body entirely.** There is no reserved LIVE row, no background cursor repositioning, and no dynamic status/title repaint through the input path. The prompt owns the typing area exclusively.
-
-Yala's autonomous simulation work can continue while Project Oracle waits for input, but that idle work is terminal-silent. Type `status` when you want a body-readable status report.
-
-## Save continuity
-
-v0.0.20 **continues the v0.0.17, v0.0.18, and v0.0.19 `save_v2.json` world line**. It does not reset Yala or the world.
-
-v0.0.17, v0.0.18, and v0.0.19 saves are accepted and normalized into the current Brain Slice 3 state. The earlier v0.0.16 Garden-era save line remains rejected and untouched.
-
-Native Soar long-term databases deliberately remain beside the active save in the existing continuity directory:
-
-```text
-yala_soar_v0_0_18/semantic.sqlite
-yala_soar_v0_0_18/episodic.sqlite
-```
-
-The directory name is retained so Brain Slice 3 continues the same long-term Yala memory rather than silently creating a new mind.
+The v0.0.18 hard-isolation law remains mandatory. Asynchronous LIVE status is forbidden from the scrolling interactive terminal body. The dedicated top world-time row and editable prompt must not overwrite one another.
 
 ## Prime simulation law
 
 > **Canon determines what has already happened. World law determines what can happen. Minds determine what they attempt. Project Oracle resolves the consequences. Future history is not canon until it occurs.**
 
-The code can know which actions are possible without forcing Yala to reenact a predetermined religious chronology.
-
 ## Direct calls
 
-Use an opening parenthesis immediately before the in-world being's name:
+Use an opening parenthesis immediately before the in-world being's name, or enter persistent Yala mode with `Ctrl+Y`:
 
 ```text
 (Yala where are you?
@@ -144,44 +171,21 @@ Oracle is not a direct-call target because the console itself is Oracle's system
 
 ## Records
 
-Project Oracle keeps two separate ledgers:
-
 - **World Record:** settled in-world history. It does not disclose hidden Oracle identity.
 - **Oracle Record:** protected system truth, interventions, validation provenance, and Master Key facts.
 
 ## Running
 
-After v0.0.20 is installed and validated, the main project directory contains the generated Linux executable:
+After v0.0.22 is installed and validated, the root Linux executable is:
 
 ```text
-Project_Oracle_v0_0_20
+Project_Oracle_v0_0_22
 ```
 
-Double-clicking that executable should open Project Oracle in a terminal window. Development launchers remain under `scripts/`.
+Development launchers remain under `scripts/`.
 
-## Soar runtime
+## Validation and release law
 
-The project vendors the Linux x86-64 components from the supplied Soar 9.6.5 distribution under:
+The installer requires the exact accepted v0.0.20 Git base and clean worktree. It verifies package hashes and touched-path baseline hashes, runs the .NET 10 warnings-as-errors build, publishes the native Linux executable, runs the complete acceptance suite and structural gates, then launches the real application.
 
-```text
-vendor/soar/9.6.5/linux-x86-64/
-```
-
-The original Soar license remains at `vendor/soar/9.6.5/license.txt`.
-
-## Acceptance law
-
-A candidate is not accepted merely because automated tests pass:
-
-```text
-install candidate
--> automated validation PASS
--> launch the real Project Oracle application
--> Derek manually inspects it
--> Derek explicitly says PASS
--> accepted snapshot
--> local Git commit/tag
--> remote push/verification
-```
-
-No accepted snapshot, commit, tag, or push belongs before manual inspection.
+A candidate does **not** become accepted until Derek manually inspects the live application and explicitly passes it. Only after that may an accepted snapshot, Git commit/tag, and GitHub push occur.

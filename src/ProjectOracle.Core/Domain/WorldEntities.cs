@@ -74,6 +74,66 @@ public sealed record YalaLearnedLexemeState(
     long FirstSeenDecision,
     long LastSeenDecision);
 
+
+public sealed record YalaDialogueTurnState(
+    long Sequence,
+    string Speaker,
+    string Message,
+    string Topic,
+    string? Subject,
+    string? Verb,
+    string? Object,
+    string? Response,
+    string TemporalState,
+    long? WorldMilliseconds);
+
+public sealed record YalaRelationshipState(
+    string Subject,
+    string Relation,
+    string Object,
+    string Status,
+    string Source,
+    double Confidence,
+    long FirstSeenDecision,
+    long LastConsideredDecision);
+
+public sealed record YalaQuestionState(
+    long Id,
+    string Text,
+    string Subject,
+    string Reason,
+    int Priority,
+    bool Asked,
+    long CreatedDecision,
+    long? AskedDecision = null);
+
+public sealed record YalaTemporalEventState(
+    long Sequence,
+    string Key,
+    string Subject,
+    string Action,
+    string Object,
+    string Summary,
+    string TemporalState,
+    long? WorldMilliseconds,
+    long? Year = null,
+    int? Month = null,
+    int? Day = null,
+    int? Hour = null,
+    int? Minute = null,
+    int? Second = null,
+    string? CauseKey = null,
+    string Source = "remembered");
+
+public sealed record YalaGoalState(
+    string Goal,
+    string Reason,
+    string Status,
+    int Priority,
+    string Source,
+    long FirstSeenDecision,
+    long LastConsideredDecision);
+
 public sealed record YalaCognitionState(
     long DecisionCount,
     long LastDecisionRealUnixMilliseconds,
@@ -88,7 +148,13 @@ public sealed record YalaCognitionState(
     string? LastSpeakerClaim = null,
     IReadOnlyList<YalaActionMemoryState>? ActionMemory = null,
     IReadOnlyList<YalaKnowledgeGapState>? KnowledgeGaps = null,
-    IReadOnlyList<YalaLearnedLexemeState>? LearnedLexicon = null);
+    IReadOnlyList<YalaLearnedLexemeState>? LearnedLexicon = null,
+    IReadOnlyList<YalaDialogueTurnState>? Dialogue = null,
+    IReadOnlyList<YalaRelationshipState>? Relationships = null,
+    IReadOnlyList<YalaQuestionState>? Questions = null,
+    IReadOnlyList<YalaTemporalEventState>? TemporalEvents = null,
+    IReadOnlyList<YalaGoalState>? Goals = null,
+    string? PendingAutonomousUtterance = null);
 
 public sealed record AdamState(
     EntityId Id,

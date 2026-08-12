@@ -4,7 +4,7 @@ public static class OracleCalendar
 {
     public const int MonthsPerYear = 12;
     public const int DaysPerYear = 365;
-    public const long EpochTimeOfDayMilliseconds = 3_661_000;
+    public const long EpochTimeOfDayMilliseconds = 0;
     public const long LunarCycleMilliseconds = 2_551_442_803;
 
     private static readonly int[] MonthLengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];

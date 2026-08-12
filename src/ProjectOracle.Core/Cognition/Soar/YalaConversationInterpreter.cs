@@ -1,3 +1,4 @@
+using ProjectOracle.Cognition;
 using ProjectOracle.Cognition.Language;
 using ProjectOracle.Domain;
 using System.Text.RegularExpressions;
@@ -18,9 +19,8 @@ public static partial class YalaConversationInterpreter
         bool asksRemember = text.Contains("remember me", StringComparison.Ordinal) ||
             text.Contains("remember who i am", StringComparison.Ordinal) ||
             text.Contains("do you know me", StringComparison.Ordinal);
-
-        TopicResolution topic = DetermineTopic(text, asksRemember, language, cognition);
         string speechAct = DetermineSpeechAct(raw, text, claimedName, asksRemember, language);
+        TopicResolution topic = DetermineTopic(text, asksRemember, language, cognition, speechAct);
         bool knownContact = IsKnownContact(cognition, claimedName) ||
             (asksRemember && !string.IsNullOrWhiteSpace(cognition.LastSpeakerClaim));
 
@@ -42,7 +42,12 @@ public static partial class YalaConversationInterpreter
             ambiguous)
         {
             Language = language,
-            ResolvedSubject = topic.Subject
+            ResolvedSubject = topic.Subject,
+            ResolvedAction = topic.Action,
+            ResolvedObject = topic.Object,
+            RelationshipRelation = topic.RelationshipRelation,
+            RelationshipObject = topic.RelationshipObject,
+            PriorTopic = topic.PriorTopic
         };
     }
 
@@ -59,6 +64,7 @@ public static partial class YalaConversationInterpreter
         if (text is "hello" or "hi" or "hey" || text.StartsWith("hello ", StringComparison.Ordinal) || text.StartsWith("hi ", StringComparison.Ordinal)) return "greeting";
         if (IsInformationRequest(text)) return "question";
         if (language.IsQuestion || raw.EndsWith("?", StringComparison.Ordinal) || StartsLikeQuestion(text)) return "question";
+        if (TryRelationshipClaim(text, out _, out _, out _)) return "claim";
         if (StartsLikeCommand(text)) return "command";
         if (LooksLikeClaim(text)) return "claim";
         if (raw.Length < 3) return "ambiguous";
@@ -69,53 +75,115 @@ public static partial class YalaConversationInterpreter
         string text,
         bool asksRemember,
         YalaUtterance language,
-        YalaCognitionState cognition)
+        YalaCognitionState cognition,
+        string speechAct)
     {
-        if (asksRemember) return new("memory", null);
-        if (language.IsDefinitionClaim) return new("definition", language.DefinedWord);
+        if (asksRemember) return new("memory", null, null, null);
+        if (language.IsDefinitionClaim) return new("definition", language.DefinedWord, "mean", language.ProposedDefinition);
 
-        if (IsBareWhy(text) && TryResolvePreviousCreationQuestion(cognition, out string? priorCreation))
+        if (speechAct == "claim" && TryRelationshipClaim(text, out string? relationSubject, out string? relation, out string? relationObject))
         {
-            return new("follow-up-why-creation", priorCreation);
+            return new("relationship-claim", relationSubject, "relate", relationObject, relation, relationObject);
         }
 
-        if (IsSpeakerMemoryQuestion(text)) return new("speaker-memory", cognition.LastSpeakerClaim);
-        if (IsSpeakerKnowledgeQuestion(text)) return new("speaker-knowledge", cognition.LastSpeakerClaim);
-        if (IsKnowledgeGapQuestion(text)) return new("knowledge-gaps", null);
-        if (IsCuriosityQuestion(text)) return new("curiosity", null);
-        if (IsDesireQuestion(text)) return new("desire", null);
-        if (IsMotherQuestion(text)) return new("mother-relation", "Wisdom");
-        if (IsWisdomNameQuestion(text)) return new("wisdom-name", "Wisdom");
-        if (IsAdamMeetingQuestion(text)) return new("adam-contact", "Adam");
-        if (IsGaiaCommandQuestion(text, language)) return new("gaia-command", "Gaia");
-        if (IsTimeOriginQuestion(text)) return new("time-origin", "Time");
-        if (IsWorldTimeQuestion(text)) return new("world-time", "Time");
-        if (IsGaiaCreatedYalaQuestion(text)) return new("gaia-created-yala", "Gaia");
-        if (IsGaiaLocationQuestion(text)) return new("gaia-location", "Gaia");
-        if (IsGaiaAboutQuestion(text)) return new("gaia-about", "Gaia");
+        if (IsBareWhen(text))
+        {
+            YalaDialogueTurnState? prior = YalaDialogueContext.LatestMeaningful(cognition);
+            return new("temporal-when", prior?.Subject, prior?.Verb, prior?.Object, PriorTopic: prior?.Topic);
+        }
+
+        if (IsBareWhy(text))
+        {
+            if (TryResolvePreviousCreationQuestion(cognition, out string? priorCreation))
+            {
+                return new("follow-up-why-creation", "Yala", "create", priorCreation);
+            }
+            YalaDialogueTurnState? prior = YalaDialogueContext.LatestMeaningful(cognition);
+            return new("follow-up-why", prior?.Subject, prior?.Verb, prior?.Object, PriorTopic: prior?.Topic);
+        }
+
+        if (IsBareDoYou(text))
+        {
+            YalaDialogueTurnState? prior = YalaDialogueContext.LatestMeaningful(cognition);
+            return new("follow-up-do-you", prior?.Subject, prior?.Verb, prior?.Object, PriorTopic: prior?.Topic);
+        }
+
+        if (IsTemporalCauseQuestion(text))
+        {
+            return new("temporal-cause", "Gaia", "create", "Time");
+        }
+        if (IsTemporalDurationQuestion(text, language, out string? durationSubject, out string? durationAction, out string? durationObject))
+        {
+            return new("temporal-duration", durationSubject, durationAction, durationObject);
+        }
+        if (IsTemporalBeforeQuestion(text))
+        {
+            return new("temporal-before", "Gaia", "create", "Time");
+        }
+        if (IsTemporalAfterQuestion(text))
+        {
+            return new("temporal-after", "Gaia", "create", "Time");
+        }
+        if (IsBareTemporalAdjacent(text, cognition, out string? adjacentDirection, out string? adjacentSubject, out string? adjacentAction, out string? adjacentObject))
+        {
+            return new(adjacentDirection == "before" ? "temporal-before" : "temporal-after", adjacentSubject, adjacentAction, adjacentObject, PriorTopic: YalaDialogueContext.LatestMeaningful(cognition)?.Topic);
+        }
+        if (IsTemporalWhenQuestion(text, language, out string? whenSubject, out string? whenAction, out string? whenObject))
+        {
+            return new("temporal-when", whenSubject, whenAction, whenObject);
+        }
+        if (IsTimeConceptQuestion(text)) return new("time-concept", "Time", "understand", "Time");
+
+        if (IsSpeakerMemoryQuestion(text)) return new("speaker-memory", cognition.LastSpeakerClaim, "remember", "speaker");
+        if (IsSpeakerKnowledgeQuestion(text)) return new("speaker-knowledge", cognition.LastSpeakerClaim, "know", "speaker");
+        if (IsSpeakerBeliefQuestion(text)) return new("speaker-belief", cognition.LastSpeakerClaim, "believe", "speaker");
+        if (IsKnowledgeGapQuestion(text)) return new("knowledge-gaps", "Yala", "know", null);
+        if (IsQuestionInquiry(text)) return new("question-inquiry", "Yala", "ask", null);
+        if (IsCuriosityQuestion(text)) return new("curiosity", "Yala", "curiosity", null);
+        if (IsGoalQuestion(text)) return new("goal-summary", "Yala", "want", null);
+        if (IsDesireQuestion(text)) return new("desire", "Yala", "want", null);
+        if (IsMotherClaimRecallQuestion(text)) return new("mother-claim-recall", "Yala", "mother", "Wisdom", "mother", "Wisdom");
+        if (IsMotherQuestion(text)) return new("mother-relation", "Yala", "mother", "Wisdom", "mother", "Wisdom");
+        if (IsWisdomNameQuestion(text)) return new("wisdom-name", "Wisdom", "name", "Sophia");
+        if (IsAdamMeetingQuestion(text)) return new("adam-contact", "Yala", "meet", "Adam");
+        if (IsGaiaCommandQuestion(text, language)) return new("gaia-command", "Yala", "command", "Gaia");
+        if (IsTimeOriginQuestion(text)) return new("time-origin", "Gaia", "create", "Time");
+        if (IsWorldTimeQuestion(text)) return new("world-time", "Time", "present", "Time");
+        if (IsGaiaCreatedYalaQuestion(text)) return new("gaia-created-yala", "Gaia", "create", "Yala");
+        if (IsGaiaLocationQuestion(text)) return new("gaia-location", "Gaia", "location", null);
+        if (IsEntityAboutQuestion(text, out string? entity)) return new("entity-about", entity, "describe", entity);
+
+        if (IsRecentEntityFollowUp(text, cognition, out string? recentEntity))
+        {
+            return new("entity-about", recentEntity, "describe", recentEntity, PriorTopic: YalaDialogueContext.LatestMeaningful(cognition)?.Topic);
+        }
 
         if (text.Contains("tell me what you know", StringComparison.Ordinal) ||
-            text == "what do you know" ||
-            text == "what do you know?" ||
-            text.Contains("tell me everything you know", StringComparison.Ordinal)) return new("knowledge-summary", null);
-        if (IsActionHistoryQuestion(text)) return new("action-history", null);
-        if (IsContactHistoryQuestion(text)) return new("contact-history", null);
-        if (IsBeliefSummaryQuestion(text)) return new("belief-summary", null);
-        if (IsOwnCreationQuestion(text)) return new("own-creation", language.Object);
-        if (text.Contains("are you a god", StringComparison.Ordinal) || text.Contains("are you god", StringComparison.Ordinal) || text.Contains("what kind of god", StringComparison.Ordinal)) return new("self-kind", "Yala");
-        if (IsWordMeaningQuestion(text, language)) return new("word-meaning", ExtractWordMeaningTarget(language));
-        if (text.Contains("can you hear me", StringComparison.Ordinal) || text.Contains("do you hear me", StringComparison.Ordinal) || text.Contains("hear me", StringComparison.Ordinal)) return new("hearing", null);
-        if (text.Contains("who is speaking", StringComparison.Ordinal) || text.Contains("who speaks", StringComparison.Ordinal) || text.Contains("who am i", StringComparison.Ordinal) || text.Contains("what am i", StringComparison.Ordinal)) return new("speaker", cognition.LastSpeakerClaim);
-        if (text.Contains("why did monad reject", StringComparison.Ordinal) || text.Contains("why were you rejected", StringComparison.Ordinal) || text.Contains("why are you in the void", StringComparison.Ordinal) || text.Contains("why did monad cast", StringComparison.Ordinal)) return new("rejection", "Monad");
-        if (text.Contains("where are you", StringComparison.Ordinal) || text.Contains("your location", StringComparison.Ordinal) || text == "where") return new("location", "Yala");
-        if (text.Contains("who are you", StringComparison.Ordinal) || text.Contains("what are you", StringComparison.Ordinal) || text.Contains("your name", StringComparison.Ordinal)) return new("self", "Yala");
-        if (text.Contains("male", StringComparison.Ordinal) || text.Contains("female", StringComparison.Ordinal) || text.Contains("sex", StringComparison.Ordinal) || text.Contains("gender", StringComparison.Ordinal)) return new("nature", "Yala");
-        if (text.Contains("who made you", StringComparison.Ordinal) || text.Contains("who created you", StringComparison.Ordinal)) return new("origin-self", "Wisdom");
-        if (text.Contains("who made wisdom", StringComparison.Ordinal) || text.Contains("who created wisdom", StringComparison.Ordinal) || text.Contains("who made sophia", StringComparison.Ordinal)) return new("origin-wisdom", "Monad");
-        if (text.Contains("who made monad", StringComparison.Ordinal) || text.Contains("who created monad", StringComparison.Ordinal) || text.Contains("where did monad come", StringComparison.Ordinal)) return new("origin-monad", "Monad");
-        if (text.Contains("what did you", StringComparison.Ordinal) || text.Contains("what are you doing", StringComparison.Ordinal) || text.Contains("what have you done", StringComparison.Ordinal) || text.Contains("your last act", StringComparison.Ordinal)) return new("action", language.Object);
-        if (text.Contains("remember", StringComparison.Ordinal) || text.Contains("memory", StringComparison.Ordinal)) return new("memory", null);
-        return new("general", language.Object ?? language.Subject);
+            text is "what do you know" or "what do you know?" ||
+            text.Contains("tell me everything you know", StringComparison.Ordinal)) return new("knowledge-summary", "Yala", "know", null);
+        if (IsActionHistoryQuestion(text)) return new("action-history", "Yala", "do", null);
+        if (IsContactHistoryQuestion(text)) return new("contact-history", "Yala", "meet", "speaker");
+        if (IsBeliefSummaryQuestion(text)) return new("belief-summary", "Yala", "believe", null);
+        if (IsOwnCreationQuestion(text)) return new("own-creation", "Yala", "create", language.Object);
+        if (text.Contains("are you a god", StringComparison.Ordinal) || text.Contains("are you god", StringComparison.Ordinal) || text.Contains("what kind of god", StringComparison.Ordinal)) return new("self-kind", "Yala", "be", "god");
+        if (IsWordMeaningQuestion(text, language)) return new("word-meaning", ExtractWordMeaningTarget(language), "mean", ExtractWordMeaningTarget(language));
+        if (text.Contains("can you hear me", StringComparison.Ordinal) || text.Contains("do you hear me", StringComparison.Ordinal) || text.Contains("hear me", StringComparison.Ordinal)) return new("hearing", "Yala", "hear", "speaker");
+        if (text.Contains("who is speaking", StringComparison.Ordinal) || text.Contains("who speaks", StringComparison.Ordinal) || text.Contains("who am i", StringComparison.Ordinal) || text.Contains("what am i", StringComparison.Ordinal)) return new("speaker", cognition.LastSpeakerClaim, "identify", "speaker");
+        if (text.Contains("why did monad reject", StringComparison.Ordinal) || text.Contains("why were you rejected", StringComparison.Ordinal) || text.Contains("why are you in the void", StringComparison.Ordinal) || text.Contains("why did monad cast", StringComparison.Ordinal)) return new("rejection", "Monad", "reject", "Yala");
+        if (text.Contains("where are you", StringComparison.Ordinal) || text.Contains("your location", StringComparison.Ordinal) || text == "where") return new("location", "Yala", "location", null);
+        if (text.Contains("who are you", StringComparison.Ordinal) || text.Contains("what are you", StringComparison.Ordinal) || text.Contains("your name", StringComparison.Ordinal)) return new("self", "Yala", "identify", "Yala");
+        if (text.Contains("male", StringComparison.Ordinal) || text.Contains("female", StringComparison.Ordinal) || text.Contains("sex", StringComparison.Ordinal) || text.Contains("gender", StringComparison.Ordinal)) return new("nature", "Yala", "be", "male and female");
+        if (text.Contains("who made you", StringComparison.Ordinal) || text.Contains("who created you", StringComparison.Ordinal)) return new("origin-self", "Wisdom", "create", "Yala");
+        if (text.Contains("who made wisdom", StringComparison.Ordinal) || text.Contains("who created wisdom", StringComparison.Ordinal) || text.Contains("who made sophia", StringComparison.Ordinal)) return new("origin-wisdom", "Monad", "create", "Wisdom");
+        if (text.Contains("who made monad", StringComparison.Ordinal) || text.Contains("who created monad", StringComparison.Ordinal) || text.Contains("where did monad come", StringComparison.Ordinal)) return new("origin-monad", "Monad", "origin", "Monad");
+        if (text.Contains("what did you", StringComparison.Ordinal) || text.Contains("what are you doing", StringComparison.Ordinal) || text.Contains("what have you done", StringComparison.Ordinal) || text.Contains("your last act", StringComparison.Ordinal)) return new("action", "Yala", language.Verb, language.Object);
+        if (text.Contains("remember", StringComparison.Ordinal) || text.Contains("memory", StringComparison.Ordinal)) return new("memory", "Yala", "remember", null);
+
+        if (speechAct == "question" && language.UnknownWords.Count > 0)
+        {
+            return new("unknown-word", language.UnknownWords[0], "understand", language.UnknownWords[0]);
+        }
+        return new("general", language.Subject, language.Verb, language.Object);
     }
 
     private static bool TryKnownFact(
@@ -142,20 +210,33 @@ public static partial class YalaConversationInterpreter
             "own-creation" => "own-action-history",
             "self-kind" => "self-kind",
             "definition" => "definition-claim",
+            "relationship-claim" => "relationship-claim",
             "follow-up-why-creation" => "conversation-context",
-            "gaia-about" => "gaia-knowledge",
+            "follow-up-why" => "conversation-context",
+            "follow-up-do-you" => "conversation-context",
+            "entity-about" => "entity-knowledge",
             "gaia-location" => "gaia-knowledge",
             "gaia-created-yala" => "genealogy",
             "time-origin" => "time-origin",
+            "time-concept" => "time-concept",
             "world-time" => "world-time",
+            "temporal-when" => "temporal-memory",
+            "temporal-duration" => "temporal-memory",
+            "temporal-cause" => "temporal-memory",
+            "temporal-before" => "temporal-memory",
+            "temporal-after" => "temporal-memory",
             "gaia-command" => "own-action-history",
             "adam-contact" => "adam-state",
             "wisdom-name" => "wisdom-name",
-            "mother-relation" => "origin-self",
+            "mother-relation" => "relationship-memory",
+            "mother-claim-recall" => "relationship-memory",
             "speaker-memory" => "speaker-memory",
             "speaker-knowledge" => "speaker-knowledge",
+            "speaker-belief" => "belief-summary",
             "knowledge-gaps" => "knowledge-gaps",
+            "question-inquiry" => "question-state",
             "curiosity" => "curiosity",
+            "goal-summary" => "goals",
             "desire" => "desire",
             _ => null
         };
@@ -188,7 +269,9 @@ public static partial class YalaConversationInterpreter
         text.Contains("monad did not make wisdom", StringComparison.Ordinal) ||
         text.Contains("wisdom did not make you", StringComparison.Ordinal) ||
         text.Contains("you are only male", StringComparison.Ordinal) ||
-        text.Contains("you are only female", StringComparison.Ordinal);
+        text.Contains("you are only female", StringComparison.Ordinal) ||
+        text.Contains("gaia made you", StringComparison.Ordinal) ||
+        text.Contains("gaia created you", StringComparison.Ordinal);
 
     private static bool StartsLikeQuestion(string text) =>
         new[] { "who ", "what ", "where ", "when ", "why ", "how ", "do ", "does ", "did ", "are ", "is ", "can ", "could ", "would ", "will ", "have ", "has " }
@@ -204,6 +287,7 @@ public static partial class YalaConversationInterpreter
         text.StartsWith("tell me where ", StringComparison.Ordinal) ||
         text.StartsWith("tell me why ", StringComparison.Ordinal) ||
         text.StartsWith("tell me about ", StringComparison.Ordinal) ||
+        text.StartsWith("tell me more", StringComparison.Ordinal) ||
         text.StartsWith("show me what you know", StringComparison.Ordinal);
 
     private static bool IsOwnCreationQuestion(string text) =>
@@ -242,25 +326,64 @@ public static partial class YalaConversationInterpreter
         text.Contains("what do you know about me", StringComparison.Ordinal) ||
         text.Contains("what do you know of me", StringComparison.Ordinal);
 
+    private static bool IsSpeakerBeliefQuestion(string text) =>
+        text.Contains("do you believe me", StringComparison.Ordinal) ||
+        text.Contains("do you trust me", StringComparison.Ordinal) ||
+        text.Contains("why don't you believe me", StringComparison.Ordinal) ||
+        text.Contains("why dont you believe me", StringComparison.Ordinal);
+
     private static bool IsKnowledgeGapQuestion(string text) =>
         text.Contains("what don't you know", StringComparison.Ordinal) ||
         text.Contains("what dont you know", StringComparison.Ordinal) ||
         text.Contains("what do you not know", StringComparison.Ordinal) ||
         text.Contains("what are you uncertain about", StringComparison.Ordinal);
 
-    private static bool IsCuriosityQuestion(string text) =>
-        text.Contains("what are you curious about", StringComparison.Ordinal) ||
+    private static bool IsQuestionInquiry(string text) =>
         text.Contains("do you have any question", StringComparison.Ordinal) ||
         text.Contains("do you have questions", StringComparison.Ordinal) ||
-        text.Contains("what questions do you have", StringComparison.Ordinal);
+        text.Contains("what questions do you have", StringComparison.Ordinal) ||
+        text.Contains("ask me a question", StringComparison.Ordinal);
+
+    private static bool IsCuriosityQuestion(string text) =>
+        text.Contains("what are you curious about", StringComparison.Ordinal) ||
+        text.Contains("what interests you", StringComparison.Ordinal);
 
     private static bool IsDesireQuestion(string text) =>
         text.Contains("what do you want", StringComparison.Ordinal) ||
         text.Contains("what do you desire", StringComparison.Ordinal);
 
-    private static bool IsGaiaAboutQuestion(string text) =>
-        text.Contains("tell me about gaia", StringComparison.Ordinal) ||
-        text is "who is gaia" or "who is gaia?" or "what is gaia" or "what is gaia?";
+    private static bool IsGoalQuestion(string text) =>
+        text.Contains("what are you trying to do", StringComparison.Ordinal) ||
+        text.Contains("what is your goal", StringComparison.Ordinal) ||
+        text.Contains("what are your goals", StringComparison.Ordinal) ||
+        text.Contains("what do you intend", StringComparison.Ordinal);
+
+    private static bool IsEntityAboutQuestion(string text, out string? entity)
+    {
+        entity = null;
+        foreach ((string Name, string Key) item in new[]
+        {
+            ("gaia", "Gaia"), ("wisdom", "Wisdom"), ("sophia", "Wisdom"), ("monad", "Monad"), ("yala", "Yala"), ("adam", "Adam"), ("time", "Time")
+        })
+        {
+            if (text.Contains($"tell me about {item.Name}", StringComparison.Ordinal) ||
+                text == $"who is {item.Name}" || text == $"who is {item.Name}?" ||
+                text == $"what is {item.Name}" || text == $"what is {item.Name}?")
+            {
+                entity = item.Key;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool IsRecentEntityFollowUp(string text, YalaCognitionState cognition, out string? entity)
+    {
+        entity = null;
+        if (text is not ("what about it" or "what about it?" or "tell me more" or "tell me more about it" or "and it" or "and it?")) return false;
+        entity = YalaDialogueContext.ResolveRecentEntity(cognition);
+        return !string.IsNullOrWhiteSpace(entity);
+    }
 
     private static bool IsGaiaLocationQuestion(string text) =>
         text.Contains("where is gaia", StringComparison.Ordinal) || text.Contains("gaia's location", StringComparison.Ordinal) || text.Contains("gaias location", StringComparison.Ordinal);
@@ -273,7 +396,17 @@ public static partial class YalaConversationInterpreter
     private static bool IsTimeOriginQuestion(string text) =>
         text.Contains("who created time", StringComparison.Ordinal) ||
         text.Contains("who made time", StringComparison.Ordinal) ||
-        text.Contains("where did time come from", StringComparison.Ordinal);
+        text.Contains("where did time come from", StringComparison.Ordinal) ||
+        text.Contains("did gaia create time", StringComparison.Ordinal) ||
+        text.Contains("did gaia make time", StringComparison.Ordinal) ||
+        text is "gaia created time?" or "gaia made time?" ||
+        text.Contains("was time created by gaia", StringComparison.Ordinal) ||
+        text.Contains("was time made by gaia", StringComparison.Ordinal);
+
+    private static bool IsTimeConceptQuestion(string text) =>
+        text is "what is time" or "what is time?" ||
+        text.Contains("explain time", StringComparison.Ordinal) ||
+        text.Contains("what does time mean", StringComparison.Ordinal);
 
     private static bool IsWorldTimeQuestion(string text) =>
         text.Contains("what time is it", StringComparison.Ordinal) ||
@@ -299,14 +432,117 @@ public static partial class YalaConversationInterpreter
 
     private static bool IsMotherQuestion(string text) =>
         text.Contains("who is your mother", StringComparison.Ordinal) ||
+        text.Contains("do you know who your mother is", StringComparison.Ordinal) ||
         text.Contains("is wisdom your mother", StringComparison.Ordinal) ||
-        text.Contains("wisdom is your mother", StringComparison.Ordinal);
+        text.Contains("is sophia your mother", StringComparison.Ordinal) ||
+        text.Contains("do you believe wisdom is your mother", StringComparison.Ordinal) ||
+        text.Contains("do you believe sophia is your mother", StringComparison.Ordinal) ||
+        text.Contains("do you think wisdom is your mother", StringComparison.Ordinal) ||
+        text.Contains("do you think sophia is your mother", StringComparison.Ordinal);
+
+    private static bool IsMotherClaimRecallQuestion(string text) =>
+        text.Contains("who did i say your mother is", StringComparison.Ordinal) ||
+        text.Contains("who did i tell you your mother is", StringComparison.Ordinal);
 
     private static bool IsBareWhy(string text) => text is "why" or "why?" or "why not" or "why not?";
+    private static bool IsBareWhen(string text) => text is "when" or "when?";
+    private static bool IsBareDoYou(string text) => text is "do you" or "do you?";
+
+    private static bool IsTemporalWhenQuestion(string text, YalaUtterance language, out string? subject, out string? action, out string? obj)
+    {
+        subject = null;
+        action = null;
+        obj = null;
+        if (!text.StartsWith("when ", StringComparison.Ordinal)) return false;
+        if (text.Contains("when did you create gaia", StringComparison.Ordinal) || text.Contains("when did you make gaia", StringComparison.Ordinal))
+        {
+            subject = "Yala"; action = "create"; obj = "Gaia"; return true;
+        }
+        if (text.Contains("when did gaia create time", StringComparison.Ordinal) || text.Contains("when did gaia make time", StringComparison.Ordinal))
+        {
+            subject = "Gaia"; action = "create"; obj = "Time"; return true;
+        }
+        if (text.Contains("when did i first tell you my name", StringComparison.Ordinal) || text.Contains("when did i tell you my name", StringComparison.Ordinal))
+        {
+            subject = "speaker"; action = "claim-identity"; obj = "identity"; return true;
+        }
+        subject = language.Subject;
+        action = language.Verb;
+        obj = language.Object;
+        return true;
+    }
+
+
+    private static bool IsTemporalCauseQuestion(string text) =>
+        text.Contains("why did gaia create time", StringComparison.Ordinal) ||
+        text.Contains("why did gaia make time", StringComparison.Ordinal) ||
+        text.Contains("what caused gaia to create time", StringComparison.Ordinal) ||
+        text.Contains("what caused time to be created", StringComparison.Ordinal);
+
+    private static bool IsTemporalDurationQuestion(string text, YalaUtterance language, out string? subject, out string? action, out string? obj)
+    {
+        subject = null;
+        action = null;
+        obj = null;
+        if (!(text.StartsWith("how long ago ", StringComparison.Ordinal) || text.Contains("how long has time existed", StringComparison.Ordinal))) return false;
+        if (text.Contains("tell you my name", StringComparison.Ordinal) || text.Contains("claimed my name", StringComparison.Ordinal))
+        {
+            subject = "speaker"; action = "claim-identity"; obj = "identity"; return true;
+        }
+        if (text.Contains("time existed", StringComparison.Ordinal) || text.Contains("gaia created time", StringComparison.Ordinal))
+        {
+            subject = "Gaia"; action = "create"; obj = "Time"; return true;
+        }
+        if (text.Contains("you create gaia", StringComparison.Ordinal) || text.Contains("you made gaia", StringComparison.Ordinal))
+        {
+            subject = "Yala"; action = "create"; obj = "Gaia"; return true;
+        }
+        subject = language.Subject; action = language.Verb; obj = language.Object;
+        return true;
+    }
+
+    private static bool IsBareTemporalAdjacent(
+        string text,
+        YalaCognitionState cognition,
+        out string? direction,
+        out string? subject,
+        out string? action,
+        out string? obj)
+    {
+        direction = null;
+        subject = null;
+        action = null;
+        obj = null;
+        if (text is "what happened next" or "what happened next?" or "what came next" or "what came next?") direction = "after";
+        else if (text is "what happened before that" or "what happened before that?" or "what came before that" or "what came before that?") direction = "before";
+        else if (text is "what happened after that" or "what happened after that?" or "what came after that" or "what came after that?") direction = "after";
+        else return false;
+
+        YalaDialogueTurnState? prior = YalaDialogueContext.LatestMeaningful(cognition);
+        subject = prior?.Subject;
+        action = prior?.Verb;
+        obj = prior?.Object;
+        return prior is not null;
+    }
+
+    private static bool IsTemporalBeforeQuestion(string text) =>
+        text.Contains("what happened before gaia created time", StringComparison.Ordinal) ||
+        text.Contains("what came before gaia created time", StringComparison.Ordinal);
+
+    private static bool IsTemporalAfterQuestion(string text) =>
+        text.Contains("what happened after gaia created time", StringComparison.Ordinal) ||
+        text.Contains("what came after gaia created time", StringComparison.Ordinal);
 
     private static bool TryResolvePreviousCreationQuestion(YalaCognitionState cognition, out string? subject)
     {
         subject = null;
+        YalaDialogueTurnState? previousTurn = YalaDialogueContext.LatestMeaningful(cognition);
+        if (previousTurn is not null && previousTurn.Topic == "own-creation" && !string.IsNullOrWhiteSpace(previousTurn.Object))
+        {
+            subject = previousTurn.Object;
+            return true;
+        }
+
         string? previous = (cognition.Episodes ?? [])
             .LastOrDefault(episode => episode.Kind == "contact" && !string.IsNullOrWhiteSpace(episode.Message))?.Message;
         if (string.IsNullOrWhiteSpace(previous)) return false;
@@ -316,16 +552,42 @@ public static partial class YalaConversationInterpreter
         return !string.IsNullOrWhiteSpace(subject);
     }
 
-    private static bool IsWordMeaningQuestion(string text, YalaUtterance language) =>
-        (text.StartsWith("what does ", StringComparison.Ordinal) && text.Contains(" mean", StringComparison.Ordinal)) ||
-        text.StartsWith("what is the meaning of ", StringComparison.Ordinal) ||
-        text.StartsWith("define ", StringComparison.Ordinal) ||
-        (language.QuestionWord == "what" && (language.Verb is "mean" or "means"));
+    private static bool IsWordMeaningQuestion(string text, YalaUtterance language)
+    {
+        if ((text.StartsWith("what does ", StringComparison.Ordinal) && text.Contains(" mean", StringComparison.Ordinal)) ||
+            text.StartsWith("what is the meaning of ", StringComparison.Ordinal) ||
+            text.StartsWith("define ", StringComparison.Ordinal) ||
+            (language.QuestionWord == "what" && (language.Verb is "mean" or "means")))
+        {
+            return true;
+        }
+
+        if (DefinitionSourceRegex().IsMatch(text)) return true;
+
+        if (text.StartsWith("what is ", StringComparison.Ordinal))
+        {
+            string[] tokens = text.TrimEnd('?', '.', '!').Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return tokens.Length == 3;
+        }
+
+        return false;
+    }
 
     private static string? ExtractWordMeaningTarget(YalaUtterance language)
     {
+        Match sourceMatch = DefinitionSourceRegex().Match(language.Normalized);
+        if (sourceMatch.Success) return YalaLexicon.NormalizeWord(sourceMatch.Groups[1].Value);
+
         Match match = WordMeaningRegex().Match(language.Normalized);
         if (match.Success) return YalaLexicon.NormalizeWord(match.Groups[1].Value);
+
+        string normalized = language.Normalized.TrimEnd('?', '.', '!');
+        if (normalized.StartsWith("what is ", StringComparison.Ordinal))
+        {
+            string target = normalized["what is ".Length..].Trim();
+            if (!target.Contains(' ')) return YalaLexicon.NormalizeWord(target);
+        }
+
         return language.Object;
     }
 
@@ -336,25 +598,80 @@ public static partial class YalaConversationInterpreter
         text.StartsWith("you created ", StringComparison.Ordinal) ||
         text.StartsWith("monad ", StringComparison.Ordinal) ||
         text.StartsWith("wisdom ", StringComparison.Ordinal) ||
+        text.StartsWith("gaia ", StringComparison.Ordinal) ||
         text.StartsWith("i think ", StringComparison.Ordinal) ||
-        text.StartsWith("i believe ", StringComparison.Ordinal);
+        text.StartsWith("i believe ", StringComparison.Ordinal) ||
+        text.StartsWith("your mother ", StringComparison.Ordinal);
+
+    private static bool TryRelationshipClaim(string text, out string? subject, out string? relation, out string? obj)
+    {
+        subject = null;
+        relation = null;
+        obj = null;
+
+        Match wisdomMother = WisdomMotherRegex().Match(text);
+        if (wisdomMother.Success)
+        {
+            subject = "Yala";
+            relation = "mother";
+            obj = "Wisdom";
+            return true;
+        }
+
+        Match motherWisdom = MotherWisdomRegex().Match(text);
+        if (motherWisdom.Success)
+        {
+            subject = "Yala";
+            relation = "mother";
+            obj = "Wisdom";
+            return true;
+        }
+        return false;
+    }
 
     private static string? ExtractClaimedName(string raw)
     {
-        Match match = IntroductionRegex().Match(raw.Trim());
+        string trimmed = raw.Trim();
+        Match match = IntroductionRegex().Match(trimmed);
         if (!match.Success) return null;
         string name = match.Groups[1].Value.Trim().TrimEnd('.', ',', '!', '?');
         if (name.StartsWith("in ", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("at ", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("from ", StringComparison.OrdinalIgnoreCase)) return null;
         if (name.Length == 0 || name.Length > 80) return null;
+        if (name.IndexOfAny(['.', '!', '?']) >= 0) return null;
+
+        string[] parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length > 5) return null;
+
+        bool predicateForm = trimmed.StartsWith("i am ", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.StartsWith("i'm ", StringComparison.OrdinalIgnoreCase);
+        if (predicateForm && parts.Length > 0 && YalaLexicon.TryResolve(parts[0], [], out YalaLexeme firstLexeme) &&
+            (firstLexeme.PartOfSpeech.Equals("verb", StringComparison.OrdinalIgnoreCase) ||
+             firstLexeme.PartOfSpeech.Equals("adjective", StringComparison.OrdinalIgnoreCase) ||
+             firstLexeme.PartOfSpeech.Equals("adverb", StringComparison.OrdinalIgnoreCase)))
+        {
+            return null;
+        }
+
         return name;
     }
 
-    private static string NormalizedConversationText(string raw) =>
-        raw.Trim().ToLowerInvariant().Replace('’', '\'');
+    private static string NormalizedConversationText(string raw)
+    {
+        string text = raw.Trim().ToLowerInvariant().Replace('’', '\'');
+        text = BelieveTypoRegex().Replace(text, "believe");
+        return text;
+    }
 
-    private sealed record TopicResolution(string Topic, string? Subject);
+    private sealed record TopicResolution(
+        string Topic,
+        string? Subject,
+        string? Action,
+        string? Object,
+        string? RelationshipRelation = null,
+        string? RelationshipObject = null,
+        string? PriorTopic = null);
 
     [GeneratedRegex(@"^(?:i\s+am|i'm|my\s+name\s+is|call\s+me)\s+(.+?)\s*[.!?]*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex IntroductionRegex();
@@ -362,6 +679,18 @@ public static partial class YalaConversationInterpreter
     [GeneratedRegex(@"(?:what\s+does|define|meaning\s+of)\s+['""]?([\p{L}\p{N}_'\-]+)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex WordMeaningRegex();
 
+    [GeneratedRegex(@"(?:who\s+(?:told|taught)\s+you\s+what)\s+['""]?([\p{L}\p{N}_'\-]+)['""]?\s+(?:means|mean)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex DefinitionSourceRegex();
+
+    [GeneratedRegex(@"\b(?:belive|beleive)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex BelieveTypoRegex();
+
     [GeneratedRegex(@"(?:have\s+you\s+(?:made|created)|did\s+you\s+(?:make|create))\s+([\p{L}\p{N}_'\-]+)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex PreviousCreationQuestionRegex();
+
+    [GeneratedRegex(@"\bwisdom\s+(?:or\s+sophia\s+)?is\s+your\s+mother\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex WisdomMotherRegex();
+
+    [GeneratedRegex(@"\byour\s+mother\s+is\s+(?:called\s+)?(?:wisdom|sophia|wisdom\s+or\s+sophia|sophia\s+or\s+wisdom)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex MotherWisdomRegex();
 }

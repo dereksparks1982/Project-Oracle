@@ -95,6 +95,9 @@ public sealed class SoarKernelHost : IDisposable
         CreateInt(input, "drive-comfort", perception.Comfort);
         CreateInt(input, "uncertainty", perception.Uncertainty);
         CreateString(input, "contact", YesNo(perception.HasContact));
+        CreateString(input, "pending-question", YesNo(perception.PendingQuestion));
+        CreateString(input, "pending-question-text", Clean(perception.PendingQuestionText, "none"));
+        CreateString(input, "speaker-history", YesNo(perception.HasSpeakerHistory));
 
         if (perception.HasContact)
         {
@@ -173,6 +176,12 @@ public sealed class SoarKernelHost : IDisposable
         Execute("smem --add {(@concept-create ^word create ^meaning |cause something to begin existing| ^opposite destroy)}");
         Execute("smem --add {(@concept-reject ^word reject ^meaning |refuse to accept| ^opposite accept)}");
         Execute("smem --add {(@concept-claim ^word claim ^meaning |assertion whose truth is not guaranteed|)}");
+        Execute("smem --add {(@concept-time ^word time ^meaning |in-world temporal order created by Gaia after Yala's command| ^before |events before Time have no in-world date|)}");
+        Execute("smem --add {(@concept-evidence ^word evidence ^meaning |information that can change confidence in a proposition|)}");
+        Execute("smem --add {(@concept-relationship ^word relationship ^meaning |structured connection between beings|)}");
+        Execute("smem --add {(@concept-question ^word question ^meaning |utterance seeking information|)}");
+        Execute("smem --add {(@concept-agency ^word agency ^meaning |capacity to choose and act within available possibilities|)}");
+        Execute("smem --add {(@concept-autonomy ^word autonomy ^meaning |capacity to choose without another speaker selecting each action|)}");
     }
 
     public void RememberClaimedContact(string claimedName)
@@ -368,8 +377,8 @@ public sealed record SoarMemoryPaths(string Directory, string SemanticDatabase, 
         ArgumentException.ThrowIfNullOrWhiteSpace(savePath);
         string full = Path.GetFullPath(savePath);
         string parent = Path.GetDirectoryName(full) ?? throw new InvalidOperationException("Save path has no parent directory.");
-        // Brain Slice 3 intentionally reuses the v0.0.18 long-term-memory directory so the same Yala mind continues.
-        string directory = Path.Combine(parent, "yala_soar_v0_0_18");
+        // Brain Slice 5 starts a fresh experimental mind alongside save_v4. Earlier Soar databases remain untouched.
+        string directory = Path.Combine(parent, "yala_soar_v0_0_22");
         return new SoarMemoryPaths(
             directory,
             Path.Combine(directory, "semantic.sqlite"),

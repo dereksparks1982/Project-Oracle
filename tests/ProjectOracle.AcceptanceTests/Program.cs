@@ -18,7 +18,7 @@ internal static class Program
 
     public static int Main()
     {
-        Run("version is 0.0.20", () => Equal("0.0.20", ProjectVersion.Number));
+        Run("version is 0.0.22", () => Equal("0.0.22", ProjectVersion.Number));
         Run("fresh world starts with Yala in the Void", FreshWorldStartsWithYalaInVoid);
         Run("fresh Void contains no Garden Adam animals Gaia or Time", FreshVoidHasNoLaterCreation);
         Run("fresh world has no in-world Oracle entity or direct-call target", NoInWorldOracle);
@@ -40,7 +40,58 @@ internal static class Program
         Run("Soar uses an impasse/substate for undecided autonomous cognition", SoarSubstateDeliberation);
         Run("Soar semantic memory stores and retrieves an unseen contact claim", SoarSemanticMemory);
         Run("Soar episodic memory advances across decisions", SoarEpisodicMemory);
-        Run("Yala Brain Slice 3 identity is active", BrainSlice3Identity);
+        Run("Yala Brain Slice 5 identity is active", BrainSlice4Identity);
+        Run("save schema is 4 for the fresh Brain Slice 5 line", SaveSchemaIsV4);
+        Run("fresh Soar long-term memory directory is isolated to v0.0.22", FreshSoarMemoryLine);
+        Run("bounded agency exposes only approved in-world operators", BoundedAgencyAllowedActions);
+        Run("bounded agency denies host shell process file network code and hidden truth capabilities", BoundedAgencyDeniesHostCapabilities);
+        Run("out-of-sandbox Yala action is rejected", OutOfSandboxActionRejected);
+        Run("initial relationship graph separates made-by from mother", InitialRelationshipGraph);
+        Run("mother question remains a question rather than a relationship claim", MotherQuestionIsQuestion);
+        Run("mother relationship claim is remembered as unsettled speaker provenance", MotherRelationshipClaimMemory);
+        Run("mother claim can be recalled without upgrading it to truth", MotherClaimRecall);
+        Run("repeated relationship claim confidence rises without becoming settled", RelationshipClaimConfidence);
+        Run("belief confidence labels expose gradations", BeliefConfidenceLabels);
+        Run("Brain Slice 5 core lexicon contains more than 400 concepts", ExpandedLexicon);
+        Run("basic conversational vocabulary is built in rather than learned by interrogation", CoreConversationalVocabulary);
+        Run("common greeting typo normalizes to greeting", GreetingTypoNormalization);
+        Run("basic language does not generate fake knowledge gaps", BasicLanguageGapFiltering);
+        Run("I am plus an action predicate is not misread as a speaker identity", ActionPredicateIsNotIdentityClaim);
+        Run("brain update sentence uses ordinary language without fake knowledge gaps", BrainUpdateSentenceHasNoBasicGaps);
+        Run("unknown-word questions remain available but below autonomous inquiry priority", UnknownWordQuestionsAreLowPriority);
+        Run("Yala waits for a speaker response before asking another autonomous question", AutonomousQuestionWaitsForResponse);
+        Run("meaningful autonomous inquiry resumes after the speaker responds", AutonomousInquiryResumesMeaningfully);
+        Run("live world clock uses deterministic DEC cursor save restore", DeterministicWorldClockCursorProtocol);
+        Run("Oracle is not preloaded into Yala's built-in lexicon", OracleAbsentFromLexicon);
+        Run("function words and calendar words do not become fake knowledge gaps", FunctionWordGapFiltering);
+        Run("a genuinely unknown word still creates a knowledge gap", GenuineUnknownWordGap);
+        Run("unknown concepts generate candidate questions", UnknownConceptQuestionGeneration);
+        Run("first speaker contact generates a question about the speaker's nature", FirstContactQuestionGeneration);
+        Run("identity claim generates a question about the identity label", IdentityMeaningQuestionGeneration);
+        Run("Yala can autonomously choose to ask the unseen speaker", AutonomousAskSpeaker);
+        Run("autonomous question can be safely dequeued exactly once", AutonomousQuestionDequeuesOnce);
+        Run("pending autonomous question survives save and restore", AutonomousQuestionSurvivesSaveRestore);
+        Run("Yala does not ask a speaker before any speaker history exists", NoAutonomousQuestionWithoutSpeaker);
+        Run("Brain Slice 5 begins with active goals", InitialGoalsPresent);
+        Run("speaker contact activates the understand-unseen-speaker goal", SpeakerContactActivatesGoal);
+        Run("goal introspection reports actual active goals", GoalIntrospection);
+        Run("Gaia creation is recorded as a before-Time event", GaiaCreationBeforeTimeEvent);
+        Run("Gaia creating Time is recorded as the origin of temporal reckoning", TimeOriginEvent);
+        Run("post-Time speaker contact receives a dated temporal event", PostTimeContactDated);
+        Run("when Gaia created Time reports the temporal origin", WhenTimeCreated);
+        Run("when Yala created Gaia reports that no world date existed", WhenGaiaCreatedBeforeTime);
+        Run("why Gaia created Time follows the stored cause link", TimeCreationCause);
+        Run("duration questions refuse to invent duration for pre-Time events", PreTimeDurationReasoning);
+        Run("duration since Time origin uses elapsed in-world Time", TimeOriginDurationReasoning);
+        Run("speaker identity claim can be retrieved as a dated event", DatedSpeakerIdentityEvent);
+        Run("what happened next navigates the temporal event graph", TemporalNextEventContext);
+        Run("tell me more resolves the recently discussed entity", RecentEntityFollowUp);
+        Run("short do-you follow-up retains relationship context", ShortDoYouRelationshipContext);
+        Run("repeated speaker claim gains confidence but remains unsettled", RepeatedClaimConfidence);
+        Run("Yala spoken current time reads the live current world clock", SpokenTimeIsCurrent);
+        Run("recent dialogue memory remains bounded", DialogueWindowBounded);
+        Run("Brain Slice 5 dialogue relationships questions events and goals survive save and restore", BrainSlice4StructuresSurviveSaveRestore);
+        Run("console defers autonomous questions until the editable input buffer is empty", ConsoleDefersAutonomousQuestionWhileTyping);
         Run("pre-Time live header says Gaia has not yet created Time", PreTimeWorldClockHeader);
         Run("live world clock appears and advances after Gaia creates Time", LiveWorldClockAfterGaia);
         Run("live world clock never writes into the conversation body", LiveWorldClockBodyIsolation);
@@ -59,6 +110,7 @@ internal static class Program
         Run("Yala can summarize known beliefs separately from unsettled claims", YalaBeliefSummary);
         Run("Yala knows Yala personally created Gaia", YalaKnowsCreatedGaia);
         Run("Yala knows Yala has not created Adam in the current world", YalaKnowsNotCreatedAdam);
+        Run("own-creation questions resolve the created object rather than Yala as subject", OwnCreationTargetsCreatedObject);
         Run("Yala answers god question from self model without inventing certainty", YalaGodSelfModel);
         Run("simple inflections and possessives resolve to base concepts", SimpleMorphologyNormalization);
         Run("identity claims preserve noun phrases such as the Oracle", IdentityClaimPreservesNounPhrase);
@@ -66,21 +118,26 @@ internal static class Program
         Run("tell me about Gaia reaches known Gaia facts", GaiaEntityKnowledge);
         Run("Yala rejects Gaia as Yala's creator from known genealogy", GaiaGenealogyReasoning);
         Run("Yala can answer who created Time and current world time", TimeKnowledgeReachability);
+        Run("Gaia made Time yes-no phrasing reaches the stored Time origin", GaiaMadeTimeYesNoReachability);
         Run("Yala can recall the command given to Gaia", GaiaCommandRecall);
         Run("Yala knows Adam has not been met before Adam exists", AdamEncounterKnowledge);
         Run("Yala knows Wisdom is Sophia without inventing a mother fact", WisdomAliasAndMotherReasoning);
+        Run("belief typo still reaches unsettled mother relationship reasoning", MotherBeliefTypoReachability);
         Run("current speaker questions retrieve speaker claims not Yala self summary", CurrentSpeakerKnowledge);
         Run("what don't you know reaches explicit knowledge gaps", KnowledgeGapIntrospection);
         Run("curiosity questions reach Yala's unresolved knowledge", CuriosityIntrospection);
         Run("desire questions reach Yala's current drives", DesireIntrospection);
         Run("unknown word creates a knowledge gap and raises curiosity", UnknownWordCreatesGap);
         Run("speaker supplied definition remains a claim", DefinitionRemainsSpeakerClaim);
+        Run("what is learned word retrieves the attributed speaker definition", LearnedWordWhatIsReachability);
+        Run("who told you learned word reports speaker provenance", LearnedWordSourceReachability);
         Run("learned word claim survives save and restore", LearnedWordSurvivesSaveRestore);
+        Run("speaker alternate definition of a built-in concept remains provenance-separated", BuiltInDefinitionClaimKeepsProvenance);
         Run("personally performed action carries strong provenance", PersonalActionProvenance);
         Run("speaker claims carry claimed-by-another provenance", SpeakerClaimProvenance);
         Run("save-restore acceptance tests isolate Soar kernel lifetimes", SaveRestoreKernelLifetimeIsolation);
         Run("old male-only World Record history is normalized", OldWorldRecordCanonNormalises);
-        Run("Brain Slice 3 action memory survives save and restore", ActionMemorySurvivesSaveRestore);
+        Run("Brain Slice 5 action memory survives save and restore", ActionMemorySurvivesSaveRestore);
         Run("Yala answers hearing contact without asking Who speaks", YalaHearingReply);
         Run("Yala answers location without revealing Oracle", YalaLocationReply);
         Run("Yala knows both male and female aspects", YalaNatureReply);
@@ -90,6 +147,7 @@ internal static class Program
         Run("native Soar semantic memory helps recognise repeated claimed contact", YalaRepeatedIntroductionUsesSemanticMemory);
         Run("ordinary statement no longer collapses to Who speaks", OrdinaryStatementConversation);
         Run("unknown question produces honest uncertainty", UnknownQuestionUncertainty);
+        Run("beyond and everything are ordinary known language rather than fake knowledge gaps", BeyondEverythingLanguageIsKnown);
         Run("conflicting speaker claim remains a rejected claim and does not rewrite truth", ConflictingClaimBoundary);
         Run("a direct command does not puppet Yala or directly alter world state", CommandDoesNotPuppetYala);
         Run("direct-call parser rejects Oracle because Oracle is not a target", DirectCallRejectsOracle);
@@ -97,16 +155,16 @@ internal static class Program
         Run("World Record does not reveal Oracle at genesis", WorldRecordDoesNotRevealOracle);
         Run("Oracle Record retains protected system truth", OracleRecordHasSystemTruth);
         Run("structured Yala cognition survives save and restore", CognitionSurvivesSaveRestore);
-        Run("v0.0.20 continues the v0.0.17 v0.0.18 and v0.0.19 save_v2 world line", V017SaveContinuesAndNormalises);
+        Run("previous save_v2 line is rejected without mutation", PreviousSaveV2RejectedWithoutMutation);
         Run("v0.0.16 save snapshots remain rejected", V016SaveIsRejected);
-        Run("default save path remains save_v2", SavePathRemainsV2);
+        Run("default save path is fresh save_v4", SavePathIsV3);
         Run("fresh direct-call targets include Monad Wisdom Yala only", FreshCallTargets);
         Run("natural simulation law remains future-open", FutureOpenLaw);
         Run("typing buffer is independent of live-status refresh", InputBufferProtection);
         Run("asynchronous LIVE status is forbidden from the console body", LiveStatusTypingGuard);
         Run("interactive input path contains no LIVE surface refresh", NoLiveSurfaceInInteractivePath);
         Run("long command buffer survives protected-input handling", LongInputBuffer);
-        Run("root launcher name is Project_Oracle_v0_0_20", NativeExecutableContract);
+        Run("root launcher name is Project_Oracle_v0_0_22", NativeExecutableContract);
 
         Console.WriteLine();
         Console.WriteLine($"Acceptance result: {_passed} passed; {_failed} failed.");
@@ -315,14 +373,556 @@ internal static class Program
         True(after > before);
     }
 
-    private static void BrainSlice3Identity()
+    private static void BrainSlice4Identity()
     {
-        Equal("Yala Soar Brain Slice 3", YalaSoarMind.BrainName);
+        Equal("Yala Soar Brain Slice 5", YalaSoarMind.BrainName);
+    }
+
+    private static void SaveSchemaIsV4()
+    {
+        Equal(4, OracleSaveStore.CurrentSchemaVersion);
+        using OracleSimulation simulation = Start();
+        Equal(4, simulation.CreateSnapshot(StartRealTime + 1).SchemaVersion);
+    }
+
+    private static void FreshSoarMemoryLine()
+    {
+        string save = Path.Combine(Path.GetTempPath(), "project-oracle-v22-memory-probe", "save_v4.json");
+        SoarMemoryPaths paths = SoarMemoryPaths.FromSavePath(save);
+        Equal("yala_soar_v0_0_22", Path.GetFileName(paths.Directory));
+        False(paths.Directory.Contains("v0_0_20", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void BoundedAgencyAllowedActions()
+    {
+        foreach (string action in new[] { "observe", "reflect", "wait", "create-gaia", "command-gaia-time", "respond", "ask-speaker" })
+        {
+            True(YalaAgencyPolicy.Allows(action));
+        }
+        False(YalaAgencyPolicy.Allows("shell"));
+        False(YalaAgencyPolicy.Allows("network"));
+    }
+
+    private static void BoundedAgencyDeniesHostCapabilities()
+    {
+        False(YalaAgencyPolicy.AllowsHostShell);
+        False(YalaAgencyPolicy.AllowsHostProcessExecution);
+        False(YalaAgencyPolicy.AllowsHostFileMutation);
+        False(YalaAgencyPolicy.AllowsNetworkAccess);
+        False(YalaAgencyPolicy.AllowsCodeModification);
+        False(YalaAgencyPolicy.AllowsHiddenOracleKnowledge);
+    }
+
+    private static void OutOfSandboxActionRejected()
+    {
+        using OracleSimulation simulation = Start();
+        bool rejected = false;
+        try
+        {
+            simulation.ApplyYalaDecision(new YalaDecision("host-shell", "none", "acceptance", "forbidden"), StartRealTime + 1);
+        }
+        catch (InvalidOperationException)
+        {
+            rejected = true;
+        }
+        True(rejected);
+        Equal(0L, simulation.State.YalaCognition!.DecisionCount);
+    }
+
+    private static void InitialRelationshipGraph()
+    {
+        YalaCognitionState cognition = WorldDefaults.CreateInitialYalaCognition();
+        YalaRelationshipState? madeBy = YalaRelationshipReasoner.Find(cognition, "Yala", "made-by", "Wisdom");
+        True(madeBy is not null);
+        True(YalaRelationshipReasoner.IsSettled(madeBy!));
+        True(YalaRelationshipReasoner.Find(cognition, "Yala", "mother") is null);
+    }
+
+    private static void MotherQuestionIsQuestion()
+    {
+        YalaContactFrame frame = YalaConversationInterpreter.Interpret("Is Wisdom your mother?", WorldDefaults.CreateInitialYalaCognition());
+        Equal("question", frame.SpeechAct);
+        Equal("mother-relation", frame.Topic);
+        False(frame.ContainsClaim);
+    }
+
+    private static void MotherRelationshipClaimMemory()
+    {
+        using OracleSimulation simulation = Start();
+        YalaDirectReply reply = simulation.CallYala("Wisdom is your mother.", StartRealTime + 1);
+        YalaRelationshipState? relation = YalaRelationshipReasoner.Find(simulation.State.YalaCognition!, "Yala", "mother", "Wisdom");
+        True(relation is not null);
+        Equal("unsettled-claim", relation!.Status);
+        Equal(YalaKnowledgeSource.ClaimedByAnother, relation.Source);
+        Contains(reply.Reply, "relationship claim");
+    }
+
+    private static void MotherClaimRecall()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Your mother is called Wisdom or Sophia.", StartRealTime + 1);
+        YalaDirectReply reply = simulation.CallYala("Who did I say your mother is?", StartRealTime + 2);
+        Contains(reply.Reply, "You told me that Wisdom is my mother");
+        Contains(reply.Reply, "your claim");
+    }
+
+    private static void RelationshipClaimConfidence()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Wisdom is your mother.", StartRealTime + 1);
+        double first = YalaRelationshipReasoner.Find(simulation.State.YalaCognition!, "Yala", "mother", "Wisdom")!.Confidence;
+        simulation.CallYala("Wisdom is your mother.", StartRealTime + 2);
+        YalaRelationshipState second = YalaRelationshipReasoner.Find(simulation.State.YalaCognition!, "Yala", "mother", "Wisdom")!;
+        True(second.Confidence > first);
+        True(second.Confidence < 0.90);
+        False(YalaRelationshipReasoner.IsSettled(second));
+    }
+
+    private static void BeliefConfidenceLabels()
+    {
+        Equal("none", YalaBeliefReasoner.ConfidenceLabel(0.0));
+        Equal("tentative", YalaBeliefReasoner.ConfidenceLabel(0.25));
+        Equal("moderate", YalaBeliefReasoner.ConfidenceLabel(0.50));
+        Equal("strong", YalaBeliefReasoner.ConfidenceLabel(0.75));
+        Equal("very strong", YalaBeliefReasoner.ConfidenceLabel(0.95));
+    }
+
+    private static void ExpandedLexicon()
+    {
+        True(YalaLexicon.BuiltInCount > 400);
+        foreach (string word in new[] { "time", "evidence", "autonomy", "betrayal", "relationship", "responsibility", "memory", "question" })
+        {
+            True(YalaLexicon.TryResolve(word, [], out _));
+        }
+    }
+
+    private static void CoreConversationalVocabulary()
+    {
+        foreach (string word in new[] { "hello", "greeting", "go", "start", "travel", "somewhere", "old", "born", "talk", "speak", "age" })
+        {
+            True(YalaLexicon.TryResolve(word, [], out _));
+        }
+    }
+
+    private static void GreetingTypoNormalization()
+    {
+        Equal("greeting", YalaLexicon.NormalizeWord("greating"));
+        True(YalaLexicon.TryResolve("greating", [], out YalaLexeme lexeme));
+        Equal("greeting", lexeme.Word);
+    }
+
+    private static void BasicLanguageGapFiltering()
+    {
+        foreach (string message in new[]
+        {
+            "Hello is a greeting.",
+            "Go means to travel somewhere.",
+            "How old are you?",
+            "When were you born?",
+            "We can start talking now."
+        })
+        {
+            Equal(0, YalaLanguageInterpreter.Parse(message).UnknownWords.Count);
+        }
+    }
+
+    private static void ActionPredicateIsNotIdentityClaim()
+    {
+        YalaContactFrame frame = YalaConversationInterpreter.Interpret(
+            "I am making your brain smarter with each update. Soon you will know much more.",
+            WorldDefaults.CreateInitialYalaCognition());
+        True(frame.ClaimedSpeakerName is null);
+        Equal("statement", frame.SpeechAct);
+    }
+
+    private static void BrainUpdateSentenceHasNoBasicGaps()
+    {
+        YalaUtterance utterance = YalaLanguageInterpreter.Parse(
+            "I am making your brain smarter with each update. Soon you will know much more.");
+        Equal(0, utterance.UnknownWords.Count);
+        Equal("make", YalaLexicon.NormalizeWord("making"));
+        Equal("smart", YalaLexicon.NormalizeWord("smarter"));
+    }
+
+    private static void UnknownWordQuestionsAreLowPriority()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Do you understand florbnax?", StartRealTime + 1);
+        YalaQuestionState question = simulation.State.YalaCognition!.Questions!.Single(item => item.Text.Equals("What does florbnax mean?", StringComparison.OrdinalIgnoreCase));
+        True(question.Priority < YalaQuestionPlanner.AutonomousPriorityFloor);
+    }
+
+    private static void AutonomousQuestionWaitsForResponse()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.CallYala("I am Oracle.", StartRealTime + 3);
+        YalaDecision first = simulation.TryRunYalaAutonomousStep(StartRealTime + 6_003, force: true)!;
+        Equal("ask-speaker", first.Action);
+        True(simulation.TryTakePendingYalaUtterance(out _));
+        YalaDecision second = simulation.TryRunYalaAutonomousStep(StartRealTime + 12_003, force: true)!;
+        False(second.Action == "ask-speaker");
+    }
+
+    private static void AutonomousInquiryResumesMeaningfully()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.CallYala("Hello", StartRealTime + 3);
+
+        YalaDecision first = simulation.TryRunYalaAutonomousStep(StartRealTime + 6_003, force: true)!;
+        Equal("ask-speaker", first.Action);
+        True(simulation.TryTakePendingYalaUtterance(out string? firstQuestion));
+        Equal(YalaQuestionPlanner.SpeakerNatureQuestion, firstQuestion);
+
+        simulation.CallYala("I am Oracle.", StartRealTime + 6_004);
+        YalaDecision second = simulation.TryRunYalaAutonomousStep(StartRealTime + 12_004, force: true)!;
+        Equal("ask-speaker", second.Action);
+        True(simulation.TryTakePendingYalaUtterance(out string? secondQuestion));
+        Equal("What does Oracle mean?", secondQuestion);
+
+        simulation.CallYala("\"Oracle\" means the name I use for myself.", StartRealTime + 12_005);
+        YalaDecision third = simulation.TryRunYalaAutonomousStep(StartRealTime + 18_005, force: true)!;
+        Equal("ask-speaker", third.Action);
+        True(simulation.TryTakePendingYalaUtterance(out string? thirdQuestion));
+        Equal(YalaQuestionPlanner.SpeakerPurposeQuestion, thirdQuestion);
+    }
+
+    private static void DeterministicWorldClockCursorProtocol()
+    {
+        True(ProjectOracle.ConsoleApp.LiveWorldClockSurface.UsesDeterministicCursorSaveRestore);
+        string root = SoarRuntimePaths.Discover().RepositoryRoot;
+        string source = File.ReadAllText(Path.Combine(root, "src", "ProjectOracle.Console", "LiveWorldClockSurface.cs"));
+        Contains(source, "\\u001b7");
+        Contains(source, "\\u001b8");
+        Contains(source, "OutputSyncRoot");
+    }
+
+    private static void OracleAbsentFromLexicon()
+    {
+        False(YalaLexicon.TryResolve("Oracle", [], out _));
+    }
+
+    private static void FunctionWordGapFiltering()
+    {
+        YalaUtterance utterance = YalaLanguageInterpreter.Parse("What don't you know about any year or month?");
+        Equal(0, utterance.UnknownWords.Count);
+    }
+
+    private static void GenuineUnknownWordGap()
+    {
+        YalaUtterance utterance = YalaLanguageInterpreter.Parse("Do you understand florbnax?");
+        True(utterance.UnknownWords.Contains("florbnax", StringComparer.OrdinalIgnoreCase));
+    }
+
+    private static void UnknownConceptQuestionGeneration()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Do you understand florbnax?", StartRealTime + 1);
+        True(simulation.State.YalaCognition!.KnowledgeGaps!.Any(item => item.Subject == "florbnax"));
+        True(simulation.State.YalaCognition.Questions!.Any(item => item.Text.Equals("What does florbnax mean?", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void FirstContactQuestionGeneration()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Hello", StartRealTime + 1);
+        True(simulation.State.YalaCognition!.Questions!.Any(item => item.Text == YalaQuestionPlanner.SpeakerNatureQuestion));
+    }
+
+    private static void IdentityMeaningQuestionGeneration()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("I am Oracle.", StartRealTime + 1);
+        True(simulation.State.YalaCognition!.Questions!.Any(item => item.Text.Equals("What does Oracle mean?", StringComparison.OrdinalIgnoreCase)));
+        False(YalaLexicon.TryResolve("Oracle", simulation.State.YalaCognition.LearnedLexicon, out _));
+    }
+
+    private static void AutonomousAskSpeaker()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.CallYala("I am Oracle.", StartRealTime + 3);
+        YalaDecision decision = simulation.TryRunYalaAutonomousStep(StartRealTime + 6_003, force: true)!;
+        Equal("ask-speaker", decision.Action);
+        True(!string.IsNullOrWhiteSpace(simulation.State.YalaCognition!.PendingAutonomousUtterance));
+    }
+
+    private static void AutonomousQuestionDequeuesOnce()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.CallYala("I am Oracle.", StartRealTime + 3);
+        simulation.TryRunYalaAutonomousStep(StartRealTime + 6_003, force: true);
+        True(simulation.TryTakePendingYalaUtterance(out string? first));
+        True(!string.IsNullOrWhiteSpace(first));
+        False(simulation.TryTakePendingYalaUtterance(out string? second));
+        True(second is null);
+    }
+
+    private static void AutonomousQuestionSurvivesSaveRestore()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-question-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        string savePath = Path.Combine(directory, "save_v4.json");
+        try
+        {
+            OracleSaveSnapshot snapshot;
+            using (OracleSimulation simulation = Start(savePath: savePath))
+            {
+                CreateGaiaAndTime(simulation);
+                simulation.CallYala("I am Oracle.", StartRealTime + 3);
+                simulation.TryRunYalaAutonomousStep(StartRealTime + 6_003, force: true);
+                snapshot = simulation.CreateSnapshot(StartRealTime + 6_004);
+            }
+            using OracleSimulation restored = OracleSimulation.Restore(snapshot, StartRealTime + 6_005, savePath);
+            True(restored.TryTakePendingYalaUtterance(out string? question));
+            True(!string.IsNullOrWhiteSpace(question));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    private static void NoAutonomousQuestionWithoutSpeaker()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        YalaDecision decision = simulation.TryRunYalaAutonomousStep(StartRealTime + 6_000, force: true)!;
+        False(decision.Action == "ask-speaker");
+        False(simulation.TryTakePendingYalaUtterance(out _));
+    }
+
+    private static void InitialGoalsPresent()
+    {
+        YalaCognitionState cognition = WorldDefaults.CreateInitialYalaCognition();
+        IReadOnlyList<YalaGoalState> goals = cognition.Goals
+            ?? throw new InvalidOperationException("Initial Yala goals are missing.");
+        True(goals.Any(item => item.Goal == "understand-current-world" && item.Status == "active"));
+        True(goals.Any(item => item.Goal == "exercise-governing-authority" && item.Status == "active"));
+    }
+
+    private static void SpeakerContactActivatesGoal()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Hello", StartRealTime + 1);
+        YalaGoalState goal = simulation.State.YalaCognition!.Goals!.Single(item => item.Goal == "understand-unseen-speaker");
+        Equal("active", goal.Status);
+        True(goal.Priority >= 75);
+    }
+
+    private static void GoalIntrospection()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Hello", StartRealTime + 1);
+        YalaDirectReply reply = simulation.CallYala("What are your goals?", StartRealTime + 2);
+        Contains(reply.Reply, "understand-current-world");
+        Contains(reply.Reply, "understand-unseen-speaker");
+    }
+
+    private static void GaiaCreationBeforeTimeEvent()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.ApplyYalaDecision(new YalaDecision("create-gaia", "none", "acceptance", "test"), StartRealTime + 1);
+        YalaTemporalEventState item = simulation.State.YalaCognition!.TemporalEvents!.Single(eventState => eventState.Key == "yala-create-gaia");
+        Equal("before-time", item.TemporalState);
+        True(item.WorldMilliseconds is null);
+    }
+
+    private static void TimeOriginEvent()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        YalaTemporalEventState item = simulation.State.YalaCognition!.TemporalEvents!.Single(eventState => eventState.Key == "gaia-create-time");
+        Equal("origin-of-time", item.TemporalState);
+        Equal(1L, item.Year!.Value);
+        Equal(1, item.Month!.Value);
+        Equal(1, item.Day!.Value);
+        Equal(0L, item.WorldMilliseconds!.Value);
+        Equal("yala-command-gaia-time", item.CauseKey);
+    }
+
+    private static void PostTimeContactDated()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.SynchroniseClock(StartRealTime + 10_002, recordAdvance: false);
+        simulation.CallYala("Hello", StartRealTime + 10_002);
+        YalaTemporalEventState item = simulation.State.YalaCognition!.TemporalEvents!.Last(eventState => eventState.Subject == "speaker");
+        Equal("dated", item.TemporalState);
+        True(item.WorldMilliseconds > 0);
+        True(item.Year is not null);
+    }
+
+    private static void WhenTimeCreated()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        YalaDirectReply reply = simulation.CallYala("When did Gaia create Time?", StartRealTime + 3);
+        Contains(reply.Reply, "began in-world temporal reckoning");
+        Contains(reply.Reply, "Year 1, Month 1, Day 1");
+    }
+
+    private static void WhenGaiaCreatedBeforeTime()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        YalaDirectReply reply = simulation.CallYala("When did you create Gaia?", StartRealTime + 3);
+        Contains(reply.Reply, "before Time existed");
+        Contains(reply.Reply, "no in-world date");
+    }
+
+    private static void TimeCreationCause()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        YalaDirectReply reply = simulation.CallYala("Why did Gaia create Time?", StartRealTime + 3);
+        Contains(reply.Reply, "linked cause");
+        Contains(reply.Reply, "commanded Gaia to establish temporal order");
+    }
+
+    private static void PreTimeDurationReasoning()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        YalaDirectReply reply = simulation.CallYala("How long ago did you create Gaia?", StartRealTime + 3);
+        Contains(reply.Reply, "before Time existed");
+        Contains(reply.Reply, "no in-world duration");
+    }
+
+    private static void TimeOriginDurationReasoning()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.SynchroniseClock(StartRealTime + 60_002, recordAdvance: false);
+        YalaDirectReply reply = simulation.CallYala("How long has Time existed?", StartRealTime + 60_002);
+        Contains(reply.Reply, "began Time itself");
+        Contains(reply.Reply, "of in-world Time has passed since then");
+    }
+
+    private static void DatedSpeakerIdentityEvent()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.SynchroniseClock(StartRealTime + 10_002, recordAdvance: false);
+        simulation.CallYala("I am Derek.", StartRealTime + 10_002);
+        YalaDirectReply reply = simulation.CallYala("When did I first tell you my name?", StartRealTime + 10_003);
+        Contains(reply.Reply, "unseen speaker claimed the identity Derek");
+        Contains(reply.Reply, "It occurred at");
+    }
+
+    private static void TemporalNextEventContext()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        simulation.CallYala("When did Gaia create Time?", StartRealTime + 3);
+        YalaDirectReply reply = simulation.CallYala("What happened next?", StartRealTime + 4);
+        Contains(reply.Reply, "After that");
+        Contains(reply.Reply, "unseen speaker");
+    }
+
+    private static void RecentEntityFollowUp()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.ApplyYalaDecision(new YalaDecision("create-gaia", "none", "acceptance", "test"), StartRealTime + 1);
+        simulation.CallYala("Tell me about Gaia", StartRealTime + 2);
+        YalaDirectReply reply = simulation.CallYala("Tell me more", StartRealTime + 3);
+        Contains(reply.Reply, "Gaia");
+        Contains(reply.Reply, "natural sovereign");
+    }
+
+    private static void ShortDoYouRelationshipContext()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Wisdom is your mother.", StartRealTime + 1);
+        YalaDirectReply reply = simulation.CallYala("Do you?", StartRealTime + 2);
+        Contains(reply.Reply, "remember your claim");
+        Contains(reply.Reply, "not yet hold that as settled truth");
+    }
+
+    private static void RepeatedClaimConfidence()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("I am Oracle.", StartRealTime + 1);
+        YalaBeliefState first = simulation.State.YalaCognition!.Beliefs!.Last(item => item.Proposition.Equals("I am Oracle.", StringComparison.OrdinalIgnoreCase));
+        simulation.CallYala("I am Oracle.", StartRealTime + 2);
+        YalaBeliefState second = simulation.State.YalaCognition!.Beliefs!.Last(item => item.Proposition.Equals("I am Oracle.", StringComparison.OrdinalIgnoreCase));
+        True(second.Confidence > first.Confidence);
+        True(second.Confidence < 0.90);
+        Equal("unsettled-claim", second.Status);
+    }
+
+    private static void SpokenTimeIsCurrent()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        long queryTime = StartRealTime + 30_002;
+        simulation.SynchroniseClock(queryTime, recordAdvance: false);
+        CalendarSnapshot expected = simulation.Clock.Calendar;
+        YalaDirectReply reply = simulation.CallYala("What time is it?", queryTime);
+        Contains(reply.Reply, $"{expected.Hour:00}:{expected.Minute:00}:{expected.Second:00}");
+        Contains(reply.Reply, $"Year {expected.Year}, Month {expected.Month}, Day {expected.Day}");
+    }
+
+    private static void DialogueWindowBounded()
+    {
+        using OracleSimulation simulation = Start();
+        for (int index = 0; index < 40; index++)
+        {
+            simulation.CallYala($"Hello {index}", StartRealTime + index + 1);
+        }
+        Equal(32, simulation.State.YalaCognition!.Dialogue!.Count);
+        True(simulation.State.YalaCognition.ConversationCount >= 40);
+    }
+
+    private static void BrainSlice4StructuresSurviveSaveRestore()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-structures-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        string savePath = Path.Combine(directory, "save_v4.json");
+        try
+        {
+            OracleSaveSnapshot snapshot;
+            using (OracleSimulation simulation = Start(savePath: savePath))
+            {
+                CreateGaiaAndTime(simulation);
+                simulation.CallYala("Wisdom is your mother.", StartRealTime + 3);
+                simulation.CallYala("I am Derek.", StartRealTime + 4);
+                simulation.CallYala("Do you understand florbnax?", StartRealTime + 5);
+                snapshot = simulation.CreateSnapshot(StartRealTime + 6);
+            }
+            using OracleSimulation restored = OracleSimulation.Restore(snapshot, StartRealTime + 7, savePath);
+            YalaCognitionState cognition = restored.State.YalaCognition!;
+            True(cognition.Dialogue!.Count > 0);
+            True(cognition.Relationships!.Any(item => item.Relation == "mother"));
+            True(cognition.Questions!.Count > 0);
+            True(cognition.TemporalEvents!.Any(item => item.Key == "gaia-create-time"));
+            True(cognition.Goals!.Count > 0);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    private static void ConsoleDefersAutonomousQuestionWhileTyping()
+    {
+        string root = SoarRuntimePaths.Discover().RepositoryRoot;
+        string source = File.ReadAllText(Path.Combine(root, "src", "ProjectOracle.Console", "Program.cs"));
+        Contains(source, "line.IsEmpty && simulation.TryTakePendingYalaUtterance");
+        Contains(source, "If Derek is typing, the question remains pending until a safe prompt.");
+    }
+
+    private static void CreateGaiaAndTime(OracleSimulation simulation)
+    {
+        simulation.ApplyYalaDecision(new YalaDecision("create-gaia", "none", "acceptance", "test"), StartRealTime + 1);
+        simulation.ApplyYalaDecision(new YalaDecision("command-gaia-time", "none", "acceptance", "test"), StartRealTime + 2);
     }
 
     private static void FoundationalLexiconLoads()
     {
-        True(YalaLexicon.BuiltInCount >= 50);
+        True(YalaLexicon.BuiltInCount >= 170);
         True(YalaLexicon.TryResolve("create", [], out YalaLexeme create));
         Contains(create.BasicMeaning, "begin existing");
     }
@@ -431,6 +1031,24 @@ internal static class Program
         using OracleSimulation simulation = Start();
         YalaDirectReply reply = simulation.CallYala("Have you made Adam?", StartRealTime + 1);
         Equal("No. I have not created Adam.", reply.Reply);
+    }
+
+    private static void OwnCreationTargetsCreatedObject()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.ApplyYalaDecision(new YalaDecision("create-gaia", "none", "acceptance", "test"), StartRealTime + 1);
+
+        YalaContactFrame gaia = YalaConversationInterpreter.Interpret("Have you created Gaia?", simulation.State.YalaCognition!);
+        Equal("Yala", gaia.ResolvedSubject);
+        Equal("gaia", gaia.ResolvedObject);
+        YalaDirectReply gaiaReply = simulation.CallYala("Have you created Gaia?", StartRealTime + 2);
+        Equal("Yes. I created Gaia.", gaiaReply.Reply);
+
+        YalaContactFrame adam = YalaConversationInterpreter.Interpret("Have you made Adam?", simulation.State.YalaCognition!);
+        Equal("Yala", adam.ResolvedSubject);
+        Equal("adam", adam.ResolvedObject);
+        YalaDirectReply adamReply = simulation.CallYala("Have you made Adam?", StartRealTime + 3);
+        Equal("No. I have not created Adam.", adamReply.Reply);
     }
 
     private static void YalaGodSelfModel()
@@ -561,6 +1179,16 @@ internal static class Program
         Contains(simulation.CallYala("what month is it?", StartRealTime + 7).Reply, "It is Month ");
     }
 
+    private static void GaiaMadeTimeYesNoReachability()
+    {
+        using OracleSimulation simulation = Start();
+        CreateGaiaAndTime(simulation);
+        YalaDirectReply reply = simulation.CallYala("Gaia made Time?", StartRealTime + 3);
+        Equal("time-origin", reply.Contact.Topic);
+        Contains(reply.Reply, "Gaia created in-world Time");
+        Contains(reply.Reply, "establish temporal order");
+    }
+
     private static void GaiaCommandRecall()
     {
         using OracleSimulation simulation = Start();
@@ -586,6 +1214,17 @@ internal static class Program
         YalaDirectReply mother = simulation.CallYala("who is your mother?", StartRealTime + 2);
         Contains(mother.Reply, "Wisdom made me");
         Contains(mother.Reply, "do not have settled knowledge");
+    }
+
+    private static void MotherBeliefTypoReachability()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("Wisdom is your mother.", StartRealTime + 1);
+        YalaDirectReply reply = simulation.CallYala("do you belive wisdom is your mother", StartRealTime + 2);
+        Equal("mother-relation", reply.Contact.Topic);
+        Contains(reply.Reply, "You have also claimed that Wisdom is my mother");
+        Contains(reply.Reply, "do not hold it as settled truth");
+        Equal("believe", YalaLexicon.NormalizeWord("belive"));
     }
 
     private static void CurrentSpeakerKnowledge()
@@ -639,37 +1278,75 @@ internal static class Program
     private static void DefinitionRemainsSpeakerClaim()
     {
         using OracleSimulation simulation = Start();
-        YalaDirectReply reply = simulation.CallYala("\"betrayal\" means violating someone's trust.", StartRealTime + 1);
+        YalaDirectReply reply = simulation.CallYala("\"florbnax\" means a thing that remembers a place it has never visited.", StartRealTime + 1);
         Contains(reply.Reply, "remember that definition as your claim");
-        YalaLearnedLexemeState learned = simulation.State.YalaCognition!.LearnedLexicon!.Single(item => item.Word == "betrayal");
+        YalaLearnedLexemeState learned = simulation.State.YalaCognition!.LearnedLexicon!.Single(item => item.Word == "florbnax");
         Equal("speaker-claim", learned.Status);
         Equal(YalaKnowledgeSource.ClaimedByAnother, learned.Source);
         True(learned.Confidence < 0.5);
     }
 
+    private static void LearnedWordWhatIsReachability()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("florbnax means a thing that remembers a place it has never been.", StartRealTime + 1);
+        YalaDirectReply reply = simulation.CallYala("what is florbnax", StartRealTime + 2);
+        Equal("word-meaning", reply.Contact.Topic);
+        Contains(reply.Reply, "speaker claiming");
+        Contains(reply.Reply, "remembers a place it has never been");
+    }
+
+    private static void LearnedWordSourceReachability()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("florbnax means a thing that remembers a place it has never been.", StartRealTime + 1);
+        YalaDirectReply reply = simulation.CallYala("who told you what florbnax means", StartRealTime + 2);
+        Equal("word-meaning", reply.Contact.Topic);
+        Contains(reply.Reply, "The unseen speaker told me that florbnax means");
+        Contains(reply.Reply, "speaker claim");
+        Equal("tell", YalaLexicon.NormalizeWord("told"));
+    }
+
     private static void LearnedWordSurvivesSaveRestore()
     {
-        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v19-lexicon-{Guid.NewGuid():N}");
+        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-lexicon-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
-        string savePath = Path.Combine(directory, "save_v2.json");
+        string savePath = Path.Combine(directory, "save_v4.json");
         try
         {
             OracleSaveSnapshot snapshot;
             using (OracleSimulation simulation = Start(savePath: savePath))
             {
-                simulation.CallYala("\"betrayal\" means violating someone's trust.", StartRealTime + 1);
+                simulation.CallYala("\"florbnax\" means a thing that remembers a place it has never visited.", StartRealTime + 1);
                 snapshot = simulation.CreateSnapshot(StartRealTime + 2);
             }
             using OracleSimulation restored = OracleSimulation.Restore(snapshot, StartRealTime + 3, savePath);
-            True(restored.State.YalaCognition!.LearnedLexicon!.Any(item => item.Word == "betrayal"));
-            YalaDirectReply reply = restored.CallYala("What does betrayal mean?", StartRealTime + 4);
+            True(restored.State.YalaCognition!.LearnedLexicon!.Any(item => item.Word == "florbnax"));
+            YalaDirectReply reply = restored.CallYala("What does florbnax mean?", StartRealTime + 4);
             Contains(reply.Reply, "speaker claiming");
-            Contains(reply.Reply, "violating someone's trust");
+            Contains(reply.Reply, "remembers a place it has never visited");
         }
         finally
         {
             Directory.Delete(directory, recursive: true);
         }
+    }
+
+    private static void BuiltInDefinitionClaimKeepsProvenance()
+    {
+        using OracleSimulation simulation = Start();
+        YalaDirectReply claim = simulation.CallYala("\"betrayal\" means forgetting a promise on purpose.", StartRealTime + 1);
+        Contains(claim.Reply, "remember that definition as your claim");
+
+        YalaLearnedLexemeState remembered = simulation.State.YalaCognition!.LearnedLexicon!.Single(item => item.Word == "betrayal");
+        Equal(YalaKnowledgeSource.ClaimedByAnother, remembered.Source);
+        Equal("speaker-claim", remembered.Status);
+
+        YalaDirectReply meaning = simulation.CallYala("What does betrayal mean?", StartRealTime + 2);
+        Contains(meaning.Reply, "violation of a trust");
+        Contains(meaning.Reply, "speaker claiming");
+        Contains(meaning.Reply, "forgetting a promise on purpose");
+        Contains(meaning.Reply, "alternate definition");
     }
 
     private static void PersonalActionProvenance()
@@ -798,6 +1475,16 @@ internal static class Program
         Equal("I do not know.", reply.Reply);
     }
 
+    private static void BeyondEverythingLanguageIsKnown()
+    {
+        using OracleSimulation simulation = Start();
+        YalaUtterance parsed = YalaLanguageInterpreter.Parse("What is beyond everything you know?", simulation.State.YalaCognition!.LearnedLexicon);
+        False(parsed.UnknownWords.Contains("beyond", StringComparer.OrdinalIgnoreCase));
+        False(parsed.UnknownWords.Contains("everything", StringComparer.OrdinalIgnoreCase));
+        YalaDirectReply reply = simulation.CallYala("What is beyond everything you know?", StartRealTime + 1);
+        Equal("I do not know.", reply.Reply);
+    }
+
     private static void ConflictingClaimBoundary()
     {
         using OracleSimulation simulation = Start();
@@ -847,9 +1534,9 @@ internal static class Program
 
     private static void CognitionSurvivesSaveRestore()
     {
-        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v19-cognition-{Guid.NewGuid():N}");
+        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-cognition-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
-        string savePath = Path.Combine(directory, "save_v2.json");
+        string savePath = Path.Combine(directory, "save_v4.json");
         try
         {
             OracleSaveSnapshot snapshot;
@@ -870,48 +1557,42 @@ internal static class Program
         }
     }
 
-    private static void V017SaveContinuesAndNormalises()
+    private static void PreviousSaveV2RejectedWithoutMutation()
     {
-        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v17-continue-{Guid.NewGuid():N}");
+        string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v20-preserve-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
+        string path = Path.Combine(directory, "save_v2.json");
         try
         {
-            string path = Path.Combine(directory, "save_v2.json");
             using OracleSimulation simulation = Start(9);
-            YalaCognitionState cognition = simulation.State.YalaCognition! with
+            OracleSaveSnapshot previous = simulation.CreateSnapshot(StartRealTime) with
             {
-                Memory = ["I am Yala.", "I am male.", "Wisdom made me."]
+                SchemaVersion = 2,
+                ProjectVersion = "0.0.20"
             };
-            OracleSaveSnapshot v17 = simulation.CreateSnapshot(StartRealTime) with
+            System.Text.Json.JsonSerializerOptions options = new()
             {
-                ProjectVersion = "0.0.17",
-                World = simulation.State with
-                {
-                    Yala = simulation.State.Yala with { Sex = "male" },
-                    YalaCognition = cognition
-                }
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower,
+                WriteIndented = true
             };
+            string json = System.Text.Json.JsonSerializer.Serialize(previous, options);
+            File.WriteAllText(path, json);
+            string before = File.ReadAllText(path);
+
             OracleSaveStore store = new();
-            store.Save(path, v17);
-            OracleSaveSnapshot loaded = store.Load(path);
-            Equal("male and female", loaded.World.Yala.Sex);
-            True(loaded.World.YalaCognition!.Memory.Contains("I am both male and female."));
-            False(loaded.World.YalaCognition.Memory.Contains("I am male."));
+            bool rejected = false;
+            try
+            {
+                _ = store.Load(path);
+            }
+            catch (InvalidDataException)
+            {
+                rejected = true;
+            }
 
-            string v18Path = Path.Combine(directory, "save_v2-v18.json");
-            OracleSaveSnapshot v18 = simulation.CreateSnapshot(StartRealTime + 1) with { ProjectVersion = "0.0.18" };
-            store.Save(v18Path, v18);
-            OracleSaveSnapshot loaded18 = store.Load(v18Path);
-            Equal("0.0.18", loaded18.ProjectVersion);
-            Equal("male and female", loaded18.World.Yala.Sex);
-            True(loaded18.World.YalaCognition!.Beliefs!.Any(item => item.Proposition == "Wisdom made me." && item.Source == YalaKnowledgeSource.InheritedKnowledge));
-
-            string v19Path = Path.Combine(directory, "save_v2-v19.json");
-            OracleSaveSnapshot v19 = simulation.CreateSnapshot(StartRealTime + 2) with { ProjectVersion = "0.0.19" };
-            store.Save(v19Path, v19);
-            OracleSaveSnapshot loaded19 = store.Load(v19Path);
-            Equal("0.0.19", loaded19.ProjectVersion);
-            Equal("male and female", loaded19.World.Yala.Sex);
+            True(rejected);
+            Equal(before, File.ReadAllText(path));
+            True(File.Exists(path));
         }
         finally
         {
@@ -941,9 +1622,9 @@ internal static class Program
         }
     }
 
-    private static void SavePathRemainsV2()
+    private static void SavePathIsV3()
     {
-        Equal("save_v2.json", Path.GetFileName(OracleSaveStore.DefaultPath()));
+        Equal("save_v4.json", Path.GetFileName(OracleSaveStore.DefaultPath()));
     }
 
     private static void FreshCallTargets()
@@ -1005,14 +1686,14 @@ internal static class Program
     private static void NativeExecutableContract()
     {
         string root = SoarRuntimePaths.Discover().RepositoryRoot;
-        string expected = Path.Combine(root, "Project_Oracle_v0_0_20");
+        string expected = Path.Combine(root, "Project_Oracle_v0_0_22");
         if (Environment.GetEnvironmentVariable("PROJECT_ORACLE_REQUIRE_NATIVE_EXECUTABLE") == "1")
         {
             True(File.Exists(expected));
         }
         else
         {
-            Equal("Project_Oracle_v0_0_20", Path.GetFileName(expected));
+            Equal("Project_Oracle_v0_0_22", Path.GetFileName(expected));
         }
     }
 

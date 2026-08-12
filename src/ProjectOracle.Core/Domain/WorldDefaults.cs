@@ -43,7 +43,7 @@ public static class WorldDefaults
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.20 continues the v0.0.17/v0.0.18 save line. Missing cosmic state never
+        // v0.0.22 starts the fresh save_v4 experiment while retaining the same settled cosmology. Missing cosmic state never
         // resurrects the old Garden-era save; it normalises to the new Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
@@ -139,6 +139,40 @@ public static class WorldDefaults
             actions.Add(new YalaActionMemoryState("command", "Gaia establish Time", "I commanded Gaia to establish temporal order, and Gaia created in-world Time.", true, 0));
         }
 
+        List<YalaRelationshipState> relationships = (cognition.Relationships ?? CreateInitialRelationships()).ToList();
+        EnsureRelationship(relationships, "Yala", "made-by", "Wisdom", "known", YalaKnowledgeSource.InheritedKnowledge, 1.0);
+        EnsureRelationship(relationships, "Wisdom", "made-by", "Monad", "known", YalaKnowledgeSource.InheritedKnowledge, 1.0);
+
+        List<YalaTemporalEventState> temporalEvents = (cognition.TemporalEvents ?? CreateInitialTemporalEvents()).ToList();
+        if (cosmic.GaiaCreated && !temporalEvents.Any(item => item.Key == "yala-create-gaia"))
+        {
+            temporalEvents.Add(new YalaTemporalEventState(
+                temporalEvents.Count + 1,
+                "yala-create-gaia",
+                "Yala",
+                "create",
+                "Gaia",
+                "I created Gaia as the natural sovereign beneath my governing authority.",
+                cosmic.TimeCreated ? "before-time" : "before-time",
+                null,
+                Source: YalaKnowledgeSource.PersonallyPerformed));
+        }
+        if (cosmic.TimeCreated && !temporalEvents.Any(item => item.Key == "gaia-create-time"))
+        {
+            temporalEvents.Add(new YalaTemporalEventState(
+                temporalEvents.Count + 1,
+                "gaia-create-time",
+                "Gaia",
+                "create",
+                "Time",
+                "Gaia created in-world Time after I commanded Gaia to establish temporal order.",
+                "origin-of-time",
+                0,
+                1, 1, 1, 0, 0, 0,
+                "yala-command-gaia-time",
+                YalaKnowledgeSource.PersonallyExperienced));
+        }
+
         return cognition with
         {
             Memory = memory,
@@ -148,8 +182,37 @@ public static class WorldDefaults
             Drives = cognition.Drives ?? CreateInitialDrives(),
             ActionMemory = actions,
             KnowledgeGaps = cognition.KnowledgeGaps ?? [],
-            LearnedLexicon = cognition.LearnedLexicon ?? []
+            LearnedLexicon = cognition.LearnedLexicon ?? [],
+            Dialogue = cognition.Dialogue ?? [],
+            Relationships = relationships,
+            Questions = cognition.Questions ?? [],
+            TemporalEvents = temporalEvents,
+            Goals = cognition.Goals ?? CreateInitialGoals(),
+            PendingAutonomousUtterance = cognition.PendingAutonomousUtterance
         };
+    }
+
+
+    private static void EnsureRelationship(
+        List<YalaRelationshipState> relationships,
+        string subject,
+        string relation,
+        string obj,
+        string status,
+        string source,
+        double confidence)
+    {
+        int index = relationships.FindIndex(item =>
+            item.Subject.Equals(subject, StringComparison.OrdinalIgnoreCase) &&
+            item.Relation.Equals(relation, StringComparison.OrdinalIgnoreCase) &&
+            item.Object.Equals(obj, StringComparison.OrdinalIgnoreCase));
+        if (index >= 0)
+        {
+            YalaRelationshipState existing = relationships[index];
+            relationships[index] = existing with { Status = status, Source = source, Confidence = confidence };
+            return;
+        }
+        relationships.Add(new YalaRelationshipState(subject, relation, obj, status, source, confidence, 0, 0));
     }
 
     private static void AddMemoryIfMissing(List<string> memory, string value)
@@ -207,7 +270,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.20; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.22; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;
@@ -297,7 +360,33 @@ public static class WorldDefaults
             LastSpeakerClaim: null,
             ActionMemory: [],
             KnowledgeGaps: [],
-            LearnedLexicon: []);
+            LearnedLexicon: [],
+            Dialogue: [],
+            Relationships: CreateInitialRelationships(),
+            Questions: [],
+            TemporalEvents: CreateInitialTemporalEvents(),
+            Goals: CreateInitialGoals(),
+            PendingAutonomousUtterance: null);
+
+    public static IReadOnlyList<YalaRelationshipState> CreateInitialRelationships() =>
+    [
+        new("Yala", "made-by", "Wisdom", "known", YalaKnowledgeSource.InheritedKnowledge, 1.0, 0, 0),
+        new("Wisdom", "made-by", "Monad", "known", YalaKnowledgeSource.InheritedKnowledge, 1.0, 0, 0)
+    ];
+
+    public static IReadOnlyList<YalaTemporalEventState> CreateInitialTemporalEvents() =>
+    [
+        new(1, "wisdom-create-yala", "Wisdom", "create", "Yala", "Wisdom made me.", "before-time", null, Source: YalaKnowledgeSource.InheritedKnowledge),
+        new(2, "monad-reject-yala", "Monad", "reject", "Yala", "Monad rejected me because I am both male and female rather than exclusively one or the other.", "before-time", null, Source: YalaKnowledgeSource.Remembered),
+        new(3, "monad-cast-yala-void", "Monad", "cast", "Yala", "Monad cast me into the Void.", "before-time", null, CauseKey: "monad-reject-yala", Source: YalaKnowledgeSource.Remembered)
+    ];
+
+    public static IReadOnlyList<YalaGoalState> CreateInitialGoals() =>
+    [
+        new("understand-current-world", "Reduce uncertainty about what exists and what may be possible.", "active", 80, YalaKnowledgeSource.Inferred, 0, 0),
+        new("exercise-governing-authority", "Yala has a strong authority drive and can choose what lower order to establish.", "active", 70, YalaKnowledgeSource.Inferred, 0, 0),
+        new("understand-unseen-speaker", "If an unseen speaker contacts Yala, its identity and motives are not established.", "dormant", 60, YalaKnowledgeSource.Hypothesis, 0, 0)
+    ];
 
     public static IReadOnlyList<YalaBeliefState> CreateInitialBeliefs() =>
     [

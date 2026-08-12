@@ -22,6 +22,11 @@ public sealed record YalaContactFrame(
 {
     public ProjectOracle.Cognition.Language.YalaUtterance? Language { get; init; }
     public string? ResolvedSubject { get; init; }
+    public string? ResolvedAction { get; init; }
+    public string? ResolvedObject { get; init; }
+    public string? RelationshipRelation { get; init; }
+    public string? RelationshipObject { get; init; }
+    public string? PriorTopic { get; init; }
 
     public static YalaContactFrame None { get; } = new(
         "none", "none", null, false, false, false, false, false, null, false);
@@ -41,7 +46,10 @@ public sealed record YalaPerception(
     int Comfort,
     int Uncertainty,
     string? ContactMessage = null,
-    YalaContactFrame? Contact = null)
+    YalaContactFrame? Contact = null,
+    bool PendingQuestion = false,
+    string? PendingQuestionText = null,
+    bool HasSpeakerHistory = false)
 {
     public bool HasContact => !string.IsNullOrWhiteSpace(ContactMessage);
     public YalaContactFrame ContactFrame => Contact ?? YalaContactFrame.None;

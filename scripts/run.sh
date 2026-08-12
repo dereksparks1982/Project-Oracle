@@ -3,8 +3,8 @@ set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
 
-if [[ -x "$project_root/Project_Oracle_v0_0_20" && "${PROJECT_ORACLE_FORCE_DOTNET_RUN:-0}" != "1" ]]; then
-  exec "$project_root/Project_Oracle_v0_0_20" "$@"
+if [[ -x "$project_root/Project_Oracle_v0_0_22" && "${PROJECT_ORACLE_FORCE_DOTNET_RUN:-0}" != "1" ]]; then
+  exec "$project_root/Project_Oracle_v0_0_22" "$@"
 fi
 
 if ! command -v dotnet >/dev/null 2>&1; then

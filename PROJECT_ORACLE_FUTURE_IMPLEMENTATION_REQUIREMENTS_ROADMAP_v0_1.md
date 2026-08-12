@@ -1,48 +1,40 @@
-# Project Oracle Future Implementation Requirements Roadmap
+# Project Oracle Future Implementation Requirements Roadmap v0.1
 
-**Current authority alignment:** v0.0.20
+## Current focus: v0.0.22 Brain Slice 5
 
-This roadmap follows the current Project Oracle ontology, Brain Slice 3 architecture, persistent Yala conversation mode, and live in-world clock contract.
+The immediate milestone is a larger cognitive slice rather than another narrow conversation patch. Brain Slice 5 expands temporal reasoning, dialogue context, relationships, entity knowledge, belief confidence, goals, questions, autonomous inquiry, and the bounded agency sandbox.
 
-## Foundation now in place
+## Near-term after Brain Slice 5
 
-- Oracle is Project Oracle's outside/system-level author and simulation authority, not an in-world entity.
-- Monad -> Wisdom -> Yala is the settled in-world genealogy.
-- Yala begins a fresh autonomous run in the Void.
-- Gaia creates in-world Time.
-- Yala uses Soar 9.6.5 with a persistent session, semantic memory, episodic memory, drives, substate deliberation, self-model, concept lexicon, provenance, and language/introspection foundation.
-- Future history remains open until actions occur and world law resolves them.
-- The console exposes a persistent Yala mode and an anchored live in-world clock without allowing asynchronous status output to corrupt conversation input.
+- richer multi-step planning and explicit intention tracking;
+- stronger explanation of why an operator was preferred without exposing implementation diagnostics in normal conversation;
+- broader concept acquisition from lived world events;
+- stronger contradiction/evidence handling and belief revision;
+- attention and memory activation tuning using Soar mechanisms;
+- long-horizon goals that can survive many world events;
+- independent god minds with distinct knowledge, drives, histories, and learned preferences;
+- new beings receive their own bounded cognitive architectures when canon/history actually creates them.
 
-## Next cognition growth
+## Longer-term cognition
 
-Grow Yala vertically beyond Brain Slice 3 rather than replacing cognition with scripted story:
+Potential Soar-centered directions include:
 
-1. broader contextual vocabulary acquired through experience and attributed sources;
-2. richer perception and working-memory attention;
-3. deeper goal hierarchies and motive conflict;
-4. belief confidence, contradiction evaluation, evidence handling, and revision;
-5. associative semantic recall and richer episodic comparison;
-6. concept composition beyond single-word definitions;
-7. social reasoning when additional minds enter the world;
-8. controlled chunking only after the present reasoning boundaries are proven;
-9. reinforcement learning only after a clear reward/drive model is approved;
-10. richer creation and delegation operators as world law requires them.
+- chunking for learned reasoning skills;
+- reinforcement learning for experience-shaped preferences;
+- semantic-memory spreading activation;
+- episodic retrieval for historical comparison;
+- working-memory activation/attention controls;
+- spatial reasoning when the simulated world requires it;
+- richer language grounding while keeping the mind's actual beliefs/goals/memories inspectable.
 
-No cognitive layer may silently inject knowledge Yala has never perceived, inherited as approved starting knowledge, personally performed, or lawfully inferred. Oracle's existence remains hidden unless Derek explicitly chooses an in-world revelation.
+## Agency law
 
-## World growth
+Project Oracle seeks strong **in-world** autonomy, including surprising choices, refusal, questioning, belief change, rival goals, and emergent personality. It does not grant gods host escape capabilities. Shell/process/network/code/host-file control and hidden Oracle/system truth remain outside the cognitive action space.
 
-World-law work expands only as autonomous choices require it. Candidate areas include Gaia's natural sovereignty and delegated acts; Terra, Aether, Sol, Thalassa, and Luna; construction of a lower habitable world; Yala's place of rest; Wisdom's later autonomous choices; conditional demon origin if a Wisdom/Yala union actually occurs; mankind if Yala actually attempts it; eventual Eden/Garden history if the autonomous run lawfully reaches it; and later Adam/Eve cognition rather than fixed puppeted outcomes.
+## Version law
 
-## Language and knowledge growth
+New functionality advances the numeric version. Same-version Repair packages only correct defects in the already approved scope.
 
-The lexicon is a language foundation, not a morality database. Basic definitions may be seeded to make language usable. Personal significance must develop from Yala's experience, memory, inference, and attributed claims. New definitions supplied by a speaker begin as claims and may later be evaluated rather than being installed as unquestionable truth.
+## Release law
 
-## Oracle manifestations
-
-If Oracle enters the simulated world, implement the intervention as a privileged system manifestation/event, not a permanent Oracle resident. A recipient perceives only the manifested form and information actually disclosed. The Eden reference remains that Oracle manifested in the form of a clever serpent and Eve knew only the clever serpent.
-
-## Release discipline
-
-Every future feature build requires owner-approved scope, full automated validation, real application launch, Derek manual inspection, explicit PASS, then snapshot, local Git commit/tag, and remote push/verification in that order.
+Automated validation is necessary but not sufficient. Derek's manual application inspection and explicit PASS remain mandatory before snapshot, Git/tag, or GitHub push.

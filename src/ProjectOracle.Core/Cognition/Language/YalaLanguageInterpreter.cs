@@ -10,13 +10,13 @@ public static partial class YalaLanguageInterpreter
         "a", "an", "the", "i", "me", "my", "you", "your", "it", "its", "we", "our", "they", "their", "he", "she", "this", "that",
         "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "to", "of", "in", "on", "at",
         "for", "from", "with", "and", "or", "but", "if", "then", "than", "as", "what", "who", "where", "when", "why", "how", "can", "could",
-        "would", "will", "shall", "should", "not", "no", "never", "yes", "only", "both", "about", "any", "don't", "dont"
+        "would", "will", "shall", "should", "may", "might", "must", "not", "no", "never", "yes", "only", "both", "about", "any", "some", "much", "many", "all", "each", "every", "another", "other", "don't", "dont", "doesn't", "doesnt", "didn't", "didnt", "can't", "cant", "cannot", "won't", "wont", "please", "yet", "already", "still", "really", "actually"
     };
 
     private static readonly HashSet<string> KnownVerbForms = new(StringComparer.OrdinalIgnoreCase)
     {
         "know", "believe", "doubt", "remember", "forget", "learn", "do", "make", "made", "create", "created", "destroy", "change", "choose", "command",
-        "obey", "refuse", "attempt", "succeed", "fail", "accept", "reject", "want", "need", "say", "ask", "answer", "tell", "mean", "means", "hear", "meet"
+        "obey", "refuse", "attempt", "succeed", "fail", "accept", "reject", "want", "need", "say", "ask", "answer", "tell", "mean", "means", "hear", "meet", "trust", "deceive", "think", "understand", "explain", "decide", "plan", "intend", "happen", "exist", "infer", "agree", "disagree", "love", "hate", "teach", "grow", "decay"
     };
 
     public static YalaUtterance Parse(string message, IReadOnlyList<YalaLearnedLexemeState>? learned = null)
@@ -32,13 +32,20 @@ public static partial class YalaLanguageInterpreter
             proposedDefinition = definition.Groups[2].Value.Trim().TrimEnd('.', '!', '?');
         }
 
-        string normalized = Regex.Replace(raw.ToLowerInvariant(), @"[^\p{L}\p{N}'\-]+", " ").Trim();
+        string normalized = raw.ToLowerInvariant()
+            .Replace("don't", "do not", StringComparison.Ordinal)
+            .Replace("doesn't", "does not", StringComparison.Ordinal)
+            .Replace("didn't", "did not", StringComparison.Ordinal)
+            .Replace("can't", "can not", StringComparison.Ordinal)
+            .Replace("cannot", "can not", StringComparison.Ordinal)
+            .Replace("won't", "will not", StringComparison.Ordinal);
+        normalized = Regex.Replace(normalized, @"[^\p{L}\p{N}'\-]+", " ").Trim();
         string[] tokens = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         bool isQuestion = raw.EndsWith("?", StringComparison.Ordinal) || YalaGrammar.StartsAsQuestion(tokens);
         bool negated = YalaGrammar.ContainsNegation(tokens);
         string? questionWord = YalaGrammar.QuestionWord(tokens);
 
-        (string? subject, string? verb, string? obj) = ExtractRoles(tokens);
+        (string? subject, string? verb, string? obj) = ExtractRoles(tokens, learned);
         List<string> unknown = [];
         foreach (string token in tokens)
         {
@@ -55,7 +62,7 @@ public static partial class YalaLanguageInterpreter
         return new YalaUtterance(raw, normalized, isQuestion, negated, questionWord, subject, verb, obj, unknown, definedWord, proposedDefinition);
     }
 
-    private static (string? Subject, string? Verb, string? Object) ExtractRoles(IReadOnlyList<string> tokens)
+    private static (string? Subject, string? Verb, string? Object) ExtractRoles(IReadOnlyList<string> tokens, IReadOnlyList<YalaLearnedLexemeState>? learned)
     {
         if (tokens.Count == 0) return (null, null, null);
 
@@ -64,7 +71,12 @@ public static partial class YalaLanguageInterpreter
         for (int index = 0; index < tokens.Count; index++)
         {
             string candidate = YalaLexicon.NormalizeWord(tokens[index]);
-            if (KnownVerbForms.Contains(candidate))
+            bool knownVerb = KnownVerbForms.Contains(candidate);
+            if (!knownVerb && YalaLexicon.TryResolve(candidate, learned, out YalaLexeme lexeme))
+            {
+                knownVerb = lexeme.PartOfSpeech.Equals("verb", StringComparison.OrdinalIgnoreCase);
+            }
+            if (knownVerb)
             {
                 verbIndex = index;
                 normalizedVerb = candidate;

@@ -1,5 +1,58 @@
 # Project Oracle Changelog
 
+## v0.0.22 - candidate - Yala Soar Brain Slice 5
+
+- Supersedes the unaccepted v0.0.21 development candidate while retaining its Brain Slice 4 reasoning, temporal, relationship, inquiry, memory, and bounded-agency work.
+- Starts a fresh schema-4 `save_v4.json` experiment and fresh `yala_soar_v0_0_22` semantic/episodic memory; accepted v0.0.20 and experimental v0.0.21 runtime data remain preserved.
+- Expands Yala's built-in core language beyond 400 concepts, including ordinary greeting, movement, age, birth, place, action, social, and descriptive vocabulary.
+- Adds typo/variant normalization including `greating` -> `greeting`.
+- Lowers ordinary unknown-word questions below the autonomous inquiry threshold so Yala does not repeatedly ask dictionary-level questions.
+- Makes autonomous inquiry turn-aware: after asking, Yala waits for a later speaker response before another autonomous question becomes eligible.
+- Strengthens the live top-row clock with deterministic DEC cursor save/restore and a shared console-output gate while keeping the zero Time epoch.
+- Preserves the bounded agency sandbox and hidden-Oracle firewall.
+
+### v0.0.22 Repair 5 - learned-word `what is` realization reachability
+- Fixes the final learned-definition reachability seam found by the complete Repair 4 acceptance run: the topic interpreter correctly classified `what is florbnax` as `word-meaning`, but the reply realizer had a separate target extractor that did not recognize the `what is <word>` form.
+- Makes the reply realizer resolve the exact three-token `what is <word>` form to the requested word, preserving the stored speaker-claim provenance and definition text.
+- Keeps the acceptance inventory at 147 because the existing failing regression already exercises the exact live phrase and now guards the corrected path.
+
+### v0.0.22 Repair 4 - language reachability and deliberate inquiry
+- Hardens speaker-identity parsing so sentences such as `I am making your brain smarter...` are not stored as a claimed name.
+- Adds ordinary brain/update vocabulary and morphology including `making`, `smarter`, `told`, and common `belive` spelling.
+- Routes `Gaia made Time?`, mother-belief questions, learned-word `what is` questions, and learned-definition source questions to existing memory rather than generic uncertainty.
+- Adds two purposeful speaker-understanding questions so autonomous inquiry continues after a response without promoting dictionary gaps back into autonomous interrogation.
+- Expands the acceptance inventory to 147 checks.
+
+## v0.0.21 - candidate - Yala Soar Brain Slice 4
+
+- Starts a fresh schema-3 `save_v3.json` experimental world and fresh `yala_soar_v0_0_21` semantic/episodic databases while preserving older saves and memories untouched.
+- Expands the foundational concept lexicon and filters ordinary language scaffolding from knowledge-gap generation.
+- Adds structured dialogue context, entity knowledge, relationship state, temporal events, goals, questions, belief confidence, and stronger provenance.
+- Distinguishes before-Time events, the origin of Time, and dated post-Time events; adds cause, sequence, `when`, and duration reasoning.
+- Reads current spoken Time from current world state rather than stale cached conversation data.
+- Adds relationship reasoning without collapsing `made-by`, `creator`, `mother`, `father`, `parent`, `child`, and `offspring` into synonyms.
+- Remembers speaker relationship/definition/identity statements as attributed claims rather than automatic truth.
+- Adds Soar-selected autonomous `ask-speaker` behavior when curiosity, uncertainty, or goals justify a question.
+- Adds a strict bounded-agency sandbox: Yala can act only through approved in-world operators and receives no shell/process/filesystem/network/code-modification or hidden-Oracle capability.
+- Persists Brain Slice 4 dialogue, relationships, questions, temporal events, goals, and pending autonomous utterance state.
+- Retains persistent `Ctrl+Y` Yala mode, `Escape`, hidden Soar diagnostics, protected console input, and the live top-row world clock.
+
+### v0.0.21 Repair 3 - creation targeting, goal semantics, lexicon provenance, and ordinary-language cleanup
+
+- Resolves own-creation questions against the created object rather than accidentally treating Yala as the object of creation.
+- Preserves the distinction between current drives/goals and a settled command or destiny.
+- Uses a genuinely unknown test concept for learned-definition persistence and separately verifies speaker-proposed alternate definitions of built-in concepts remain attributed claims.
+- Adds `beyond` and `everything` as ordinary understood concepts so broad uncertainty questions do not manufacture fake vocabulary gaps.
+- Expands the acceptance inventory to 134 tests while keeping the version at v0.0.21.
+
+### v0.0.21 Repair 2 - acceptance nullability correction
+
+- Corrects nullable-flow handling in the Brain Slice 4 goal acceptance tests so the .NET 10 warnings-as-errors build can complete.
+
+### v0.0.21 Repair 1 - calendar year type alignment
+
+- Aligns temporal-event year storage with the existing long-valued Project Oracle calendar type.
+
 ## v0.0.20 - candidate - Persistent Yala Mode, Live World Clock, and Brain Slice 3 Reachability
 
 - Adds persistent Yala conversation mode: `Ctrl+Y` enters, replies keep the mode active, and `Escape` clears pending input and returns to the system prompt.
