@@ -1,0 +1,13 @@
+Project_Oracle
+PROJECT_ORACLE_CHANGED_FILES_v0_0_22.txt
+PROJECT_ORACLE_CHANGED_FILES_v0_0_23.txt
+PROJECT_ORACLE_CHANGED_FILES_v0_0_24.txt
+PROJECT_ORACLE_DELETED_FILES_v0_0_22.txt
+PROJECT_ORACLE_DELETED_FILES_v0_0_23.txt
+PROJECT_ORACLE_DELETED_FILES_v0_0_24.txt
+PROJECT_ORACLE_EXPORT_MANIFEST.sha256
+src/ProjectOracle.Desktop/Assets/project-oracle-eye-128.png
+src/ProjectOracle.Desktop/Assets/project-oracle-eye-32.png
+src/ProjectOracle.Desktop/Assets/project-oracle-eye-48.png
+src/ProjectOracle.Desktop/Assets/project-oracle-eye-64.png
+src/ProjectOracle.Desktop/Assets/project-oracle-eye.png

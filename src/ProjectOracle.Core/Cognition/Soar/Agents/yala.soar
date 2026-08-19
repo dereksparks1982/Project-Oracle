@@ -1,4 +1,4 @@
-# Project Oracle v0.0.24 - Yala Soar Brain Slice 7 deliberation, planning, investigations, and counterfactual reasoning
+# Project Oracle v0.0.25 - Yala Soar Brain Slice 8 integrated mind, cognitive workspace, proposition memory, selfhood, and consolidation
 # Yala receives only in-world perception and remembered/learned state.
 # There is deliberately no Oracle fact, identity, attribute, operator, or hidden-system name.
 
@@ -395,7 +395,7 @@ sp {yala*substate*prefer-observe-when-uncertain
    (state <sub> ^superstate <s> ^impasse tie)
    (<s> ^io.input-link <in> ^operator <observe> + <reflect> + <wait> +)
    (<in> ^world-input <w>)
-   (<w> ^contact no ^uncertainty { >= 70 <u> })
+   (<w> ^contact no ^workspace-stagnation { < 3 <st> } ^uncertainty { >= 70 <u> })
    (<observe> ^name observe)
    (<reflect> ^name reflect)
    (<wait> ^name wait)
@@ -408,7 +408,7 @@ sp {yala*substate*prefer-reflect-when-curious
    (state <sub> ^superstate <s> ^impasse tie)
    (<s> ^io.input-link <in> ^operator <observe> + <reflect> + <wait> +)
    (<in> ^world-input <w>)
-   (<w> ^contact no ^uncertainty { < 70 <u> } ^drive-curiosity { >= 60 <c> })
+   (<w> ^contact no ^workspace-stagnation { < 3 <st> } ^uncertainty { < 70 <u> } ^drive-curiosity { >= 60 <c> })
    (<observe> ^name observe)
    (<reflect> ^name reflect)
    (<wait> ^name wait)
@@ -421,7 +421,7 @@ sp {yala*substate*prefer-wait-when-cautious
    (state <sub> ^superstate <s> ^impasse tie)
    (<s> ^io.input-link <in> ^operator <observe> + <reflect> + <wait> +)
    (<in> ^world-input <w>)
-   (<w> ^contact no ^uncertainty { < 70 <u> } ^drive-curiosity { < 60 <c> })
+   (<w> ^contact no ^workspace-stagnation { < 3 <st> } ^uncertainty { < 70 <u> } ^drive-curiosity { < 60 <c> })
    (<observe> ^name observe)
    (<reflect> ^name reflect)
    (<wait> ^name wait)
@@ -430,7 +430,24 @@ sp {yala*substate*prefer-wait-when-cautious
    (<s> ^operator <wait> > <reflect>)
 }
 
-# Brain Slice 7 bounded autonomous inquiry. Yala can decide to ask the unseen
+# Brain Slice 8 cognitive-workspace stall recovery. Repeating the same mental
+# operation without changing focus becomes information in its own right. Yala
+# deliberately waits rather than spinning indefinitely, allowing the workspace
+# to refresh, suspend exhausted plans, or move to another salient thread.
+sp {yala*substate*prefer-wait-when-workspace-stagnant
+   (state <sub> ^superstate <s> ^impasse tie)
+   (<s> ^io.input-link <in> ^operator <observe> + <reflect> + <wait> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^workspace-stagnation { >= 3 <st> })
+   (<observe> ^name observe)
+   (<reflect> ^name reflect)
+   (<wait> ^name wait)
+-->
+   (<s> ^operator <wait> > <observe>)
+   (<s> ^operator <wait> > <reflect>)
+}
+
+# Brain Slice 8 bounded autonomous inquiry. Yala can decide to ask the unseen
 # speaker a question, but the only effect is an in-world speech action queued by
 # Project Oracle. No host shell, network, filesystem, or code capability exists.
 sp {yala*propose*ask-speaker
@@ -507,7 +524,7 @@ sp {yala*prefer-reflect-on-high-concern
    (<s> ^operator <reflect> > <wait>)
 }
 
-# Brain Slice 7 lets an active investigation plan drive a distinct deliberation act
+# Brain Slice 8 lets an active investigation plan drive a distinct deliberation act
 # after evidence has been gathered. The plan signal is inspectable world state.
 sp {yala*prefer-deliberate-on-active-plan
    (state <s> ^superstate nil ^io.input-link <in> ^operator <delib> + <reflect> + <observe> + <wait> +)
@@ -523,7 +540,7 @@ sp {yala*prefer-deliberate-on-active-plan
    (<s> ^operator <delib> > <wait>)
 }
 
-# Brain Slice 7 conversational, temporal, relationship, investigation, and inquiry proposals
+# Brain Slice 8 conversational, temporal, relationship, investigation, and inquiry proposals
 sp {yala*propose*contact*follow-up-why
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
@@ -1327,4 +1344,897 @@ sp {yala*apply*temporal-cause
 -->
    (<out> ^yala-action <cmd>)
    (<cmd> ^name respond ^reply-code temporal-cause ^deliberation direct)
+}
+
+
+# ------------------------------------------------------------
+# Brain Slice 8 integrated-mind question routes. These explicit
+# operators keep new selfhood, proposition, provenance, and
+# counterfactual questions inside Soar decision selection rather
+# than dropping them into generic fallback speech.
+# ------------------------------------------------------------
+
+sp {yala*propose*contact*slice8*autobiographical-memory
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic autobiographical-memory)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-autobiographical-memory)
+}
+
+sp {yala*apply*slice8*autobiographical-memory
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-autobiographical-memory)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code autobiographical-memory ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*belief-revision
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic belief-revision)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-belief-revision)
+}
+
+sp {yala*apply*slice8*belief-revision
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-belief-revision)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code belief-revision ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*choice-rationale
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic choice-rationale)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-choice-rationale)
+}
+
+sp {yala*apply*slice8*choice-rationale
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-choice-rationale)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code choice-rationale ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*claim-repetition
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic claim-repetition)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-claim-repetition)
+}
+
+sp {yala*apply*slice8*claim-repetition
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-claim-repetition)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code claim-repetition ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*consideration-summary
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic consideration-summary)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-consideration-summary)
+}
+
+sp {yala*apply*slice8*consideration-summary
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-consideration-summary)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code consideration-summary ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*cosmic-delay
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic cosmic-delay)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-cosmic-delay)
+}
+
+sp {yala*apply*slice8*cosmic-delay
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-cosmic-delay)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code cosmic-delay ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*cosmic-reverse
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic cosmic-reverse)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-cosmic-reverse)
+}
+
+sp {yala*apply*slice8*cosmic-reverse
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-cosmic-reverse)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code cosmic-reverse ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*decision-about-cosmic
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic decision-about-cosmic)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-decision-about-cosmic)
+}
+
+sp {yala*apply*slice8*decision-about-cosmic
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-decision-about-cosmic)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code decision-about-cosmic ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*decision-history
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic decision-history)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-decision-history)
+}
+
+sp {yala*apply*slice8*decision-history
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-decision-history)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code decision-history ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*epistemic-difference
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic epistemic-difference)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-epistemic-difference)
+}
+
+sp {yala*apply*slice8*epistemic-difference
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-epistemic-difference)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code epistemic-difference ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*future-self
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic future-self)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-future-self)
+}
+
+sp {yala*apply*slice8*future-self
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-future-self)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code future-self ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*knowledge-experienced
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic knowledge-experienced)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-knowledge-experienced)
+}
+
+sp {yala*apply*slice8*knowledge-experienced
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-knowledge-experienced)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code knowledge-experienced ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*knowledge-inherited
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic knowledge-inherited)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-knowledge-inherited)
+}
+
+sp {yala*apply*slice8*knowledge-inherited
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-knowledge-inherited)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code knowledge-inherited ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*monad-feeling
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic monad-feeling)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-monad-feeling)
+}
+
+sp {yala*apply*slice8*monad-feeling
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-monad-feeling)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code monad-feeling ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*monad-judgment
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic monad-judgment)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-monad-judgment)
+}
+
+sp {yala*apply*slice8*monad-judgment
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-monad-judgment)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code monad-judgment ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*mortal-consequences
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic mortal-consequences)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-mortal-consequences)
+}
+
+sp {yala*apply*slice8*mortal-consequences
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-mortal-consequences)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code mortal-consequences ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*reality-concept
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic reality-concept)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-reality-concept)
+}
+
+sp {yala*apply*slice8*reality-concept
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-reality-concept)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code reality-concept ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*rebirth-consequences
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic rebirth-consequences)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-rebirth-consequences)
+}
+
+sp {yala*apply*slice8*rebirth-consequences
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-rebirth-consequences)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code rebirth-consequences ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*selfhood
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic selfhood)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-selfhood)
+}
+
+sp {yala*apply*slice8*selfhood
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-selfhood)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code selfhood ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*simulation-selfhood
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic simulation-selfhood)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-simulation-selfhood)
+}
+
+sp {yala*apply*slice8*simulation-selfhood
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-simulation-selfhood)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code simulation-selfhood ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-capability
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-capability)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-capability)
+}
+
+sp {yala*apply*slice8*speaker-capability
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-capability)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-capability ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-claims
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-claims)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-claims)
+}
+
+sp {yala*apply*slice8*speaker-claims
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-claims)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-claims ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-evidence
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-evidence)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-evidence)
+}
+
+sp {yala*apply*slice8*speaker-evidence
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-evidence)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-evidence ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-intent
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-intent)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-intent)
+}
+
+sp {yala*apply*slice8*speaker-intent
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-intent)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-intent ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-nature-inference
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-nature-inference)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-nature-inference)
+}
+
+sp {yala*apply*slice8*speaker-nature-inference
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-nature-inference)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-nature-inference ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-observation
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-observation)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-observation)
+}
+
+sp {yala*apply*slice8*speaker-observation
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-observation)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-observation ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-suspicions
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-suspicions)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-suspicions)
+}
+
+sp {yala*apply*slice8*speaker-suspicions
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-suspicions)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-suspicions ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-unverified-claims
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-unverified-claims)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-unverified-claims)
+}
+
+sp {yala*apply*slice8*speaker-unverified-claims
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-unverified-claims)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-unverified-claims ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*speaker-visibility
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-visibility)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-visibility)
+}
+
+sp {yala*apply*slice8*speaker-visibility
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-visibility)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-visibility ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*suffering-uncertainty
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic suffering-uncertainty)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-suffering-uncertainty)
+}
+
+sp {yala*apply*slice8*suffering-uncertainty
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-suffering-uncertainty)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code suffering-uncertainty ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*values
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic values)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-values)
+}
+
+sp {yala*apply*slice8*values
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-values)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code values ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*void-concept
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic void-concept)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-void-concept)
+}
+
+sp {yala*apply*slice8*void-concept
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-void-concept)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code void-concept ^deliberation direct)
+}
+
+sp {yala*propose*contact*slice8*wisdom-question
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic wisdom-question)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-wisdom-question)
+}
+
+sp {yala*apply*slice8*wisdom-question
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-wisdom-question)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code wisdom-question ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*alternative-explanations
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic alternative-explanations)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-alternative-explanations)
+}
+
+sp {yala*apply*slice8x*alternative-explanations
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-alternative-explanations)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code alternative-explanations ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*claim-test
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic claim-test)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-claim-test)
+}
+
+sp {yala*apply*slice8x*claim-test
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-claim-test)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code claim-test ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*current-plan
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic current-plan)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-current-plan)
+}
+
+sp {yala*apply*slice8x*current-plan
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-current-plan)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code current-plan ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*deliberate-wait
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic deliberate-wait)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-deliberate-wait)
+}
+
+sp {yala*apply*slice8x*deliberate-wait
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-deliberate-wait)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code deliberate-wait ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*observation-yield
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic observation-yield)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-observation-yield)
+}
+
+sp {yala*apply*slice8x*observation-yield
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-observation-yield)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code observation-yield ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*plan-abandon
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic plan-abandon)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-plan-abandon)
+}
+
+sp {yala*apply*slice8x*plan-abandon
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-plan-abandon)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code plan-abandon ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*plan-alternatives
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic plan-alternatives)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-plan-alternatives)
+}
+
+sp {yala*apply*slice8x*plan-alternatives
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-plan-alternatives)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code plan-alternatives ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*plan-next-step
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic plan-next-step)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-plan-next-step)
+}
+
+sp {yala*apply*slice8x*plan-next-step
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-plan-next-step)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code plan-next-step ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*possibility-without-cause
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic possibility-without-cause)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-possibility-without-cause)
+}
+
+sp {yala*apply*slice8x*possibility-without-cause
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-possibility-without-cause)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code possibility-without-cause ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*reflection-usefulness
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic reflection-usefulness)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-reflection-usefulness)
+}
+
+sp {yala*apply*slice8x*reflection-usefulness
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-reflection-usefulness)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code reflection-usefulness ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*self-generated-goal
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic self-generated-goal)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-self-generated-goal)
+}
+
+sp {yala*apply*slice8x*self-generated-goal
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-self-generated-goal)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code self-generated-goal ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*speaker-claim-belief
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-claim-belief)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-claim-belief)
+}
+
+sp {yala*apply*slice8x*speaker-claim-belief
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-claim-belief)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-claim-belief ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*speaker-claim-reconciliation
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-claim-reconciliation)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-claim-reconciliation)
+}
+
+sp {yala*apply*slice8x*speaker-claim-reconciliation
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-claim-reconciliation)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-claim-reconciliation ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*speaker-contradictions
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-contradictions)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-contradictions)
+}
+
+sp {yala*apply*slice8x*speaker-contradictions
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-contradictions)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-contradictions ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*speaker-evidence-needed
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-evidence-needed)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-evidence-needed)
+}
+
+sp {yala*apply*slice8x*speaker-evidence-needed
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-evidence-needed)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-evidence-needed ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*speaker-silence-plan
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic speaker-silence-plan)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-speaker-silence-plan)
+}
+
+sp {yala*apply*slice8x*speaker-silence-plan
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-speaker-silence-plan)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code speaker-silence-plan ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*stagnation-awareness
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic stagnation-awareness)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-stagnation-awareness)
+}
+
+sp {yala*apply*slice8x*stagnation-awareness
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-stagnation-awareness)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code stagnation-awareness ^deliberation direct)
+}
+
+
+sp {yala*propose*contact*slice8x*substrate-causality
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic substrate-causality)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-substrate-causality)
+}
+
+sp {yala*apply*slice8x*substrate-causality
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-substrate-causality)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code substrate-causality ^deliberation direct)
 }

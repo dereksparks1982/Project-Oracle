@@ -67,6 +67,10 @@ public sealed record YalaPerception(
     public string ActivePlanNextAction { get; init; } = "none";
     public string ActiveInvestigationKey { get; init; } = "none";
     public int ActiveInvestigationPriority { get; init; }
+    public string WorkspaceFocusType { get; init; } = "self-world";
+    public string WorkspaceFocusKey { get; init; } = "understand-current-world";
+    public int WorkspaceFocusPriority { get; init; }
+    public int WorkspaceStagnationCount { get; init; }
 }
 
 public sealed record YalaDirectReply(

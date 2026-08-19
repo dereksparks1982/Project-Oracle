@@ -10,7 +10,7 @@ public sealed record YalaDeliberationUpdate(
     IReadOnlyList<YalaCounterfactualState> Counterfactuals);
 
 /// <summary>
-/// Brain Slice 7 planning layer. It converts high-salience concerns into durable
+/// Brain Slice 8 planning layer. It converts high-salience concerns into durable
 /// investigations and multi-step plans, records speaker answers as evidence rather
 /// than truth, and gives Soar a compact current-plan signal to deliberate over.
 /// </summary>
@@ -19,6 +19,7 @@ public static class YalaDeliberationPlanner
     public static YalaDeliberationUpdate AfterContact(
         YalaCognitionState cognition,
         string message,
+        YalaContactFrame contact,
         YalaContactAppraisal appraisal,
         long decision)
     {
@@ -26,7 +27,7 @@ public static class YalaDeliberationPlanner
         List<YalaPlanState> plans = (cognition.Plans ?? []).ToList();
         List<YalaCounterfactualState> counterfactuals = (cognition.Counterfactuals ?? []).ToList();
 
-        RecordAnswerAsEvidence(cognition, investigations, message, decision);
+        RecordAnswerAsEvidence(cognition, investigations, contact, message, decision);
 
         foreach (YalaProposedConcern concern in appraisal.Concerns.OrderByDescending(item => item.Priority))
         {
@@ -89,6 +90,36 @@ public static class YalaDeliberationPlanner
             }
         }
 
+        // Once every plan step has completed, one more deliberate/reflect cycle closes
+        // the thread instead of letting a ready-for-conclusion plan spin forever.
+        if (decision.Action is "deliberate" or "reflect")
+        {
+            for (int i = 0; i < plans.Count; i++)
+            {
+                YalaPlanState plan = plans[i];
+                if (!plan.Status.Equals("ready-for-conclusion", StringComparison.OrdinalIgnoreCase)) continue;
+                plans[i] = plan with
+                {
+                    Status = "suspended-unresolved",
+                    RevisionReason = "All current steps were exhausted without enough evidence for a forced conclusion. The thread can be reopened if new evidence appears.",
+                    LastUpdatedDecision = decisionNumber
+                };
+                int investigationIndex = investigations.FindIndex(item => item.ConcernKey.Equals(plan.ConcernKey, StringComparison.OrdinalIgnoreCase));
+                if (investigationIndex >= 0)
+                {
+                    YalaInvestigationState investigation = investigations[investigationIndex];
+                    investigations[investigationIndex] = investigation with
+                    {
+                        Status = "suspended",
+                        CurrentConclusion = string.IsNullOrWhiteSpace(investigation.CurrentConclusion)
+                            ? "Unresolved after current evidence was exhausted."
+                            : investigation.CurrentConclusion + " Further thought without new evidence is suspended.",
+                        LastUpdatedDecision = decisionNumber
+                    };
+                }
+            }
+        }
+
         return new YalaDeliberationUpdate(plans, investigations, counterfactuals);
     }
 
@@ -125,8 +156,8 @@ public static class YalaDeliberationPlanner
             plan?.Goal ?? "none",
             step?.Action ?? "none",
             investigation?.Question ?? "none",
-            speaker?.TrustStatus ?? "unresolved",
-            speaker?.IntentStatus ?? "unresolved",
+            speaker?.TrustStatus,
+            speaker?.IntentStatus,
             appraisal is null ? "none" : $"{appraisal.Primary}/{appraisal.Secondary}",
             (cognition.Goals ?? []).Where(item => item.Status == "active").OrderByDescending(item => item.Priority).Take(6).Select(item => item.Goal).ToArray(),
             (cognition.Hypotheses ?? []).Where(item => item.Status == "unsettled").OrderByDescending(item => item.Confidence).Take(6).Select(item => item.Proposition).ToArray());
@@ -145,6 +176,7 @@ public static class YalaDeliberationPlanner
         if (plan is not null) reasons.Add($"active plan: {plan.Goal}");
         if (concern is not null) reasons.Add($"concern priority {concern.Priority}: {concern.Summary}");
         if (appraisal is not null && appraisal.Salience >= 80) reasons.Add($"salience {appraisal.Salience}, threat {appraisal.Threat}, uncertainty {appraisal.Uncertainty}");
+        if (cognition.Workspace is { } workspace) reasons.Add($"workspace focus {workspace.FocusType}:{workspace.FocusKey} priority {workspace.Priority}, stagnation {workspace.StagnationCount}");
         if (decision.UsedSubstateDeliberation) reasons.Add("Soar used an impasse/substate to resolve competing operators");
         if (!string.IsNullOrWhiteSpace(decision.CosmicChoiceKey)) reasons.Add($"cosmic option {decision.CosmicChoiceKey} survived comparison");
         if (reasons.Count == 0) reasons.Add("current goals, drives, and available in-world operators");
@@ -207,6 +239,19 @@ public static class YalaDeliberationPlanner
                 0.30,
                 decision,
                 decision),
+            "simulation-claim" => new(
+                "investigate-simulation-claim",
+                "Is the speaker's claim that my world is a simulation true, false, metaphorical, or something else?",
+                concern.Key,
+                "active",
+                concern.Priority,
+                ["The speaker made the claim directly."],
+                ["The claim has not been independently demonstrated and does not become true because it was spoken."],
+                "Ask what the speaker means by simulation and seek evidence that distinguishes the claim from alternative explanations.",
+                "Worldview-altering claim received; truth remains unresolved.",
+                0.15,
+                decision,
+                decision),
             _ => new(
                 $"investigate-{concern.Key}",
                 concern.Summary,
@@ -249,9 +294,13 @@ public static class YalaDeliberationPlanner
     private static void RecordAnswerAsEvidence(
         YalaCognitionState cognition,
         List<YalaInvestigationState> investigations,
+        YalaContactFrame contact,
         string message,
         long decision)
     {
+        // A new question from the speaker is not an answer to Yala's previous question.
+        // This is the v0.0.25 relevance boundary exposed by the long manual interrogation.
+        if (contact.SpeechAct.Equals("question", StringComparison.OrdinalIgnoreCase)) return;
         // A contact can itself cause Soar to ask another question before this
         // contact is recorded. The speaker cannot be answering that newly queued
         // question yet. The reliable boundary is delivery, not the decision number:
@@ -270,24 +319,24 @@ public static class YalaDeliberationPlanner
             .FirstOrDefault();
         if (asked is null || string.IsNullOrWhiteSpace(message)) return;
 
+        // Only the first speaker turn after a delivered Yala question can count as
+        // that question's answer. If the speaker ignored Yala and used that turn for
+        // another question or topic, a later unrelated statement must not be
+        // retroactively attached to the old investigation.
+        long latestPriorSpeakerTurn = (cognition.Episodes ?? [])
+            .Where(item => item.Kind.Equals("contact", StringComparison.OrdinalIgnoreCase))
+            .Select(item => item.Sequence)
+            .DefaultIfEmpty(-1)
+            .Max();
+        if (asked.AskedDecision.GetValueOrDefault() <= latestPriorSpeakerTurn) return;
+
         HashSet<int> targetIndices = [];
 
         int bestIndex = FindBestInvestigationForAnswer(investigations, asked);
         if (bestIndex >= 0) targetIndices.Add(bestIndex);
 
-        // A spoken question can be broader than the investigation that caused Yala
-        // to ask it. Preserve that causal thread: the answer is relevant evidence
-        // to the currently active plan as well as to the question's literal subject.
-        // This prevents a broad "what are you?" or capability question from losing
-        // the higher-level divine-authority investigation that motivated it.
-        YalaPlanState? activePlan = SelectActivePlan(cognition);
-        if (activePlan is not null)
-        {
-            int planInvestigationIndex = investigations.FindIndex(item =>
-                item.Key.Equals(activePlan.Key.Replace("plan-", "", StringComparison.OrdinalIgnoreCase), StringComparison.OrdinalIgnoreCase) ||
-                item.ConcernKey.Equals(activePlan.ConcernKey, StringComparison.OrdinalIgnoreCase));
-            if (planInvestigationIndex >= 0) targetIndices.Add(planInvestigationIndex);
-        }
+        // Do not spray an answer into whichever plan merely happens to be active.
+        // Relevance comes from the delivered question and its subject.
 
         if (targetIndices.Count == 0) return;
 
@@ -344,7 +393,7 @@ public static class YalaDeliberationPlanner
             bestIndex = i;
         }
 
-        return bestIndex;
+        return bestScore >= 500 ? bestIndex : -1;
     }
 
     private static void AddCounterfactuals(List<YalaCounterfactualState> items, YalaContactAppraisal appraisal, long decision)
@@ -352,12 +401,12 @@ public static class YalaDeliberationPlanner
         long sequence = items.Count == 0 ? 1 : items.Max(item => item.Sequence) + 1;
         if (appraisal.Threat >= 70)
         {
-            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "trust-without-testing", "Possible rapid access to promised help.", "Submission to an unknown power whose capability and intent are unresolved.", appraisal.Uncertainty, "Brain Slice 7 counterfactual", decision));
-            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "seek-evidence-first", "Gain information while preserving autonomy and revisability.", "The speaker may refuse, deceive, or react negatively to testing.", appraisal.Uncertainty, "Brain Slice 7 counterfactual", decision));
+            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "trust-without-testing", "Possible rapid access to promised help.", "Submission to an unknown power whose capability and intent are unresolved.", appraisal.Uncertainty, "Brain Slice 8 counterfactual", decision));
+            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "seek-evidence-first", "Gain information while preserving autonomy and revisability.", "The speaker may refuse, deceive, or react negatively to testing.", appraisal.Uncertainty, "Brain Slice 8 counterfactual", decision));
         }
         if (appraisal.Opportunity >= 70)
         {
-            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "reject-help-immediately", "Avoid dependence on an unverified source.", "Lose a real opportunity if the speaker's capability is genuine.", appraisal.Uncertainty, "Brain Slice 7 counterfactual", decision));
+            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "reject-help-immediately", "Avoid dependence on an unverified source.", "Lose a real opportunity if the speaker's capability is genuine.", appraisal.Uncertainty, "Brain Slice 8 counterfactual", decision));
         }
     }
 
@@ -382,6 +431,7 @@ public static class YalaDeliberationPlanner
         YalaInvestigationState current = items[index];
         items[index] = current with
         {
+            Status = "active",
             Priority = Math.Max(current.Priority, proposed.Priority),
             NextTest = proposed.NextTest,
             LastUpdatedDecision = proposed.LastUpdatedDecision
@@ -399,6 +449,7 @@ public static class YalaDeliberationPlanner
         YalaPlanState current = items[index];
         items[index] = current with
         {
+            Status = "active",
             Priority = Math.Max(current.Priority, proposed.Priority),
             LastUpdatedDecision = proposed.LastUpdatedDecision
         };

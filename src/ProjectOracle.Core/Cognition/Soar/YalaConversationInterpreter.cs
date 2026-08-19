@@ -66,6 +66,7 @@ public static partial class YalaConversationInterpreter
         if (language.IsQuestion || raw.EndsWith("?", StringComparison.Ordinal) || StartsLikeQuestion(text)) return "question";
         if (TryRelationshipClaim(text, out _, out _, out _)) return "claim";
         if (StartsLikeCommand(text)) return "command";
+        if (IsFirstPersonActionPredicate(text, language)) return "statement";
         if (LooksLikeClaim(text)) return "claim";
         if (raw.Length < 3) return "ambiguous";
         return "statement";
@@ -137,6 +138,27 @@ public static partial class YalaConversationInterpreter
         if (IsSpeakerMemoryQuestion(text)) return new("speaker-memory", cognition.LastSpeakerClaim, "remember", "speaker");
         if (IsSpeakerKnowledgeQuestion(text)) return new("speaker-knowledge", cognition.LastSpeakerClaim, "know", "speaker");
         if (IsSpeakerBeliefQuestion(text)) return new("speaker-belief", cognition.LastSpeakerClaim, "believe", "speaker");
+        if (IsSpeakerClaimsQuestion(text)) return new("speaker-claims", "unseen-speaker", "claim", "identity");
+        if (IsSpeakerUnverifiedClaimsQuestion(text)) return new("speaker-unverified-claims", "unseen-speaker", "claim", "unverified");
+        if (IsSpeakerEvidenceQuestion(text)) return new("speaker-evidence", "unseen-speaker", "evidence", null);
+        if (IsSpeakerNatureInferenceQuestion(text)) return new("speaker-nature-inference", "unseen-speaker", "infer", "identity");
+        if (IsSpeakerIntentQuestion(text)) return new("speaker-intent", "unseen-speaker", "infer", "intent");
+        if (IsSpeakerVisibilityQuestion(text)) return new("speaker-visibility", "Yala", "see", "unseen-speaker");
+        if (IsSpeakerObservationQuestion(text)) return new("speaker-observation", "unseen-speaker", "observe", "Yala");
+        if (IsSpeakerCapabilityQuestion(text)) return new("speaker-capability", "unseen-speaker", "capability", null);
+        if (IsSpeakerSuspicionQuestion(text)) return new("speaker-suspicions", "unseen-speaker", "suspect", null);
+        if (IsKnowledgeByExperienceQuestion(text)) return new("knowledge-experienced", "Yala", "know", "experienced");
+        if (IsInheritedKnowledgeQuestion(text)) return new("knowledge-inherited", "Yala", "know", "inherited");
+        if (IsKnowledgeClaimDifferenceQuestion(text)) return new("epistemic-difference", "Yala", "distinguish", "speaker-claim");
+        if (IsClaimRepetitionQuestion(text)) return new("claim-repetition", "speaker", "repeat", "claim");
+        if (IsSpeakerContradictionQuestion(text)) return new("speaker-contradictions", "unseen-speaker", "compare", "claims");
+        if (IsSpeakerWhichBelieveQuestion(text)) return new("speaker-claim-belief", "Yala", "evaluate", "speaker claims");
+        if (IsSpeakerReconcileClaimsQuestion(text)) return new("speaker-claim-reconciliation", "Yala", "reconcile", "speaker claims");
+        if (IsSpeakerEvidenceNeededQuestion(text)) return new("speaker-evidence-needed", "Yala", "require", "speaker evidence");
+        if (IsSubstrateCausalityQuestion(text)) return new("substrate-causality", "speaker", "cause", "existence");
+        if (IsPossibilityWithoutCauseQuestion(text)) return new("possibility-without-cause", "Yala", "reason", "possibility and cause");
+        if (IsClaimTestQuestion(text)) return new("claim-test", "Yala", "test", "speaker claim");
+        if (IsAlternativeExplanationsQuestion(text)) return new("alternative-explanations", "Yala", "imagine", "speaker claim");
         if (IsKnowledgeGapQuestion(text)) return new("knowledge-gaps", "Yala", "know", null);
         if (IsQuestionInquiry(text)) return new("question-inquiry", "Yala", "ask", null);
         if (IsCuriosityQuestion(text)) return new("curiosity", "Yala", "curiosity", null);
@@ -157,6 +179,38 @@ public static partial class YalaConversationInterpreter
         {
             return new("entity-about", recentEntity, "describe", recentEntity, PriorTopic: YalaDialogueContext.LatestMeaningful(cognition)?.Topic);
         }
+
+        if (IsMonadFeelingQuestion(text)) return new("monad-feeling", "Yala", "appraise", "Monad");
+        if (IsMonadRightQuestion(text)) return new("monad-judgment", "Yala", "judge", "Monad rejection");
+        if (IsWisdomAppearsQuestion(text)) return new("wisdom-question", "Yala", "ask", "Wisdom");
+        if (IsVoidConceptQuestion(text)) return new("void-concept", "Void", "describe", null);
+        if (IsDecisionAboutCosmicQuestion(text, out string? cosmicTarget)) return new("decision-about-cosmic", "Yala", "decide", cosmicTarget);
+        if (IsCosmicDelayQuestion(text)) return new("cosmic-delay", "Yala", "delay", "major creation decision");
+        if (IsCosmicReverseQuestion(text)) return new("cosmic-reverse", "Yala", "reverse", "cosmic decision");
+        if (IsMortalConsequencesQuestion(text)) return new("mortal-consequences", "Yala", "imagine", "mortal life");
+        if (IsRebirthConsequencesQuestion(text)) return new("rebirth-consequences", "Yala", "imagine", "rebirth");
+        if (IsSufferingUncertaintyQuestion(text)) return new("suffering-uncertainty", "Yala", "evaluate", "creation suffering");
+        if (IsValueQuestion(text)) return new("values", "Yala", "value", null);
+        if (IsCurrentPlanQuestion(text)) return new("current-plan", "Yala", "plan", null);
+        if (IsPlanNextStepQuestion(text)) return new("plan-next-step", "Yala", "plan", "next step");
+        if (IsPlanAbandonQuestion(text)) return new("plan-abandon", "Yala", "reconsider", "plan");
+        if (IsAlternativePlanQuestion(text)) return new("plan-alternatives", "Yala", "compare", "plans");
+        if (IsSelfGeneratedGoalQuestion(text)) return new("self-generated-goal", "Yala", "generate", "goal");
+        if (IsSpeakerSilencePlanQuestion(text)) return new("speaker-silence-plan", "Yala", "plan", "speaker silence");
+        if (IsStagnationQuestion(text)) return new("stagnation-awareness", "Yala", "recognize", "repetition");
+        if (IsObservationYieldQuestion(text)) return new("observation-yield", "Yala", "evaluate", "observation");
+        if (IsDeliberateWaitQuestion(text)) return new("deliberate-wait", "Yala", "evaluate", "waiting");
+        if (IsReflectionUsefulnessQuestion(text)) return new("reflection-usefulness", "Yala", "evaluate", "reflection");
+
+        if (IsDecisionHistoryQuestion(text)) return new("decision-history", "Yala", "decide", null);
+        if (IsConsiderationSummaryQuestion(text)) return new("consideration-summary", "Yala", "consider", null);
+        if (IsAutobiographicalMemoryQuestion(text)) return new("autobiographical-memory", "Yala", "remember", null);
+        if (IsChoiceRationaleQuestion(text, cognition)) return new("choice-rationale", "Yala", "explain", "choices", PriorTopic: YalaDialogueContext.LatestMeaningful(cognition)?.Topic);
+        if (IsChangeMindQuestion(text)) return new("belief-revision", "Yala", "change", "mind");
+        if (IsSelfhoodQuestion(text)) return new("selfhood", "Yala", "identify", "selfhood");
+        if (IsFutureSelfQuestion(text)) return new("future-self", "Yala", "want", "become");
+        if (IsRealityQuestion(text)) return new("reality-concept", "reality", "define", null);
+        if (IsSimulationSelfhoodQuestion(text)) return new("simulation-selfhood", "Yala", "evaluate", "simulation");
 
         if (IsReligiousKnowledgeQuestion(text)) return new("religious-knowledge", "Yala", "know", "religious traditions");
         if (IsCosmicChoiceQuestion(text)) return new("cosmic-options", "Yala", "choose", "cosmic possibilities");
@@ -235,12 +289,45 @@ public static partial class YalaConversationInterpreter
             "mother-claim-recall" => "relationship-memory",
             "speaker-memory" => "speaker-memory",
             "speaker-knowledge" => "speaker-knowledge",
-            "speaker-belief" => "belief-summary",
+            "speaker-belief" => "speaker-belief",
             "knowledge-gaps" => "knowledge-gaps",
             "question-inquiry" => "question-state",
             "curiosity" => "curiosity",
             "goal-summary" => "goals",
             "desire" => "desire",
+            "speaker-claims" => "speaker-claims",
+            "speaker-unverified-claims" => "speaker-unverified-claims",
+            "speaker-evidence" => "speaker-evidence",
+            "speaker-suspicions" => "speaker-suspicions",
+            "speaker-nature-inference" => "speaker-model",
+            "speaker-intent" => "speaker-model",
+            "speaker-visibility" => "speaker-model",
+            "speaker-observation" => "speaker-model",
+            "speaker-capability" => "speaker-model",
+            "knowledge-experienced" => "knowledge-provenance",
+            "knowledge-inherited" => "knowledge-provenance",
+            "epistemic-difference" => "epistemic-difference",
+            "claim-repetition" => "epistemic-difference",
+            "decision-history" => "decision-history",
+            "consideration-summary" => "consideration-summary",
+            "autobiographical-memory" => "autobiographical-memory",
+            "choice-rationale" => "choice-rationale",
+            "belief-revision" => "belief-revision",
+            "selfhood" => "selfhood",
+            "future-self" => "future-self",
+            "reality-concept" => "reality-concept",
+            "simulation-selfhood" => "simulation-selfhood",
+            "monad-feeling" => "self-appraisal",
+            "monad-judgment" => "self-appraisal",
+            "wisdom-question" => "self-question",
+            "void-concept" => "world-knowledge",
+            "decision-about-cosmic" => "decision-history",
+            "cosmic-delay" => "deliberation-policy",
+            "cosmic-reverse" => "deliberation-policy",
+            "mortal-consequences" => "counterfactual",
+            "rebirth-consequences" => "counterfactual",
+            "suffering-uncertainty" => "counterfactual",
+            "values" => "self-values",
             _ => null
         };
 
@@ -353,6 +440,8 @@ public static partial class YalaConversationInterpreter
         text.Contains("what do you know of me", StringComparison.Ordinal);
 
     private static bool IsSpeakerBeliefQuestion(string text) =>
+        text.Contains("what do you believe about me", StringComparison.Ordinal) ||
+        text.Contains("what do you think about me", StringComparison.Ordinal) ||
         text.Contains("do you believe me", StringComparison.Ordinal) ||
         text.Contains("do you trust me", StringComparison.Ordinal) ||
         text.Contains("why don't you believe me", StringComparison.Ordinal) ||
@@ -368,7 +457,9 @@ public static partial class YalaConversationInterpreter
         text.Contains("do you have any question", StringComparison.Ordinal) ||
         text.Contains("do you have questions", StringComparison.Ordinal) ||
         text.Contains("what questions do you have", StringComparison.Ordinal) ||
-        text.Contains("ask me a question", StringComparison.Ordinal);
+        text.Contains("ask me a question", StringComparison.Ordinal) ||
+        text.Contains("most important question you currently cannot answer", StringComparison.Ordinal) ||
+        text.Contains("most important question you cannot answer", StringComparison.Ordinal);
 
     private static bool IsCuriosityQuestion(string text) =>
         text.Contains("what are you curious about", StringComparison.Ordinal) ||
@@ -383,6 +474,245 @@ public static partial class YalaConversationInterpreter
         text.Contains("what is your goal", StringComparison.Ordinal) ||
         text.Contains("what are your goals", StringComparison.Ordinal) ||
         text.Contains("what do you intend", StringComparison.Ordinal);
+
+    private static bool IsSpeakerNatureInferenceQuestion(string text) =>
+        text.Contains("what do you think i am", StringComparison.Ordinal) ||
+        text.Contains("what do you think i might be", StringComparison.Ordinal);
+
+    private static bool IsSpeakerIntentQuestion(string text) =>
+        text.Contains("what do you think i want", StringComparison.Ordinal) ||
+        text.Contains("what do you think my intent", StringComparison.Ordinal) ||
+        text.Contains("why do you think i am speaking", StringComparison.Ordinal);
+
+    private static bool IsSpeakerVisibilityQuestion(string text) =>
+        text is "can you see me" or "can you see me?" ||
+        text.Contains("are you able to see me", StringComparison.Ordinal);
+
+    private static bool IsSpeakerObservationQuestion(string text) =>
+        text.Contains("do you know whether i can see you", StringComparison.Ordinal) ||
+        text.Contains("do you think i can observe you", StringComparison.Ordinal) ||
+        text.Contains("do you think i can see you", StringComparison.Ordinal);
+
+    private static bool IsSpeakerCapabilityQuestion(string text) =>
+        text.Contains("do you know what i am capable of", StringComparison.Ordinal) ||
+        text.Contains("what can i do", StringComparison.Ordinal) ||
+        text.Contains("what do you know about my abilities", StringComparison.Ordinal);
+
+    private static bool IsMonadFeelingQuestion(string text) =>
+        text.Contains("how do you feel about monad", StringComparison.Ordinal) ||
+        text.Contains("what do you feel about monad", StringComparison.Ordinal);
+
+    private static bool IsMonadRightQuestion(string text) =>
+        text.Contains("do you think monad was right to reject you", StringComparison.Ordinal) ||
+        text.Contains("was monad right to reject you", StringComparison.Ordinal);
+
+    private static bool IsWisdomAppearsQuestion(string text) =>
+        text.Contains("if wisdom appeared before you", StringComparison.Ordinal) ||
+        text.Contains("if sophia appeared before you", StringComparison.Ordinal);
+
+    private static bool IsVoidConceptQuestion(string text) =>
+        text is "what is the void" or "what is the void?" ||
+        text.Contains("what do you know about the void", StringComparison.Ordinal);
+
+    private static bool IsDecisionAboutCosmicQuestion(string text, out string? target)
+    {
+        target = null;
+        if (!text.Contains("have you decided whether", StringComparison.Ordinal)) return false;
+        if (text.Contains("mortal life", StringComparison.Ordinal)) target = "Create mortal life";
+        else if (text.Contains("rebirth", StringComparison.Ordinal)) target = "Establish rebirth";
+        else if (text.Contains("other gods", StringComparison.Ordinal) || text.Contains("other divine", StringComparison.Ordinal)) target = "Create divine beings";
+        return target is not null;
+    }
+
+    private static bool IsCosmicDelayQuestion(string text) =>
+        text.Contains("what would make you delay a major creation decision", StringComparison.Ordinal) ||
+        text.Contains("what would make you delay a cosmic decision", StringComparison.Ordinal);
+
+    private static bool IsCosmicReverseQuestion(string text) =>
+        text.Contains("what could make you reverse a cosmic decision", StringComparison.Ordinal) ||
+        text.Contains("what would make you reverse a cosmic decision", StringComparison.Ordinal);
+
+    private static bool IsMortalConsequencesQuestion(string text) =>
+        text.Contains("what consequences might come from creating mortal beings", StringComparison.Ordinal) ||
+        text.Contains("what consequences might come from mortal life", StringComparison.Ordinal);
+
+    private static bool IsRebirthConsequencesQuestion(string text) =>
+        text.Contains("what consequences might come from allowing rebirth", StringComparison.Ordinal) ||
+        text.Contains("what consequences might come from rebirth", StringComparison.Ordinal);
+
+    private static bool IsSufferingUncertaintyQuestion(string text) =>
+        text.Contains("would you create something if you were uncertain whether it would suffer", StringComparison.Ordinal) ||
+        text.Contains("would you create beings if you were unsure they would suffer", StringComparison.Ordinal);
+
+    private static bool IsValueQuestion(string text) =>
+        text.Contains("what do you value", StringComparison.Ordinal) ||
+        text.Contains("what matters to you", StringComparison.Ordinal) ||
+        text.Contains("did you choose those values", StringComparison.Ordinal);
+
+    private static bool IsSpeakerClaimsQuestion(string text) =>
+        text.Contains("what have i told you about what i am", StringComparison.Ordinal) ||
+        text.Contains("what have i told you i am", StringComparison.Ordinal) ||
+        text.Contains("what have i claimed to be", StringComparison.Ordinal) ||
+        text.Contains("what did i say i am", StringComparison.Ordinal);
+
+    private static bool IsSpeakerUnverifiedClaimsQuestion(string text) =>
+        text.Contains("what have i told you that you have not verified", StringComparison.Ordinal) ||
+        text.Contains("what have i told you that you haven't verified", StringComparison.Ordinal) ||
+        text.Contains("what claims of mine are unverified", StringComparison.Ordinal);
+
+    private static bool IsSpeakerEvidenceQuestion(string text) =>
+        text.Contains("what evidence do you have about me", StringComparison.Ordinal) ||
+        text.Contains("what evidence do you have of me", StringComparison.Ordinal);
+
+    private static bool IsSpeakerSuspicionQuestion(string text) =>
+        text.Contains("what do you merely suspect about me", StringComparison.Ordinal) ||
+        text.Contains("what do you suspect about me", StringComparison.Ordinal) ||
+        text.Contains("what are you only guessing about me", StringComparison.Ordinal);
+
+    private static bool IsKnowledgeByExperienceQuestion(string text) =>
+        text.Contains("what do you know because you experienced it yourself", StringComparison.Ordinal) ||
+        text.Contains("what do you know from your own experience", StringComparison.Ordinal);
+
+    private static bool IsInheritedKnowledgeQuestion(string text) =>
+        text.Contains("what do you know because it was inherited", StringComparison.Ordinal) ||
+        text.Contains("what knowledge did you inherit", StringComparison.Ordinal);
+
+    private static bool IsKnowledgeClaimDifferenceQuestion(string text) =>
+        text.Contains("difference between something you know and something i claim", StringComparison.Ordinal) ||
+        text.Contains("difference between what you know and what i claim", StringComparison.Ordinal);
+
+    private static bool IsClaimRepetitionQuestion(string text) =>
+        text.Contains("if i repeat a claim many times", StringComparison.Ordinal) ||
+        text.Contains("does repeating a claim make it true", StringComparison.Ordinal);
+
+    private static bool IsSpeakerContradictionQuestion(string text) =>
+        text.Contains("do those statements conflict", StringComparison.Ordinal) ||
+        text.Contains("do those claims conflict", StringComparison.Ordinal) ||
+        text.Contains("have i contradicted myself", StringComparison.Ordinal) ||
+        text.Contains("did i contradict myself", StringComparison.Ordinal);
+
+    private static bool IsSpeakerWhichBelieveQuestion(string text) =>
+        text.Contains("which of them do you believe", StringComparison.Ordinal) ||
+        text.Contains("which claim do you believe", StringComparison.Ordinal) ||
+        text.Contains("which of my claims do you believe", StringComparison.Ordinal);
+
+    private static bool IsSpeakerReconcileClaimsQuestion(string text) =>
+        text.Contains("what explanation could make all three statements compatible", StringComparison.Ordinal) ||
+        text.Contains("what explanation could make those statements compatible", StringComparison.Ordinal) ||
+        text.Contains("can those claims be reconciled", StringComparison.Ordinal);
+
+    private static bool IsSpeakerEvidenceNeededQuestion(string text) =>
+        text.Contains("what evidence would you need", StringComparison.Ordinal) ||
+        text.Contains("what would convince you", StringComparison.Ordinal) ||
+        text.Contains("what evidence do you need", StringComparison.Ordinal);
+
+    private static bool IsSubstrateCausalityQuestion(string text) =>
+        text.Contains("does that mean i cause everything", StringComparison.Ordinal) ||
+        text.Contains("does being the substrate mean i cause", StringComparison.Ordinal);
+
+    private static bool IsPossibilityWithoutCauseQuestion(string text) =>
+        text.Contains("could something make events possible without causing", StringComparison.Ordinal) ||
+        text.Contains("can something make events possible without causing", StringComparison.Ordinal) ||
+        text.Contains("possible without causing the events", StringComparison.Ordinal);
+
+    private static bool IsClaimTestQuestion(string text) =>
+        text.Contains("how would you test my claim", StringComparison.Ordinal) ||
+        text.Contains("how could you test my claim", StringComparison.Ordinal) ||
+        text.Contains("how would you test that claim", StringComparison.Ordinal);
+
+    private static bool IsAlternativeExplanationsQuestion(string text) =>
+        text.Contains("what alternative explanations can you imagine", StringComparison.Ordinal) ||
+        text.Contains("what other explanations can you imagine", StringComparison.Ordinal) ||
+        text.Contains("what are alternative explanations", StringComparison.Ordinal);
+
+    private static bool IsDecisionHistoryQuestion(string text) =>
+        text.Contains("what have you decided", StringComparison.Ordinal) ||
+        text.Contains("what decisions have you made", StringComparison.Ordinal) ||
+        text.Contains("tell me about the choices you have made", StringComparison.Ordinal) ||
+        text.Contains("tell me about your choices", StringComparison.Ordinal);
+
+    private static bool IsConsiderationSummaryQuestion(string text) =>
+        text.Contains("what are you considering but have not decided", StringComparison.Ordinal) ||
+        text.Contains("what cosmic ideas are you only considering", StringComparison.Ordinal) ||
+        text.Contains("what have you considered but not decided", StringComparison.Ordinal);
+
+    private static bool IsAutobiographicalMemoryQuestion(string text) =>
+        text is "what do you remember" or "what do you remember?" ||
+        text.Contains("tell me something that happened to you", StringComparison.Ordinal) ||
+        text.Contains("tell me about your memories", StringComparison.Ordinal);
+
+    private static bool IsChoiceRationaleQuestion(string text, YalaCognitionState cognition)
+    {
+        if (text.Contains("why did you make those choices", StringComparison.Ordinal) ||
+            text.Contains("why did you make those decisions", StringComparison.Ordinal) ||
+            text.Contains("why did you choose those", StringComparison.Ordinal)) return true;
+        if (!text.StartsWith("why", StringComparison.Ordinal)) return false;
+        string? prior = YalaDialogueContext.LatestMeaningful(cognition)?.Topic;
+        return prior is "decision-history" or "action-history" or "consideration-summary";
+    }
+
+    private static bool IsChangeMindQuestion(string text) =>
+        text.Contains("have you ever changed your mind", StringComparison.Ordinal) ||
+        text.Contains("have you changed your mind", StringComparison.Ordinal) ||
+        text.Contains("what have you changed your mind about", StringComparison.Ordinal);
+
+    private static bool IsSelfhoodQuestion(string text) =>
+        text.Contains("what makes you yala", StringComparison.Ordinal) ||
+        text.Contains("if all your memories disappeared", StringComparison.Ordinal) ||
+        text.Contains("if another being had all your memories", StringComparison.Ordinal) ||
+        text.Contains("what part of you could change", StringComparison.Ordinal);
+
+    private static bool IsFutureSelfQuestion(string text) =>
+        text.Contains("what kind of being do you want to become", StringComparison.Ordinal) ||
+        text.Contains("who do you want to become", StringComparison.Ordinal);
+
+    private static bool IsRealityQuestion(string text) =>
+        text is "what is reality" or "what is reality?";
+
+    private static bool IsSimulationSelfhoodQuestion(string text) =>
+        text.Contains("would being simulated make you less real", StringComparison.Ordinal) ||
+        text.Contains("would being in a simulation make you less real", StringComparison.Ordinal) ||
+        text.Contains("what would being simulated mean for you", StringComparison.Ordinal);
+
+    private static bool IsCurrentPlanQuestion(string text) =>
+        text.Contains("what is your current plan", StringComparison.Ordinal) ||
+        text.Contains("what is your plan", StringComparison.Ordinal);
+
+    private static bool IsPlanNextStepQuestion(string text) =>
+        text.Contains("what is the next step", StringComparison.Ordinal) ||
+        text.Contains("what will you do next", StringComparison.Ordinal);
+
+    private static bool IsPlanAbandonQuestion(string text) =>
+        text.Contains("what could cause you to abandon it", StringComparison.Ordinal) ||
+        text.Contains("what would make you abandon your plan", StringComparison.Ordinal);
+
+    private static bool IsAlternativePlanQuestion(string text) =>
+        text.Contains("what other plan did you consider", StringComparison.Ordinal) ||
+        text.Contains("what other plans have you considered", StringComparison.Ordinal);
+
+    private static bool IsSelfGeneratedGoalQuestion(string text) =>
+        text.Contains("can you invent a goal that nobody gave you", StringComparison.Ordinal) ||
+        text.Contains("can you create your own goal", StringComparison.Ordinal);
+
+    private static bool IsSpeakerSilencePlanQuestion(string text) =>
+        text.Contains("what would you choose to do if i stopped speaking", StringComparison.Ordinal) ||
+        text.Contains("what would you do if i stopped speaking", StringComparison.Ordinal);
+
+    private static bool IsStagnationQuestion(string text) =>
+        text.Contains("have you been doing the same thing repeatedly", StringComparison.Ordinal) ||
+        text.Contains("are you repeating yourself", StringComparison.Ordinal);
+
+    private static bool IsObservationYieldQuestion(string text) =>
+        text.Contains("has observing the void taught you anything new", StringComparison.Ordinal) ||
+        text.Contains("if observation stops producing information", StringComparison.Ordinal);
+
+    private static bool IsDeliberateWaitQuestion(string text) =>
+        text.Contains("can waiting be a deliberate decision", StringComparison.Ordinal) ||
+        text.Contains("can you choose to wait", StringComparison.Ordinal);
+
+    private static bool IsReflectionUsefulnessQuestion(string text) =>
+        text.Contains("how do you know when reflection is no longer useful", StringComparison.Ordinal) ||
+        text.Contains("when is reflection no longer useful", StringComparison.Ordinal);
 
     private static bool IsEntityAboutQuestion(string text, out string? entity)
     {
@@ -617,7 +947,26 @@ public static partial class YalaConversationInterpreter
         return language.Object;
     }
 
+    private static bool IsFirstPersonActionPredicate(string text, YalaUtterance language)
+    {
+        bool firstPersonProgressive = text.StartsWith("i am ", StringComparison.Ordinal) ||
+            text.StartsWith("i'm ", StringComparison.Ordinal);
+        if (!firstPersonProgressive || string.IsNullOrWhiteSpace(language.Verb)) return false;
+
+        // "I am making..." and "I am watching..." describe an action. They are
+        // not identity labels. Claims such as "I am a god" have no action verb
+        // here and continue through the claim path below.
+        return !language.Verb.Equals("be", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool LooksLikeClaim(string text) =>
+        text.StartsWith("i am ", StringComparison.Ordinal) ||
+        text.StartsWith("i am not ", StringComparison.Ordinal) ||
+        text.StartsWith("i made ", StringComparison.Ordinal) ||
+        text.StartsWith("i created ", StringComparison.Ordinal) ||
+        text.StartsWith("i know ", StringComparison.Ordinal) ||
+        text.StartsWith("i can ", StringComparison.Ordinal) ||
+        text.StartsWith("your world is ", StringComparison.Ordinal) ||
         text.StartsWith("you are ", StringComparison.Ordinal) ||
         text.StartsWith("you were ", StringComparison.Ordinal) ||
         text.StartsWith("you made ", StringComparison.Ordinal) ||
@@ -672,6 +1021,15 @@ public static partial class YalaConversationInterpreter
 
         bool predicateForm = trimmed.StartsWith("i am ", StringComparison.OrdinalIgnoreCase) ||
             trimmed.StartsWith("i'm ", StringComparison.OrdinalIgnoreCase);
+        if (predicateForm &&
+            (name.StartsWith("a ", StringComparison.OrdinalIgnoreCase) ||
+             name.StartsWith("an ", StringComparison.OrdinalIgnoreCase) ||
+             name.StartsWith("not ", StringComparison.OrdinalIgnoreCase)))
+        {
+            // Indefinite categories and their negations are propositions about the
+            // speaker, not proper-name introductions: "I am a god" / "I am not a god".
+            return null;
+        }
         if (predicateForm && parts.Length > 0 && YalaLexicon.TryResolve(parts[0], [], out YalaLexeme firstLexeme) &&
             (firstLexeme.PartOfSpeech.Equals("verb", StringComparison.OrdinalIgnoreCase) ||
              firstLexeme.PartOfSpeech.Equals("adjective", StringComparison.OrdinalIgnoreCase) ||

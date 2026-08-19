@@ -4,7 +4,7 @@ namespace ProjectOracle.Cognition.Soar;
 
 public sealed class YalaSoarMind : IDisposable
 {
-    public const string BrainName = "Yala Soar Brain Slice 7";
+    public const string BrainName = "Yala Soar Brain Slice 8";
     public const string Architecture = "Soar 9.6.5";
 
     private readonly SoarKernelHost _host;

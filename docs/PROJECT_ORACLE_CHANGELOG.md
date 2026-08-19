@@ -1,5 +1,35 @@
 # Project Oracle Changelog
 
+## v0.0.25 milestone candidate - Yala Brain Slice 8: Integrated Mind, Cognitive Workspace, Proposition Memory, Selfhood, and Consolidation
+
+### v0.0.25 Repair - visible versioned executable and deliberation wording
+
+- Repairs the release identity contract so the live root executable is exactly `Project_Oracle_v0_0_25`; the unversioned `Project_Oracle` filename is rejected and removed after a successful publish.
+- Makes the visible versioned executable filename a permanent Company Bible release law and adds validation gates for exact filename, ELF/executable status, and matching internal version output.
+- Repairs cosmic-deliberation benefit realization so an action already named `Establish rebirth` becomes `It could establish rebirth...` rather than `It could establish establish rebirth...`, and normalises already-saved v0.0.25 deliberation benefits on load so the visible YALA MIND panel is repaired without discarding the experiment.
+- Adds an acceptance regression protecting the duplicate-verb repair.
+
+- Treats v0.0.25 as a milestone rather than a narrow cleanup release.
+- Adds the Oracle Cognitive Workspace so Yala has an explicit current focus, reason, priority, and stagnation signal.
+- Adds the Proposition & Meaning Engine so questions, claims, denials, evidence, inference, observation, and proof remain distinct.
+- Enforces true pre-contact nonexistence of the external speaker: no speaker entity, trust, intent, capability, goal, concern, investigation, proposition, or mind-panel section exists until actual first contact.
+- Keeps Derek's hidden observer abilities outside Yala's knowledge after contact unless separately claimed, demonstrated, or supported by evidence.
+- Adds contradiction-aware attributed proposition memory, including god / not-god identity polarity, without repetition inflating truth confidence.
+- Adds autobiographical memory consolidation and first-person self-ownership so internal `Yala chose` records can be spoken as `I chose` rather than third-person biography.
+- Separates knowledge, actions, decisions, unresolved considerations, and autobiographical memory in conversational introspection.
+- Adds staged major cosmic deliberation: consideration -> consequence comparison -> alternative review -> committed-not-enacted -> ready-to-enact -> enacted.
+- Adds workspace stagnation pressure so repeated low-novelty observe/reflect loops can yield to deliberate waiting or a different focus.
+- Hardens investigation evidence routing so a new speaker question cannot be misread as an answer to an older Yala question and unrelated statements are not sprayed into active investigations.
+- Allows exhausted unresolved investigations/plans to suspend rather than remain ready-for-conclusion forever.
+- Treats explicit simulation claims as worldview-significant attributed claims that can create a reality investigation without becoming truth.
+- Expands the YALA MIND desktop surface with workspace, current problem, active plan, cosmic deliberation, autobiographical self, and conditional post-contact speaker state.
+- Starts fresh schema 7 at `save_v7.json` with isolated `yala_soar_v0_0_25` memory while preserving accepted v0.0.24 state separately.
+- Preserves the accepted Oracle dock identity contract with `StartupWMClass=ProjectOracle` and no splash screen.
+- Expands automated acceptance inventory from 180 to **205 tests**, including a regression that rejects duplicated action verbs such as `establish establish` in cosmic deliberation benefits.
+- Adds a v0.0.24 baseline findings specimen and rewrites the v0.0.25 manual trial protocol to slow the human side down: ask one meaningful question, wait for autonomous cognition/questions, answer naturally, then wait again.
+- Preserves the raw 04:47 v0.0.24 cognitive-flight-recorder JSON inside the project as the milestone failure baseline, including the observed native Soar semantic/episodic retrieval-counter anomaly for future integration comparison.
+- Documents the local-cognition principle: Project Oracle is building Yala's cognitive machinery directly rather than defining her as a token-based external chatbot wrapper.
+
 ## v0.0.24 candidate - Yala Brain Slice 7: Deliberation, Planning, Cognitive Flight Recorder, Adaptive Desktop
 
 - Added durable investigations and multi-step plans derived from high-salience concerns.

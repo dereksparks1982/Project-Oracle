@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Project Oracle
-Comment=Project Oracle v0.0.24 cognitive world observatory
+Comment=Project Oracle v0.0.25 cognitive world observatory
 Exec="PROJECT_ORACLE_EXEC_PLACEHOLDER"
 Icon=project-oracle
 Terminal=false

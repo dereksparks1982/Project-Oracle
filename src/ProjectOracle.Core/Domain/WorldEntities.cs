@@ -259,14 +259,65 @@ public sealed record YalaCounterfactualState(
     string Source,
     long Decision);
 
+public sealed record YalaPropositionState(
+    long Sequence,
+    string SpeakerKey,
+    string SpeechAct,
+    string RawText,
+    string CanonicalProposition,
+    string Polarity,
+    string Topic,
+    string? Subject,
+    string? Predicate,
+    string? Object,
+    string Status,
+    double Confidence,
+    string Source,
+    long FirstSeenDecision,
+    long LastConsideredDecision,
+    string? ContradictsCanonical = null);
+
+public sealed record YalaCognitiveWorkspaceState(
+    string FocusType,
+    string FocusKey,
+    string Summary,
+    string Reason,
+    int Priority,
+    int StableCycles,
+    int StagnationCount,
+    long FocusSinceDecision,
+    long LastUpdatedDecision);
+
+public sealed record YalaAutobiographicalMemoryState(
+    long Sequence,
+    string Category,
+    string Summary,
+    int Importance,
+    string Source,
+    long FirstDecision,
+    long LastDecision);
+
+public sealed record YalaCosmicDeliberationState(
+    string ChoiceKey,
+    string Domain,
+    string Action,
+    string Stage,
+    int ConsiderationCount,
+    string PossibleBenefit,
+    string PossibleRisk,
+    bool Committed,
+    bool Enacted,
+    long FirstSeenDecision,
+    long LastUpdatedDecision);
+
 public sealed record YalaDecisionSnapshotState(
     string ActiveConcern,
     int ActiveConcernPriority,
     string ActivePlan,
     string ActivePlanStep,
     string ActiveInvestigation,
-    string SpeakerTrust,
-    string SpeakerIntent,
+    string? SpeakerTrust,
+    string? SpeakerIntent,
     string Appraisal,
     IReadOnlyList<string> ActiveGoals,
     IReadOnlyList<string> TopHypotheses);
@@ -312,7 +363,11 @@ public sealed record YalaCognitionState(
     IReadOnlyList<YalaInvestigationState>? Investigations = null,
     IReadOnlyList<YalaCounterfactualState>? Counterfactuals = null,
     IReadOnlyList<YalaDecisionTraceState>? DecisionTrace = null,
-    string? PendingAutonomousUtterance = null);
+    string? PendingAutonomousUtterance = null,
+    IReadOnlyList<YalaPropositionState>? Propositions = null,
+    YalaCognitiveWorkspaceState? Workspace = null,
+    IReadOnlyList<YalaAutobiographicalMemoryState>? AutobiographicalMemory = null,
+    IReadOnlyList<YalaCosmicDeliberationState>? CosmicDeliberations = null);
 
 public sealed record AdamState(
     EntityId Id,

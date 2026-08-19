@@ -10,10 +10,12 @@ TestResults/
 **/bin/
 **/obj/
 /PROJECT_ORACLE_v*_CHANGED_FILES_ONLY/
-/Project_Oracle_v0_0_18
-/Project_Oracle_v0_0_19
-/Project_Oracle_v0_0_20
-/Project_Oracle_v0_0_22
 
-/Project_Oracle_v0_0_23
-/Project_Oracle_v0_0_24
+
+
+# Live Project Oracle root hygiene: one stable executable, no release-manifest clutter.
+/Project_Oracle
+/Project_Oracle_v*
+/Project_Oracle_*Legacy*
+/PROJECT_ORACLE_CHANGED_FILES_v*.txt
+/PROJECT_ORACLE_DELETED_FILES_v*.txt

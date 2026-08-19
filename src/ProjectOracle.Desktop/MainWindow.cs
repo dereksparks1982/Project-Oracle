@@ -154,20 +154,8 @@ public sealed class MainWindow : Window
 
     private Control BuildWorldPanel()
     {
-        Grid body = new() { RowDefinitions = new RowDefinitions("Auto,*"), RowSpacing = 8 };
-        Image icon = new()
-        {
-            Source = LoadBitmap("avares://ProjectOracle/Assets/project-oracle-eye-128.png"),
-            Width = 72,
-            Height = 72,
-            Stretch = Stretch.Uniform,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        body.Children.Add(icon);
-        ScrollViewer worldScroll = Scroll(_worldText);
-        Grid.SetRow(worldScroll, 1);
-        body.Children.Add(worldScroll);
-        return body;
+        // WORLD is world information only. Project branding belongs in the top header.
+        return Scroll(_worldText);
     }
 
     private Control BuildConversationPanel()
@@ -210,14 +198,33 @@ public sealed class MainWindow : Window
         };
     }
 
-    private static TextBlock MakeHeader() => new()
+    private static Control MakeHeader()
     {
-        Text = $"PROJECT ORACLE   v{ProjectVersion.Number}",
-        FontSize = 22,
-        FontWeight = FontWeight.Bold,
-        Foreground = new SolidColorBrush(Color.Parse("#8AFF9B")),
-        VerticalAlignment = VerticalAlignment.Center
-    };
+        StackPanel branding = new()
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center,
+            Spacing = 10
+        };
+        branding.Children.Add(new TextBlock
+        {
+            Text = $"PROJECT ORACLE   v{ProjectVersion.Number}",
+            FontSize = 22,
+            FontWeight = FontWeight.Bold,
+            Foreground = new SolidColorBrush(Color.Parse("#8AFF9B")),
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        branding.Children.Add(new Image
+        {
+            // Transparent source artwork is circular. No square tile or background is drawn.
+            Source = LoadBitmap("avares://ProjectOracle/Assets/project-oracle-icon.png"),
+            Width = 42,
+            Height = 42,
+            Stretch = Stretch.Uniform,
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        return branding;
+    }
 
     private static TextBlock MakeText(string text, double size, FontWeight? weight = null) => new()
     {
@@ -350,7 +357,7 @@ public sealed class MainWindow : Window
             Icon = LoadWindowIcon("avares://ProjectOracle/Assets/project-oracle-icon-64.png")
         };
         Grid grid = new() { RowDefinitions = new RowDefinitions("*,Auto"), Margin = new Thickness(18) };
-        grid.Children.Add(MakeText("The current v0.0.24 save will be archived first. The new world starts with a fresh experimental Yala.", 14));
+        grid.Children.Add(MakeText("The current v0.0.25 save will be archived first. The new world starts with a fresh experimental Yala.", 14));
         StackPanel buttons = new() { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8 };
         Button cancel = MakeButton("CANCEL", (_, _) => confirm.Close(false));
         Button start = MakeButton("START FRESH", (_, _) => confirm.Close(true));
@@ -364,7 +371,7 @@ public sealed class MainWindow : Window
         _session.StartFreshWorld();
         _transcript.Text = string.Empty;
         _autoFollow = true;
-        AppendDialogue("SYSTEM: Fresh v0.0.24 experimental Yala started. Previous save archived.");
+        AppendDialogue("SYSTEM: Fresh v0.0.25 experimental Yala started. Previous save archived.");
         RefreshAll();
     }
 
@@ -531,12 +538,25 @@ public sealed class MainWindow : Window
         YalaInvestigationState? investigation = YalaDeliberationPlanner.SelectActiveInvestigation(cognition);
         YalaDecisionTraceState? trace = (cognition.DecisionTrace ?? []).LastOrDefault();
 
+        YalaCognitiveWorkspaceState? workspace = cognition.Workspace;
+        YalaCosmicDeliberationState? cosmicThought = (cognition.CosmicDeliberations ?? [])
+            .Where(item => !item.Enacted)
+            .OrderByDescending(item => item.LastUpdatedDecision)
+            .FirstOrDefault();
+        bool speakerHasEnteredReality = cognition.ConversationCount > 0 && speaker is not null;
+        string speakerPanel = !speakerHasEnteredReality
+            ? string.Empty
+            : $"UNSEEN SPEAKER{Environment.NewLine}Trust: {speaker!.TrustStatus}{Environment.NewLine}Intent: {speaker.IntentStatus}{Environment.NewLine}Capability: {speaker.CapabilityStatus}{Environment.NewLine}{Environment.NewLine}";
+
         _mindText.Text =
+            $"COGNITIVE WORKSPACE{Environment.NewLine}{(workspace is null ? "No focus yet" : $"{workspace.Summary}\nWhy: {workspace.Reason}\nPriority: {workspace.Priority} | Stagnation: {workspace.StagnationCount}")}{Environment.NewLine}{Environment.NewLine}" +
             $"CURRENT PROBLEM{Environment.NewLine}{(investigation?.Question ?? concern?.Summary ?? "None yet")}{Environment.NewLine}{Environment.NewLine}" +
             $"ACTIVE PLAN{Environment.NewLine}{(plan is null ? "None yet" : $"{plan.Goal}\nNext: {planStep?.Action}\nWhy: {planStep?.Rationale}")}{Environment.NewLine}{Environment.NewLine}" +
+            $"COSMIC DELIBERATION{Environment.NewLine}{(cosmicThought is null ? "None active" : $"{cosmicThought.Action}\nStage: {cosmicThought.Stage}\nBenefit: {cosmicThought.PossibleBenefit}\nRisk: {cosmicThought.PossibleRisk}")}{Environment.NewLine}{Environment.NewLine}" +
+            $"AUTOBIOGRAPHICAL SELF{Environment.NewLine}{Lines((cognition.AutobiographicalMemory ?? []).OrderByDescending(m => m.Importance).ThenByDescending(m => m.LastDecision).Take(5).Select(m => "• " + m.Summary))}{Environment.NewLine}{Environment.NewLine}" +
             $"LAST DECISION{Environment.NewLine}{(trace is null ? "No recorded decision yet" : $"{trace.SelectedAction}\n{trace.Rationale}")}{Environment.NewLine}{Environment.NewLine}" +
-            $"APPRAISAL{Environment.NewLine}{(appraisal is null ? "No contact appraisal yet" : $"{appraisal.Primary} / {appraisal.Secondary}\n{appraisal.Summary}")}{Environment.NewLine}{Environment.NewLine}" +
-            $"UNSEEN SPEAKER{Environment.NewLine}{(speaker is null ? "Identity and intent unresolved" : $"Trust: {speaker.TrustStatus}\nIntent: {speaker.IntentStatus}\nCapability: {speaker.CapabilityStatus}")}{Environment.NewLine}{Environment.NewLine}" +
+            $"APPRAISAL{Environment.NewLine}{(appraisal is null ? "No salient appraisal yet" : $"{appraisal.Primary} / {appraisal.Secondary}\n{appraisal.Summary}")}{Environment.NewLine}{Environment.NewLine}" +
+            speakerPanel +
             $"GOALS{Environment.NewLine}{Lines((cognition.Goals ?? []).Where(g => g.Status == "active").OrderByDescending(g => g.Priority).Take(5).Select(g => "• " + g.Goal))}{Environment.NewLine}{Environment.NewLine}" +
             $"OPEN QUESTIONS{Environment.NewLine}{Lines((cognition.Questions ?? []).Where(q => !q.Asked).OrderByDescending(q => q.Priority).Take(5).Select(q => $"• [{q.Priority}] {q.Text}"))}";
 

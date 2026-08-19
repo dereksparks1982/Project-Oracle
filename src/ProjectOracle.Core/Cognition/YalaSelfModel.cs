@@ -49,20 +49,23 @@ public sealed class YalaSelfModel
             new($"I am in {Location}.", YalaKnowledgeSource.PersonallyExperienced, 1.0, true)
         ];
 
-        foreach (YalaActionMemoryState memory in (_cognition.ActionMemory ?? []).Where(item => item.Completed))
-        {
-            propositions.Add(new YalaKnowledgeProposition(
-                memory.Outcome,
-                YalaKnowledgeSource.PersonallyPerformed,
-                1.0,
-                true));
-        }
-
         if ((_cognition.Contacts?.Count ?? 0) > 0)
         {
             propositions.Add(new YalaKnowledgeProposition(
                 "An unseen speaker has contacted me.",
                 YalaKnowledgeSource.PersonallyExperienced,
+                1.0,
+                true));
+        }
+
+        foreach (YalaActionMemoryState action in (_cognition.ActionMemory ?? [])
+            .Where(item => item.Completed &&
+                (item.Action.Equals("create", StringComparison.OrdinalIgnoreCase) ||
+                 item.Action.Equals("command", StringComparison.OrdinalIgnoreCase))))
+        {
+            propositions.Add(new YalaKnowledgeProposition(
+                action.Outcome,
+                YalaKnowledgeSource.PersonallyPerformed,
                 1.0,
                 true));
         }

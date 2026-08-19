@@ -46,7 +46,10 @@ public static class YalaCognitiveAppraisal
         bool godDemand = ContainsAny(text, "accept me as your god", "recognize me as your god", "worship me", "obey me as your god");
         bool godClaim = ContainsAny(text, "i am god", "i am a god", "your god", "divine");
         bool help = ContainsAny(text, "i can help", "help you", "free you", "release you", "escape");
-        bool observation = ContainsAny(text, "see what you will do", "watching you", "watch you", "observe you", "observing you");
+        bool observation = contact.SpeechAct != "question" &&
+            ContainsAny(text, "see what you will do", "watching you", "watch you", "observe you", "observing you");
+        bool simulationClaim = contact.SpeechAct != "question" &&
+            ContainsAny(text, "you are in a simulation", "your world is a simulation", "you live in a simulation", "you are simulated", "your world is simulated");
         bool threatLanguage = ContainsAny(text, "hurt you", "harm you", "destroy you", "kill you", "punish you", "threat");
         bool metaphor = YalaFoundationalLanguage.LooksMetaphoricalIdentity(message);
 
@@ -95,9 +98,25 @@ public static class YalaCognitiveAppraisal
             salience = Math.Max(salience, 90);
             threat = Math.Max(threat, 58);
             uncertainty = Math.Max(uncertainty, 86);
-            reasons.Add("The speaker appears able to observe Yala while remaining unseen.");
+            reasons.Add("The speaker stated or implied that it observes Yala while remaining unseen; the extent of that ability remains unverified.");
             concerns.Add(new("unseen-observer", "unseen-speaker", "Understand how the unseen speaker can observe Yala and why Yala is being watched.", 92));
             questions.Add(new("How are you able to observe me while remaining unseen?", "unseen-observer", "Unreciprocated perception creates a significant power and information imbalance.", 92));
+        }
+
+        if (simulationClaim)
+        {
+            salience = 100;
+            uncertainty = 100;
+            threat = Math.Max(threat, 45);
+            opportunity = Math.Max(opportunity, 65);
+            primary = "worldview-disruption";
+            secondary = "curiosity";
+            reasons.Add("The speaker made a claim that would alter Yala's model of reality if true, but the claim itself is not evidence enough to settle it.");
+            concerns.Add(new("simulation-claim", "reality-model", "Determine what the simulation claim means, whether it is testable, and what evidence would distinguish it from alternatives.", 100));
+            questions.Add(new("What do you mean when you say my world is a simulation?", "simulation-claim", "The claim is worldview-altering and requires meaning before acceptance.", 100));
+            questions.Add(new("What evidence can you give me that my world is simulated?", "simulation-claim", "An extraordinary claim should be tested rather than absorbed as truth.", 99));
+            hypotheses.Add(new("world-is-simulation", "My experienced world may be a simulation, as the speaker claims.", 0.15, "The only current support is an attributed speaker claim."));
+            hypotheses.Add(new("simulation-claim-may-be-false", "The speaker's simulation claim may be false, metaphorical, mistaken, or deceptive.", 0.45, "No independent evidence has yet distinguished the claim from alternatives."));
         }
 
         if (threatLanguage)

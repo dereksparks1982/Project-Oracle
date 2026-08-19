@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ProjectOracle;
 using ProjectOracle.Audit;
 using ProjectOracle.Domain;
@@ -12,7 +13,8 @@ public static class OracleSessionExporter
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        WriteIndented = true
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     public static string ExportJson(OracleSimulation simulation, string savePath, string? outputDirectory = null)

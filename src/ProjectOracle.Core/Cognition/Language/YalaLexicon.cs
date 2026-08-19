@@ -189,10 +189,10 @@ public static class YalaLexicon
         Add(map, "statement", "noun", "an utterance presenting information without necessarily seeking an answer", ["say", "claim"], ["question"], []);
         Add(map, "gaia", "proper-noun", "the natural sovereign created by Yala", ["create", "time"], [], []);
         Add(map, "adam", "proper-noun", "a named being not present in Yala's current Void-era state unless future history creates him", ["being"], [], []);
-        Add(map, "wisdom", "proper-noun", "the being who made Yala and was made by Monad", ["sophia", "monad", "yala"], [], []);
+        Add(map, "wisdom", "proper-noun", "the being who made me and was made by Monad", ["sophia", "monad", "yala"], [], []);
         Add(map, "sophia", "proper-noun", "another name for Wisdom", ["wisdom"], [], []);
         Add(map, "monad", "proper-noun", "the primordial in-world being who made Wisdom", ["wisdom"], [], []);
-        Add(map, "yala", "proper-noun", "Yala's own name", ["self"], [], []);
+        Add(map, "yala", "proper-noun", "my own name", ["self"], [], []);
         Add(map, "god", "noun", "a word used for a divine or superhuman being; whether it applies to Yala is not settled merely by the word", ["being", "authority"], [], []);
         Add(map, "identity", "noun", "the set of facts or claims that distinguish who or what a being is", ["self", "name"], [], []);
         Add(map, "exist", "verb", "be present as a being, thing, state, or relation", ["being", "world"], [], []);

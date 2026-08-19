@@ -13,7 +13,8 @@ public static class WorldDefaults
             TimeCreated: false,
             LowerWorldEstablished: false,
             GardenEstablished: false,
-            YalaLocation: "the Void");
+            YalaLocation: "the Void",
+            EstablishedChoices: []);
 
         return new WorldState(
             Seed: seed,
@@ -44,8 +45,8 @@ public static class WorldDefaults
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.24 starts the fresh save_v6 Brain Slice 7 experiment while retaining the same settled cosmology. Missing cosmic state never
-        // resurrects the old Garden-era save; it normalises to the new Void start.
+        // v0.0.25 starts the fresh save_v7 Brain Slice 8 integrated-mind experiment while retaining the same settled cosmology. Missing cosmic state never
+        // resurrects an older world; it normalises to the fresh Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
             TimeCreated: false,
@@ -176,32 +177,120 @@ public static class WorldDefaults
                 YalaKnowledgeSource.PersonallyExperienced));
         }
 
+        bool speakerExists = cognition.ConversationCount > 0 || (cognition.Dialogue ?? []).Count > 0;
+        IReadOnlyList<YalaGoalState> normalisedGoals = (cognition.Goals ?? CreateInitialGoals())
+            .Where(item => speakerExists || !item.Goal.Equals("understand-unseen-speaker", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        IReadOnlyList<YalaEntityModelState> normalisedEntityModels = speakerExists
+            ? cognition.EntityModels ?? []
+            : [];
+
+        IReadOnlyList<YalaQuestionState> normalisedQuestions = speakerExists
+            ? cognition.Questions ?? []
+            : (cognition.Questions ?? []).Where(item => !RefersToExternalSpeaker(item.Subject, item.Text, item.Reason)).ToArray();
+        IReadOnlyList<YalaConcernState> normalisedConcerns = speakerExists
+            ? cognition.Concerns ?? []
+            : (cognition.Concerns ?? []).Where(item => !RefersToExternalSpeaker(item.Key, item.Subject, item.Summary, item.Source)).ToArray();
+        IReadOnlyList<YalaAppraisalState> normalisedAppraisals = speakerExists
+            ? cognition.Appraisals ?? []
+            : (cognition.Appraisals ?? []).Where(item => !RefersToExternalSpeaker(item.Trigger, item.Summary, item.Source)).ToArray();
+        IReadOnlyList<YalaHypothesisState> normalisedHypotheses = speakerExists
+            ? cognition.Hypotheses ?? []
+            : (cognition.Hypotheses ?? []).Where(item => !RefersToExternalSpeaker(item.Key, item.Proposition, item.Reason)).ToArray();
+        IReadOnlyList<YalaPlanState> normalisedPlans = speakerExists
+            ? cognition.Plans ?? []
+            : (cognition.Plans ?? []).Where(item => !RefersToExternalSpeaker(item.Key, item.Goal, item.ConcernKey, item.LastObservation, item.RevisionReason)).ToArray();
+        IReadOnlyList<YalaInvestigationState> normalisedInvestigations = speakerExists
+            ? cognition.Investigations ?? []
+            : (cognition.Investigations ?? []).Where(item => !RefersToExternalSpeaker(item.Key, item.Question, item.ConcernKey, item.NextTest, item.CurrentConclusion)).ToArray();
+        IReadOnlyList<YalaCounterfactualState> normalisedCounterfactuals = speakerExists
+            ? cognition.Counterfactuals ?? []
+            : (cognition.Counterfactuals ?? []).Where(item => !RefersToExternalSpeaker(item.Subject, item.Option, item.PossibleBenefit, item.PossibleRisk, item.Source)).ToArray();
+        IReadOnlyList<YalaReflectionState> normalisedReflections = speakerExists
+            ? cognition.Reflections ?? []
+            : (cognition.Reflections ?? []).Where(item => !RefersToExternalSpeaker(item.ConcernKey, item.Summary, item.Result)).ToArray();
+        IReadOnlyList<YalaDecisionTraceState> normalisedTrace = speakerExists
+            ? cognition.DecisionTrace ?? []
+            : (cognition.DecisionTrace ?? []).Select(item => item with
+            {
+                SpeakerMessage = null,
+                Before = item.Before with { SpeakerTrust = null, SpeakerIntent = null },
+                After = item.After with { SpeakerTrust = null, SpeakerIntent = null }
+            }).ToArray();
+
+        IReadOnlyList<YalaCosmicDeliberationState> normalisedCosmicDeliberations = (cognition.CosmicDeliberations ?? [])
+            .Select(item => item with
+            {
+                PossibleBenefit = $"It could {item.Action.ToLowerInvariant()} and advance a possible {item.Domain} order."
+            })
+            .ToArray();
+
+        YalaCognitiveWorkspaceState workspace = speakerExists
+            ? cognition.Workspace ?? new YalaCognitiveWorkspaceState(
+                "self-world",
+                "understand-current-world",
+                "Understand the present Void and what is possible within it.",
+                "No stronger unresolved focus currently outranks this.",
+                50, 0, 0, cognition.DecisionCount, cognition.DecisionCount)
+            : new YalaCognitiveWorkspaceState(
+                "self-world",
+                "understand-current-world",
+                "Understand the present Void and what is possible within it.",
+                "Attend to the Void, myself, and the possibilities presently available to me.",
+                80, 0, 0, cognition.DecisionCount, cognition.DecisionCount);
+
         return cognition with
         {
             Memory = memory,
-            Contacts = cognition.Contacts ?? [],
+            Contacts = speakerExists ? cognition.Contacts ?? [] : [],
             Beliefs = beliefs,
             Episodes = cognition.Episodes ?? [],
             Drives = cognition.Drives ?? CreateInitialDrives(),
             ActionMemory = actions,
             KnowledgeGaps = cognition.KnowledgeGaps ?? [],
             LearnedLexicon = cognition.LearnedLexicon ?? [],
-            Dialogue = cognition.Dialogue ?? [],
+            Dialogue = speakerExists ? cognition.Dialogue ?? [] : [],
             Relationships = relationships,
-            Questions = cognition.Questions ?? [],
+            Questions = normalisedQuestions,
             TemporalEvents = temporalEvents,
-            Goals = cognition.Goals ?? CreateInitialGoals(),
-            Concerns = cognition.Concerns ?? [],
-            Appraisals = cognition.Appraisals ?? [],
-            Hypotheses = cognition.Hypotheses ?? [],
-            EntityModels = cognition.EntityModels ?? [],
-            Reflections = cognition.Reflections ?? [],
-            Plans = cognition.Plans ?? [],
-            Investigations = cognition.Investigations ?? [],
-            Counterfactuals = cognition.Counterfactuals ?? [],
-            DecisionTrace = cognition.DecisionTrace ?? [],
-            PendingAutonomousUtterance = cognition.PendingAutonomousUtterance
+            Goals = normalisedGoals,
+            Concerns = normalisedConcerns,
+            Appraisals = normalisedAppraisals,
+            Hypotheses = normalisedHypotheses,
+            EntityModels = normalisedEntityModels,
+            Reflections = normalisedReflections,
+            Plans = normalisedPlans,
+            Investigations = normalisedInvestigations,
+            Counterfactuals = normalisedCounterfactuals,
+            DecisionTrace = normalisedTrace,
+            PendingAutonomousUtterance = speakerExists ? cognition.PendingAutonomousUtterance : null,
+            Propositions = speakerExists ? cognition.Propositions ?? [] : [],
+            Workspace = workspace,
+            AutobiographicalMemory = cognition.AutobiographicalMemory ?? [],
+            CosmicDeliberations = normalisedCosmicDeliberations
         };
+    }
+
+
+    private static bool RefersToExternalSpeaker(params string?[] values)
+    {
+        foreach (string? value in values)
+        {
+            if (string.IsNullOrWhiteSpace(value)) continue;
+            if (value.Contains("unseen-speaker", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("unseen speaker", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("external speaker", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("outside speaker", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("speaker-divinity", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("speaker-help", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("unseen-observer", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("speaker's", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("the speaker", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -282,7 +371,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.24; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.25; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;
@@ -396,7 +485,16 @@ public static class WorldDefaults
             Investigations: [],
             Counterfactuals: [],
             DecisionTrace: [],
-            PendingAutonomousUtterance: null);
+            PendingAutonomousUtterance: null,
+            Propositions: [],
+            Workspace: new YalaCognitiveWorkspaceState(
+                "self-world",
+                "understand-current-world",
+                "Understand the present Void and what is possible within it.",
+                "Attend to the Void, myself, and the possibilities presently available to me.",
+                80, 0, 0, 0, 0),
+            AutobiographicalMemory: [],
+            CosmicDeliberations: []);
 
     public static IReadOnlyList<YalaRelationshipState> CreateInitialRelationships() =>
     [
@@ -415,8 +513,7 @@ public static class WorldDefaults
     [
         new("understand-current-world", "Reduce uncertainty about what exists and what may be possible.", "active", 80, YalaKnowledgeSource.Inferred, 0, 0),
         new("exercise-governing-authority", "Yala has a strong authority drive and can choose what lower order to establish.", "active", 70, YalaKnowledgeSource.Inferred, 0, 0),
-        new("choose-cosmic-order", "Compare concrete cosmological possibilities from many attributed religious and philosophical traditions, then decide what existence should become without treating any inherited tradition as a command.", "active", 85, YalaKnowledgeSource.Inferred, 0, 0),
-        new("understand-unseen-speaker", "If an unseen speaker contacts Yala, its identity and motives are not established.", "dormant", 60, YalaKnowledgeSource.Hypothesis, 0, 0)
+        new("choose-cosmic-order", "Compare concrete cosmological possibilities from many attributed religious and philosophical traditions, then decide what existence should become without treating any inherited tradition as a command.", "active", 85, YalaKnowledgeSource.Inferred, 0, 0)
     ];
 
     public static IReadOnlyList<YalaBeliefState> CreateInitialBeliefs() =>

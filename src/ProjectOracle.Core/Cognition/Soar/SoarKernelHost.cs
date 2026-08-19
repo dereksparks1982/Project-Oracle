@@ -109,6 +109,10 @@ public sealed class SoarKernelHost : IDisposable
         CreateString(input, "active-plan-next-action", Clean(perception.ActivePlanNextAction, "none"));
         CreateString(input, "active-investigation", Clean(perception.ActiveInvestigationKey, "none"));
         CreateInt(input, "active-investigation-priority", perception.ActiveInvestigationPriority);
+        CreateString(input, "workspace-focus-type", Clean(perception.WorkspaceFocusType, "self-world"));
+        CreateString(input, "workspace-focus-key", Clean(perception.WorkspaceFocusKey, "understand-current-world"));
+        CreateInt(input, "workspace-focus-priority", perception.WorkspaceFocusPriority);
+        CreateInt(input, "workspace-stagnation", perception.WorkspaceStagnationCount);
         CreateString(input, "speaker-history", YesNo(perception.HasSpeakerHistory));
         CreateString(input, "cosmic-choice-ready", YesNo(perception.CosmicChoiceReady));
         CreateInt(input, "cosmic-choice-count", perception.CosmicChoices.Count);
@@ -453,8 +457,8 @@ public sealed record SoarMemoryPaths(string Directory, string SemanticDatabase, 
         ArgumentException.ThrowIfNullOrWhiteSpace(savePath);
         string full = Path.GetFullPath(savePath);
         string parent = Path.GetDirectoryName(full) ?? throw new InvalidOperationException("Save path has no parent directory.");
-        // v0.0.24 starts a fresh Brain Slice 7 deliberation mind alongside save_v6. Earlier Soar databases remain untouched.
-        string directory = Path.Combine(parent, "yala_soar_v0_0_24");
+        // v0.0.25 starts a fresh Brain Slice 8 integrated mind alongside save_v7. Earlier Soar databases remain untouched.
+        string directory = Path.Combine(parent, "yala_soar_v0_0_25");
         return new SoarMemoryPaths(
             directory,
             Path.Combine(directory, "semantic.sqlite"),

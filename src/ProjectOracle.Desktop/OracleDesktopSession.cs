@@ -81,7 +81,7 @@ internal sealed class OracleDesktopSession : IDisposable
         string archive = Path.Combine(directory, "archives");
         Directory.CreateDirectory(archive);
         string stamp = DateTimeOffset.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture);
-        File.Copy(_savePath, Path.Combine(archive, $"save_v6_before_fresh_{stamp}.json"), overwrite: false);
+        File.Copy(_savePath, Path.Combine(archive, $"save_v7_before_fresh_{stamp}.json"), overwrite: false);
     }
 
     public void Dispose()
