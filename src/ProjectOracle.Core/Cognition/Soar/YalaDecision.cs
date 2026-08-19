@@ -6,7 +6,8 @@ public sealed record YalaDecision(
     string Source,
     string Detail,
     int DecisionCycles = 0,
-    bool UsedSubstateDeliberation = false);
+    bool UsedSubstateDeliberation = false,
+    string? CosmicChoiceKey = null);
 
 public sealed record YalaContactFrame(
     string SpeechAct,
@@ -53,6 +54,14 @@ public sealed record YalaPerception(
 {
     public bool HasContact => !string.IsNullOrWhiteSpace(ContactMessage);
     public YalaContactFrame ContactFrame => Contact ?? YalaContactFrame.None;
+    public bool CosmicChoiceReady { get; init; }
+    public IReadOnlyList<ProjectOracle.Cognition.CosmicChoice.YalaCosmicChoiceDefinition> CosmicChoices { get; init; } = [];
+    public ProjectOracle.Domain.YalaDriveState? Drives { get; init; }
+    public int PendingQuestionPriority { get; init; }
+    public string ActiveConcernKey { get; init; } = "none";
+    public int ActiveConcernPriority { get; init; }
+    public int AppraisalThreat { get; init; }
+    public int AppraisalSalience { get; init; }
 }
 
 public sealed record YalaDirectReply(

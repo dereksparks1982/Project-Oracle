@@ -5,7 +5,7 @@ namespace ProjectOracle.Persistence;
 public sealed class OracleSaveStore
 {
     public const string SaveFormat = "PROJECT_ORACLE_SAVE";
-    public const int CurrentSchemaVersion = 4;
+    public const int CurrentSchemaVersion = 5;
     private static readonly HashSet<string> SupportedProjectVersions = new(StringComparer.Ordinal)
     {
         ProjectVersion.Number
@@ -108,9 +108,9 @@ public sealed class OracleSaveStore
             localData = AppContext.BaseDirectory;
         }
 
-        // v0.0.22 intentionally starts a fresh experimental save line so Brain Slice 5 can be
-        // observed from Yala's pre-Time Void state. Earlier save_v2 history remains untouched.
-        return Path.Combine(localData, "ProjectOracle", "save_v4.json");
+        // v0.0.23 intentionally starts a new experimental save line so Cosmic Choice Architecture can be
+        // observed without importing decisions or conversation history from v0.0.22. Older save lines remain untouched.
+        return Path.Combine(localData, "ProjectOracle", "save_v5.json");
     }
 
     public static string BackupPath(string path) => Path.GetFullPath(path) + ".backup.json";
@@ -122,7 +122,7 @@ public sealed class OracleSaveStore
             ?? throw new InvalidDataException(emptyMessage);
 
         // Validate version/schema before any normalisation. This prevents an old
-        // legacy save line from being transformed into the fresh v0.0.22 save_v4 world.
+        // legacy save line from being transformed into the fresh v0.0.23 save_v5 world.
         Validate(snapshot);
         return snapshot with { World = ProjectOracle.Domain.WorldDefaults.Normalise(snapshot.World) };
     }
@@ -142,18 +142,18 @@ public sealed class OracleSaveStore
         if (snapshot.SchemaVersion != CurrentSchemaVersion)
         {
             throw new InvalidDataException(
-                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}. v0.0.22 uses the fresh save_v4 world line only. Earlier saves are preserved but are not migrated into this experiment.");
+                $"Save schema {snapshot.SchemaVersion} is not supported by schema {CurrentSchemaVersion}. v0.0.23 uses the fresh save_v5 world line only. Earlier saves are preserved but are not migrated into this experiment.");
         }
 
         if (!SupportedProjectVersions.Contains(snapshot.ProjectVersion))
         {
             throw new InvalidDataException(
-                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}. v0.0.22 accepts current save_v4 worlds only. Earlier saves remain preserved on disk.");
+                $"Save version {snapshot.ProjectVersion} is not supported by Project Oracle v{ProjectVersion.Number}. v0.0.23 accepts current save_v5 worlds only. Earlier saves remain preserved on disk.");
         }
 
         if (snapshot.World.Cosmic is null)
         {
-            throw new InvalidDataException("The save_v4 world is missing required cosmic state.");
+            throw new InvalidDataException("The save_v5 world is missing required cosmic state.");
         }
 
         if (snapshot.World.Seed != snapshot.Seed)

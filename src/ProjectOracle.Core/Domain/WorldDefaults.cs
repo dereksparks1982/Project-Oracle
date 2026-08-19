@@ -36,14 +36,15 @@ public static class WorldDefaults
             NamingMandate: CreateNamingMandate([], active: false),
             NaturalCourse: CreateNaturalCourse(),
             Cosmic: cosmic,
-            YalaCognition: CreateInitialYalaCognition());
+            YalaCognition: CreateInitialYalaCognition(),
+            EmergentLaws: CreateInitialEmergentLawState());
     }
 
     public static WorldState Normalise(WorldState world)
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.22 starts the fresh save_v4 experiment while retaining the same settled cosmology. Missing cosmic state never
+        // v0.0.23 starts the fresh save_v5 Cosmic Choice experiment while retaining the same settled cosmology. Missing cosmic state never
         // resurrects the old Garden-era save; it normalises to the new Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
@@ -51,6 +52,7 @@ public static class WorldDefaults
             LowerWorldEstablished: false,
             GardenEstablished: false,
             YalaLocation: "the Void");
+        cosmic = cosmic with { EstablishedChoices = cosmic.EstablishedChoices ?? [] };
 
         GardenState? garden = cosmic.GardenEstablished
             ? world.Garden is null
@@ -99,7 +101,8 @@ public static class WorldDefaults
             DirectCallTargets = CreateDirectCallTargets(cosmic),
             LivingKinds = livingKinds,
             NamingMandate = mandate,
-            NaturalCourse = CreateNaturalCourse()
+            NaturalCourse = CreateNaturalCourse(),
+            EmergentLaws = NormaliseEmergentLawState(world.EmergentLaws)
         };
     }
 
@@ -188,6 +191,11 @@ public static class WorldDefaults
             Questions = cognition.Questions ?? [],
             TemporalEvents = temporalEvents,
             Goals = cognition.Goals ?? CreateInitialGoals(),
+            Concerns = cognition.Concerns ?? [],
+            Appraisals = cognition.Appraisals ?? [],
+            Hypotheses = cognition.Hypotheses ?? [],
+            EntityModels = cognition.EntityModels ?? [],
+            Reflections = cognition.Reflections ?? [],
             PendingAutonomousUtterance = cognition.PendingAutonomousUtterance
         };
     }
@@ -270,7 +278,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.22; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.23; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;
@@ -336,6 +344,15 @@ public static class WorldDefaults
             Active: true,
             RuleText: OracleLore.PrimeSimulationLaw);
 
+
+    public static OracleEmergentLawState CreateInitialEmergentLawState() =>
+        new(EstablishedLaws: [], Experiments: []);
+
+    private static OracleEmergentLawState NormaliseEmergentLawState(OracleEmergentLawState? state) =>
+        new(
+            EstablishedLaws: state?.EstablishedLaws ?? [],
+            Experiments: state?.Experiments ?? []);
+
     public static YalaCognitionState CreateInitialYalaCognition() =>
         new(
             DecisionCount: 0,
@@ -366,6 +383,11 @@ public static class WorldDefaults
             Questions: [],
             TemporalEvents: CreateInitialTemporalEvents(),
             Goals: CreateInitialGoals(),
+            Concerns: [],
+            Appraisals: [],
+            Hypotheses: [],
+            EntityModels: [],
+            Reflections: [],
             PendingAutonomousUtterance: null);
 
     public static IReadOnlyList<YalaRelationshipState> CreateInitialRelationships() =>
@@ -385,6 +407,7 @@ public static class WorldDefaults
     [
         new("understand-current-world", "Reduce uncertainty about what exists and what may be possible.", "active", 80, YalaKnowledgeSource.Inferred, 0, 0),
         new("exercise-governing-authority", "Yala has a strong authority drive and can choose what lower order to establish.", "active", 70, YalaKnowledgeSource.Inferred, 0, 0),
+        new("choose-cosmic-order", "Compare concrete cosmological possibilities from many attributed religious and philosophical traditions, then decide what existence should become without treating any inherited tradition as a command.", "active", 85, YalaKnowledgeSource.Inferred, 0, 0),
         new("understand-unseen-speaker", "If an unseen speaker contacts Yala, its identity and motives are not established.", "dormant", 60, YalaKnowledgeSource.Hypothesis, 0, 0)
     ];
 

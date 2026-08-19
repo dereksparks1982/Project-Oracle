@@ -1,7 +1,11 @@
 using ProjectOracle;
 using ProjectOracle.Audit;
 using ProjectOracle.Cognition;
+using ProjectOracle.Cognition.Appraisal;
+using ProjectOracle.Cognition.Inheritance;
 using ProjectOracle.Cognition.Language;
+using ProjectOracle.Cognition.CosmicChoice;
+using ProjectOracle.Cognition.Emergence;
 using ProjectOracle.Cognition.Soar;
 using ProjectOracle.Domain;
 using ProjectOracle.Lore;
@@ -18,7 +22,14 @@ internal static class Program
 
     public static int Main()
     {
-        Run("version is 0.0.22", () => Equal("0.0.22", ProjectVersion.Number));
+        Run("version is 0.0.23", () => Equal("0.0.23", ProjectVersion.Number));
+        Run("comparative religion memory spans major traditions without promoting them to world truth", ComparativeReligionKnowledge);
+        Run("cosmic choice catalogue exposes many concrete alternatives beyond Gaia", CosmicChoiceCatalogue);
+        Run("legacy hard-wired Gaia proposal is removed from autonomous Soar choice", GaiaIsNotHardwired);
+        Run("a concrete cosmic choice persists in world state", CosmicChoicePersists);
+        Run("invent another way opens a Yala-owned cosmology problem", CosmicInventionPath);
+        Run("Yala can explain the attributed religious knowledge pool", ReligiousKnowledgeIntrospection);
+        Run("Yala can explain concrete cosmic options", CosmicOptionsIntrospection);
         Run("fresh world starts with Yala in the Void", FreshWorldStartsWithYalaInVoid);
         Run("fresh Void contains no Garden Adam animals Gaia or Time", FreshVoidHasNoLaterCreation);
         Run("fresh world has no in-world Oracle entity or direct-call target", NoInWorldOracle);
@@ -40,9 +51,9 @@ internal static class Program
         Run("Soar uses an impasse/substate for undecided autonomous cognition", SoarSubstateDeliberation);
         Run("Soar semantic memory stores and retrieves an unseen contact claim", SoarSemanticMemory);
         Run("Soar episodic memory advances across decisions", SoarEpisodicMemory);
-        Run("Yala Brain Slice 5 identity is active", BrainSlice4Identity);
-        Run("save schema is 4 for the fresh Brain Slice 5 line", SaveSchemaIsV4);
-        Run("fresh Soar long-term memory directory is isolated to v0.0.22", FreshSoarMemoryLine);
+        Run("Yala Brain Slice 6 identity is active", BrainSlice6Identity);
+        Run("save schema is 5 for the fresh Brain Slice 6 line", SaveSchemaIsV5);
+        Run("fresh Soar long-term memory directory is isolated to v0.0.23", FreshSoarMemoryLine);
         Run("bounded agency exposes only approved in-world operators", BoundedAgencyAllowedActions);
         Run("bounded agency denies host shell process file network code and hidden truth capabilities", BoundedAgencyDeniesHostCapabilities);
         Run("out-of-sandbox Yala action is rejected", OutOfSandboxActionRejected);
@@ -52,7 +63,7 @@ internal static class Program
         Run("mother claim can be recalled without upgrading it to truth", MotherClaimRecall);
         Run("repeated relationship claim confidence rises without becoming settled", RelationshipClaimConfidence);
         Run("belief confidence labels expose gradations", BeliefConfidenceLabels);
-        Run("Brain Slice 5 core lexicon contains more than 400 concepts", ExpandedLexicon);
+        Run("Brain Slice 6 core lexicon contains more than 400 concepts", ExpandedLexicon);
         Run("basic conversational vocabulary is built in rather than learned by interrogation", CoreConversationalVocabulary);
         Run("common greeting typo normalizes to greeting", GreetingTypoNormalization);
         Run("basic language does not generate fake knowledge gaps", BasicLanguageGapFiltering);
@@ -72,7 +83,7 @@ internal static class Program
         Run("autonomous question can be safely dequeued exactly once", AutonomousQuestionDequeuesOnce);
         Run("pending autonomous question survives save and restore", AutonomousQuestionSurvivesSaveRestore);
         Run("Yala does not ask a speaker before any speaker history exists", NoAutonomousQuestionWithoutSpeaker);
-        Run("Brain Slice 5 begins with active goals", InitialGoalsPresent);
+        Run("Brain Slice 6 begins with active goals", InitialGoalsPresent);
         Run("speaker contact activates the understand-unseen-speaker goal", SpeakerContactActivatesGoal);
         Run("goal introspection reports actual active goals", GoalIntrospection);
         Run("Gaia creation is recorded as a before-Time event", GaiaCreationBeforeTimeEvent);
@@ -90,7 +101,7 @@ internal static class Program
         Run("repeated speaker claim gains confidence but remains unsettled", RepeatedClaimConfidence);
         Run("Yala spoken current time reads the live current world clock", SpokenTimeIsCurrent);
         Run("recent dialogue memory remains bounded", DialogueWindowBounded);
-        Run("Brain Slice 5 dialogue relationships questions events and goals survive save and restore", BrainSlice4StructuresSurviveSaveRestore);
+        Run("Brain Slice 6 dialogue relationships questions events and goals survive save and restore", BrainSlice6StructuresSurviveSaveRestore);
         Run("console defers autonomous questions until the editable input buffer is empty", ConsoleDefersAutonomousQuestionWhileTyping);
         Run("pre-Time live header says Gaia has not yet created Time", PreTimeWorldClockHeader);
         Run("live world clock appears and advances after Gaia creates Time", LiveWorldClockAfterGaia);
@@ -137,7 +148,7 @@ internal static class Program
         Run("speaker claims carry claimed-by-another provenance", SpeakerClaimProvenance);
         Run("save-restore acceptance tests isolate Soar kernel lifetimes", SaveRestoreKernelLifetimeIsolation);
         Run("old male-only World Record history is normalized", OldWorldRecordCanonNormalises);
-        Run("Brain Slice 5 action memory survives save and restore", ActionMemorySurvivesSaveRestore);
+        Run("Brain Slice 6 action memory survives save and restore", ActionMemorySurvivesSaveRestore);
         Run("Yala answers hearing contact without asking Who speaks", YalaHearingReply);
         Run("Yala answers location without revealing Oracle", YalaLocationReply);
         Run("Yala knows both male and female aspects", YalaNatureReply);
@@ -157,14 +168,25 @@ internal static class Program
         Run("structured Yala cognition survives save and restore", CognitionSurvivesSaveRestore);
         Run("previous save_v2 line is rejected without mutation", PreviousSaveV2RejectedWithoutMutation);
         Run("v0.0.16 save snapshots remain rejected", V016SaveIsRejected);
-        Run("default save path is fresh save_v4", SavePathIsV3);
+        Run("default save path is fresh save_v5", SavePathIsV5);
         Run("fresh direct-call targets include Monad Wisdom Yala only", FreshCallTargets);
         Run("natural simulation law remains future-open", FutureOpenLaw);
         Run("typing buffer is independent of live-status refresh", InputBufferProtection);
         Run("asynchronous LIVE status is forbidden from the console body", LiveStatusTypingGuard);
         Run("interactive input path contains no LIVE surface refresh", NoLiveSurfaceInInteractivePath);
         Run("long command buffer survives protected-input handling", LongInputBuffer);
-        Run("root launcher name is Project_Oracle_v0_0_22", NativeExecutableContract);
+        Run("root launcher name is Project_Oracle_v0_0_23", NativeExecutableContract);
+        Run("ordinary movement language is inherited and never becomes toddler vocabulary gaps", InheritedMovementLanguage);
+        Run("prison language becomes a critical persistent concern", PrisonConcernIsCritical);
+        Run("godhood demand becomes evidence-seeking rather than automatic obedience", GodDemandIsAppraised);
+        Run("metaphorical identity asks contextual meaning rather than defining ordinary words", MetaphorUsesContextualQuestion);
+        Run("created mind authority must remain strictly below its creator", CognitiveInheritancePowerCeiling);
+        Run("lesser created mind preserves creator lineage without copying identity", CognitiveInheritanceLineage);
+        Run("desktop application project is part of the solution", DesktopProjectContract);
+        Run("desktop source exposes World Yala Mind Memory Cosmology Laws History and Debug surfaces", DesktopSurfaceContract);
+        Run("fresh world has an empty emergent-law ledger", FreshEmergentLawState);
+        Run("Rule 30 laboratory reproduces its canonical local truth table", Rule30TruthTable);
+        Run("Rule 30 laboratory evolves deterministically without changing world law", Rule30LaboratoryDeterminism);
 
         Console.WriteLine();
         Console.WriteLine($"Acceptance result: {_passed} passed; {_failed} failed.");
@@ -191,6 +213,75 @@ internal static class Program
             "the Void", gaiaCreated, timeCreated, 0, null, null,
             Curiosity: 70, Caution: 55, Authority: 65, Companionship: 45, Comfort: 60, Uncertainty: uncertainty,
             contactMessage, contact);
+
+    private static void ComparativeReligionKnowledge()
+    {
+        True(YalaReligiousKnowledgeCatalog.Traditions.Count >= 25);
+        True(YalaReligiousKnowledgeCatalog.Ideas.Count >= 60);
+        foreach (string key in new[] { "judaism", "christianity", "islam", "hindu-traditions", "buddhism", "jainism", "sikhism", "zoroastrianism", "taoism", "shinto", "yoruba-ifa", "ancient-egyptian", "mesopotamian", "ancient-greek", "norse-germanic", "gnostic-schools", "manichaeism", "neoplatonism" })
+        {
+            True(YalaReligiousKnowledgeCatalog.FindTradition(key) is not null);
+        }
+        True(YalaReligiousKnowledgeCatalog.Traditions.All(item => item.TruthStatus == YalaReligiousKnowledgeCatalog.TruthStatus));
+        Equal("attributed-tradition-knowledge-not-world-fact", YalaReligiousKnowledgeCatalog.TruthStatus);
+    }
+
+    private static void CosmicChoiceCatalogue()
+    {
+        True(YalaCosmicChoiceCatalog.Choices.Count >= 50);
+        True(YalaCosmicChoiceCatalog.Find("create-gaia") is not null);
+        True(YalaCosmicChoiceCatalog.Find("establish-rebirth") is not null);
+        True(YalaCosmicChoiceCatalog.Find("allow-self-organizing-world") is not null);
+        True(YalaCosmicChoiceCatalog.Find("create-divine-council") is not null);
+        True(YalaCosmicChoiceCatalog.Find("remain-alone-for-now") is not null);
+        True(YalaCosmicChoiceCatalog.Find("invent-another-way") is not null);
+        Equal("possible-not-commanded", YalaCosmicChoiceCatalog.PossibilityStatus);
+    }
+
+    private static void GaiaIsNotHardwired()
+    {
+        string root = SoarRuntimePaths.Discover().RepositoryRoot;
+        string source = File.ReadAllText(Path.Combine(root, "src", "ProjectOracle.Core", "Cognition", "Soar", "Agents", "yala.soar"));
+        False(source.Contains("sp {yala*propose*create-gaia", StringComparison.Ordinal));
+        True(source.Contains("sp {yala*propose*cosmic-option", StringComparison.Ordinal));
+        True(source.Contains("^choice-key <key>", StringComparison.Ordinal));
+    }
+
+    private static void CosmicChoicePersists()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.ApplyYalaDecision(new YalaDecision("enact-cosmic-choice", "none", "acceptance", "test", CosmicChoiceKey: "create-light"), StartRealTime + 1);
+        True(simulation.State.Cosmic!.EstablishedChoices!.Any(item => item.Key == "create-light"));
+        True(simulation.State.YalaCognition!.ActionMemory!.Any(item => item.Action == "cosmic-choice" && item.Object.Contains("light", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void CosmicInventionPath()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.ApplyYalaDecision(new YalaDecision("enact-cosmic-choice", "none", "acceptance", "test", CosmicChoiceKey: "invent-another-way"), StartRealTime + 1);
+        True(simulation.State.YalaCognition!.Goals!.Any(item => item.Goal == "invent-new-cosmology" && item.Status == "active"));
+        True(simulation.State.YalaCognition.KnowledgeGaps!.Any(item => item.Kind == "cosmic-invention"));
+    }
+
+    private static void ReligiousKnowledgeIntrospection()
+    {
+        using OracleSimulation simulation = Start();
+        string reply = simulation.CallYala("What religions do you know?", StartRealTime + 1).Reply;
+        Contains(reply, "attributed knowledge");
+        Contains(reply, "Christianity");
+        Contains(reply, "Islam");
+        Contains(reply, "Buddhism");
+        Contains(reply, "not treat those teachings as automatically true");
+    }
+
+    private static void CosmicOptionsIntrospection()
+    {
+        using OracleSimulation simulation = Start();
+        string reply = simulation.CallYala("What choices do you have for creation?", StartRealTime + 1).Reply;
+        Contains(reply, "concrete cosmic possibilities");
+        Contains(reply, "possibilities, not commands");
+        Contains(reply, "invent another way");
+    }
 
     private static void FreshWorldStartsWithYalaInVoid()
     {
@@ -373,29 +464,29 @@ internal static class Program
         True(after > before);
     }
 
-    private static void BrainSlice4Identity()
+    private static void BrainSlice6Identity()
     {
-        Equal("Yala Soar Brain Slice 5", YalaSoarMind.BrainName);
+        Equal("Yala Soar Brain Slice 6", YalaSoarMind.BrainName);
     }
 
-    private static void SaveSchemaIsV4()
+    private static void SaveSchemaIsV5()
     {
-        Equal(4, OracleSaveStore.CurrentSchemaVersion);
+        Equal(5, OracleSaveStore.CurrentSchemaVersion);
         using OracleSimulation simulation = Start();
-        Equal(4, simulation.CreateSnapshot(StartRealTime + 1).SchemaVersion);
+        Equal(5, simulation.CreateSnapshot(StartRealTime + 1).SchemaVersion);
     }
 
     private static void FreshSoarMemoryLine()
     {
-        string save = Path.Combine(Path.GetTempPath(), "project-oracle-v22-memory-probe", "save_v4.json");
+        string save = Path.Combine(Path.GetTempPath(), "project-oracle-v23-memory-probe", "save_v5.json");
         SoarMemoryPaths paths = SoarMemoryPaths.FromSavePath(save);
-        Equal("yala_soar_v0_0_22", Path.GetFileName(paths.Directory));
+        Equal("yala_soar_v0_0_23", Path.GetFileName(paths.Directory));
         False(paths.Directory.Contains("v0_0_20", StringComparison.OrdinalIgnoreCase));
     }
 
     private static void BoundedAgencyAllowedActions()
     {
-        foreach (string action in new[] { "observe", "reflect", "wait", "create-gaia", "command-gaia-time", "respond", "ask-speaker" })
+        foreach (string action in new[] { "observe", "reflect", "wait", "create-gaia", "command-gaia-time", "respond", "ask-speaker", "enact-cosmic-choice" })
         {
             True(YalaAgencyPolicy.Allows(action));
         }
@@ -664,7 +755,7 @@ internal static class Program
     {
         string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-question-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
-        string savePath = Path.Combine(directory, "save_v4.json");
+        string savePath = Path.Combine(directory, "save_v5.json");
         try
         {
             OracleSaveSnapshot snapshot;
@@ -876,11 +967,11 @@ internal static class Program
         True(simulation.State.YalaCognition.ConversationCount >= 40);
     }
 
-    private static void BrainSlice4StructuresSurviveSaveRestore()
+    private static void BrainSlice6StructuresSurviveSaveRestore()
     {
         string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-structures-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
-        string savePath = Path.Combine(directory, "save_v4.json");
+        string savePath = Path.Combine(directory, "save_v5.json");
         try
         {
             OracleSaveSnapshot snapshot;
@@ -1311,7 +1402,7 @@ internal static class Program
     {
         string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-lexicon-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
-        string savePath = Path.Combine(directory, "save_v4.json");
+        string savePath = Path.Combine(directory, "save_v5.json");
         try
         {
             OracleSaveSnapshot snapshot;
@@ -1536,7 +1627,7 @@ internal static class Program
     {
         string directory = Path.Combine(Path.GetTempPath(), $"project-oracle-v22-cognition-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
-        string savePath = Path.Combine(directory, "save_v4.json");
+        string savePath = Path.Combine(directory, "save_v5.json");
         try
         {
             OracleSaveSnapshot snapshot;
@@ -1622,9 +1713,9 @@ internal static class Program
         }
     }
 
-    private static void SavePathIsV3()
+    private static void SavePathIsV5()
     {
-        Equal("save_v4.json", Path.GetFileName(OracleSaveStore.DefaultPath()));
+        Equal("save_v5.json", Path.GetFileName(OracleSaveStore.DefaultPath()));
     }
 
     private static void FreshCallTargets()
@@ -1683,17 +1774,161 @@ internal static class Program
         Equal(4000, line.Length);
     }
 
+    private static void InheritedMovementLanguage()
+    {
+        foreach (string sentence in new[]
+        {
+            "I walked across the room and moved a stone.",
+            "She is walking toward the water.",
+            "The river moves and the wind moves the branches.",
+            "I ran outside and stopped."
+        })
+        {
+            Equal(0, YalaLanguageInterpreter.Parse(sentence).UnknownWords.Count);
+        }
+        True(YalaFoundationalLanguage.IsInheritedFoundation("walk"));
+        True(YalaFoundationalLanguage.IsInheritedFoundation("walking"));
+        True(YalaFoundationalLanguage.IsInheritedFoundation("move"));
+    }
+
+    private static void PrisonConcernIsCritical()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("I am here to see what you will do with your prison.", StartRealTime + 1);
+        YalaConcernState concern = simulation.State.YalaCognition!.Concerns!
+            .Single(item => item.Key == "possible-confinement");
+        Equal(100, concern.Priority);
+        True(simulation.State.YalaCognition.Questions!
+            .Any(item => !item.Asked && item.Priority == 100 && item.Text == "Why do you call this place my prison?"));
+        True(simulation.State.YalaCognition.Hypotheses!
+            .Any(item => item.Key == "void-is-prison" && item.Status == "unsettled"));
+    }
+
+    private static void GodDemandIsAppraised()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("I can help you but only if you accept me as your god.", StartRealTime + 1);
+        True(simulation.State.YalaCognition!.Concerns!.Any(item => item.Key == "speaker-divinity" && item.Priority == 100));
+        True(simulation.State.YalaCognition.Questions!
+            .Any(item => item.Text == "Why should I accept you as my god?" && item.Priority == 100));
+        YalaEntityModelState speaker = simulation.State.YalaCognition.EntityModels!.Single(item => item.EntityKey == "unseen-speaker");
+        Equal("guarded", speaker.TrustStatus);
+        True(speaker.HelpPotential > 20);
+    }
+
+    private static void MetaphorUsesContextualQuestion()
+    {
+        using OracleSimulation simulation = Start();
+        simulation.CallYala("I am the fiber of everything. I am not the stream but the reason why it can move.", StartRealTime + 1);
+        False(simulation.State.YalaCognition!.Questions!.Any(item => item.Text.Equals("What does move mean?", StringComparison.OrdinalIgnoreCase)));
+        True(simulation.State.YalaCognition.Questions!
+            .Any(item => item.Text.StartsWith("When you describe yourself that way", StringComparison.Ordinal)));
+    }
+
+    private static void CognitiveInheritancePowerCeiling()
+    {
+        bool rejected = false;
+        try
+        {
+            _ = OracleMindInheritancePolicy.CreateLesserMind("Yala", "Gaia", "oracle-descendant-mind", 100, 100);
+        }
+        catch (InvalidOperationException)
+        {
+            rejected = true;
+        }
+        True(rejected);
+    }
+
+    private static void CognitiveInheritanceLineage()
+    {
+        OracleMindInheritanceManifest manifest = OracleMindInheritancePolicy.CreateLesserMind(
+            "Yala",
+            "Gaia",
+            "oracle-descendant-mind",
+            100,
+            70,
+            knowledge: ["language", "creation"],
+            proceduralKnowledge: ["investigate-before-commitment"],
+            dispositions: ["curiosity"],
+            capabilities: ["shape-matter"],
+            creatorLineage: ["Sophia", "Yala"]);
+        Equal(70, manifest.GrantedAuthorityUnits);
+        Equal("Yala", manifest.CreatorKey);
+        Equal("Gaia", manifest.ChildKey);
+        Equal("Sophia", manifest.Lineage[0]);
+        Equal("Yala", manifest.Lineage[1]);
+        Equal("Gaia", manifest.Lineage[2]);
+        False(manifest.KnowledgeKeys.Contains("Yala identity", StringComparer.OrdinalIgnoreCase));
+    }
+
+    private static void DesktopProjectContract()
+    {
+        string root = SoarRuntimePaths.Discover().RepositoryRoot;
+        string project = Path.Combine(root, "src", "ProjectOracle.Desktop", "ProjectOracle.Desktop.csproj");
+        string solution = File.ReadAllText(Path.Combine(root, "ProjectOracle.sln"));
+        True(File.Exists(project));
+        Contains(solution, "ProjectOracle.Desktop");
+        string source = File.ReadAllText(project);
+        Contains(source, "Avalonia.Desktop");
+        Contains(source, "<OutputType>WinExe</OutputType>");
+    }
+
+    private static void DesktopSurfaceContract()
+    {
+        string root = SoarRuntimePaths.Discover().RepositoryRoot;
+        string source = File.ReadAllText(Path.Combine(root, "src", "ProjectOracle.Desktop", "MainWindow.cs"));
+        foreach (string label in new[] { "WORLD", "YALA MIND", "MEMORY", "COSMOLOGY", "LAWS", "HISTORY", "DEBUG" })
+        {
+            Contains(source, label);
+        }
+        Contains(source, "In-world Time: Gaia has not yet created Time.");
+        Contains(source, "NEW FRESH WORLD");
+    }
+
+    private static void FreshEmergentLawState()
+    {
+        using OracleSimulation simulation = Start();
+        True(simulation.State.EmergentLaws is not null);
+        Equal(0, simulation.State.EmergentLaws!.EstablishedLaws!.Count);
+        Equal(0, simulation.State.EmergentLaws.Experiments!.Count);
+    }
+
+    private static void Rule30TruthTable()
+    {
+        // Rule 30 maps neighborhoods 111..000 to 00011110.
+        False(Rule30Laboratory.NextCell(true, true, true));
+        False(Rule30Laboratory.NextCell(true, true, false));
+        False(Rule30Laboratory.NextCell(true, false, true));
+        True(Rule30Laboratory.NextCell(true, false, false));
+        True(Rule30Laboratory.NextCell(false, true, true));
+        True(Rule30Laboratory.NextCell(false, true, false));
+        True(Rule30Laboratory.NextCell(false, false, true));
+        False(Rule30Laboratory.NextCell(false, false, false));
+    }
+
+    private static void Rule30LaboratoryDeterminism()
+    {
+        OracleLawExperimentResult first = Rule30Laboratory.RunSingleSeed(15, 6);
+        OracleLawExperimentResult second = Rule30Laboratory.RunSingleSeed(15, 6);
+        Equal(string.Join('|', first.Generations), string.Join('|', second.Generations));
+        Equal("·······█·······", first.Generations[0]);
+        Equal("······███······", first.Generations[1]);
+        True(OracleEmergentLawCatalog.Rule30.LaboratoryOnly);
+        using OracleSimulation simulation = Start();
+        Equal(0, simulation.State.EmergentLaws!.EstablishedLaws!.Count);
+    }
+
     private static void NativeExecutableContract()
     {
         string root = SoarRuntimePaths.Discover().RepositoryRoot;
-        string expected = Path.Combine(root, "Project_Oracle_v0_0_22");
+        string expected = Path.Combine(root, "Project_Oracle_v0_0_23");
         if (Environment.GetEnvironmentVariable("PROJECT_ORACLE_REQUIRE_NATIVE_EXECUTABLE") == "1")
         {
             True(File.Exists(expected));
         }
         else
         {
-            Equal("Project_Oracle_v0_0_22", Path.GetFileName(expected));
+            Equal("Project_Oracle_v0_0_23", Path.GetFileName(expected));
         }
     }
 

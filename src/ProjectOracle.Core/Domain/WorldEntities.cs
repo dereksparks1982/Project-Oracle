@@ -17,7 +17,38 @@ public sealed record CosmicState(
     bool TimeCreated,
     bool LowerWorldEstablished,
     bool GardenEstablished,
-    string YalaLocation);
+    string YalaLocation,
+    IReadOnlyList<YalaEstablishedCosmicChoiceState>? EstablishedChoices = null);
+
+public sealed record YalaEstablishedCosmicChoiceState(
+    string Key,
+    string Domain,
+    string Action,
+    string Meaning,
+    long Decision,
+    string Source = "Yala autonomous choice");
+
+
+public sealed record OracleEstablishedLawState(
+    string Key,
+    string Domain,
+    string Name,
+    string EstablishedBy,
+    int RequiredAuthorityUnits,
+    long Decision,
+    string Description);
+
+public sealed record OracleLawExperimentState(
+    long Sequence,
+    string LawKey,
+    string RunBy,
+    string InitialState,
+    string ResultSummary,
+    bool ChangedWorld);
+
+public sealed record OracleEmergentLawState(
+    IReadOnlyList<OracleEstablishedLawState>? EstablishedLaws = null,
+    IReadOnlyList<OracleLawExperimentState>? Experiments = null);
 
 public sealed record YalaContactMemory(
     string ClaimedName,
@@ -134,6 +165,56 @@ public sealed record YalaGoalState(
     long FirstSeenDecision,
     long LastConsideredDecision);
 
+
+public sealed record YalaConcernState(
+    string Key,
+    string Subject,
+    string Summary,
+    string Status,
+    int Priority,
+    string Source,
+    long FirstSeenDecision,
+    long LastConsideredDecision);
+
+public sealed record YalaAppraisalState(
+    long Sequence,
+    string Trigger,
+    string Primary,
+    string Secondary,
+    string Summary,
+    int Salience,
+    int Threat,
+    int Opportunity,
+    int Uncertainty,
+    string Source);
+
+public sealed record YalaHypothesisState(
+    string Key,
+    string Proposition,
+    string Status,
+    double Confidence,
+    string Reason,
+    long FirstSeenDecision,
+    long LastConsideredDecision);
+
+public sealed record YalaEntityModelState(
+    string EntityKey,
+    string IdentityStatus,
+    string LocationStatus,
+    string IntentStatus,
+    string CapabilityStatus,
+    string TrustStatus,
+    int ThreatPotential,
+    int HelpPotential,
+    long LastUpdatedDecision);
+
+public sealed record YalaReflectionState(
+    long Sequence,
+    string ConcernKey,
+    string Summary,
+    string Result,
+    long Decision);
+
 public sealed record YalaCognitionState(
     long DecisionCount,
     long LastDecisionRealUnixMilliseconds,
@@ -154,6 +235,11 @@ public sealed record YalaCognitionState(
     IReadOnlyList<YalaQuestionState>? Questions = null,
     IReadOnlyList<YalaTemporalEventState>? TemporalEvents = null,
     IReadOnlyList<YalaGoalState>? Goals = null,
+    IReadOnlyList<YalaConcernState>? Concerns = null,
+    IReadOnlyList<YalaAppraisalState>? Appraisals = null,
+    IReadOnlyList<YalaHypothesisState>? Hypotheses = null,
+    IReadOnlyList<YalaEntityModelState>? EntityModels = null,
+    IReadOnlyList<YalaReflectionState>? Reflections = null,
     string? PendingAutonomousUtterance = null);
 
 public sealed record AdamState(
@@ -225,4 +311,5 @@ public sealed record WorldState(
     NamingMandateState? NamingMandate,
     NaturalCourseState NaturalCourse,
     CosmicState? Cosmic = null,
-    YalaCognitionState? YalaCognition = null);
+    YalaCognitionState? YalaCognition = null,
+    OracleEmergentLawState? EmergentLaws = null);

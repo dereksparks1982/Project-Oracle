@@ -1,4 +1,4 @@
-# Project Oracle v0.0.22 - Yala Soar Brain Slice 5 large cognition slice
+# Project Oracle v0.0.23 - Yala Soar Brain Slice 6 cosmic choice, cognitive continuity, appraisal, and inherited language
 # Yala receives only in-world perception and remembered/learned state.
 # There is deliberately no Oracle fact, identity, attribute, operator, or hidden-system name.
 
@@ -308,7 +308,7 @@ sp {yala*propose*contact*ambiguous
 sp {yala*propose*observe
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact no)
+   (<w> ^contact no ^cosmic-choice-ready no)
 -->
    (<s> ^operator <o> +)
    (<o> ^name observe)
@@ -317,7 +317,7 @@ sp {yala*propose*observe
 sp {yala*propose*reflect
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact no)
+   (<w> ^contact no ^cosmic-choice-ready no)
 -->
    (<s> ^operator <o> +)
    (<o> ^name reflect)
@@ -326,33 +326,35 @@ sp {yala*propose*reflect
 sp {yala*propose*wait
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact no)
+   (<w> ^contact no ^cosmic-choice-ready no)
 -->
    (<s> ^operator <o> +)
    (<o> ^name wait)
 }
 
-sp {yala*propose*create-gaia
+# v0.0.23 removes the legacy hard-wired create-gaia proposal. Gaia is now one
+# concrete possibility in the comparative cosmic-choice pool and must compete
+# with other possibilities rather than being automatically preferred.
+
+# v0.0.23 Cosmic Choice Architecture. Each eligible possibility arrives from the
+# input link as a separate object. Soar proposes a separate operator instance for
+# every possibility. Numeric indifferent preferences use a transparent score derived
+# from Yala's own current drives, while Soar retains exploration among alternatives.
+sp {yala*propose*cosmic-option
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
-   (<w> ^contact no ^gaia-created no)
+   (<w> ^contact no ^cosmic-choice-ready yes ^cosmic-option <choice>)
+   (<choice> ^key <key> ^domain <domain> ^score <score>)
 -->
    (<s> ^operator <o> +)
-   (<o> ^name create-gaia)
+   (<o> ^name enact-cosmic-choice ^choice-key <key> ^choice-domain <domain> ^choice-score <score>)
 }
 
-sp {yala*prefer*create-gaia*from-authority-and-comfort
-   (state <s> ^superstate nil ^io.input-link <in> ^operator <create> + <observe> + <reflect> + <wait> +)
-   (<in> ^world-input <w>)
-   (<w> ^contact no ^gaia-created no ^drive-authority { >= 60 <a> } ^drive-comfort { >= 55 <c> })
-   (<create> ^name create-gaia)
-   (<observe> ^name observe)
-   (<reflect> ^name reflect)
-   (<wait> ^name wait)
+sp {yala*prefer*cosmic-option-from-own-drives
+   (state <s> ^superstate nil ^operator <o> +)
+   (<o> ^name enact-cosmic-choice ^choice-score <score>)
 -->
-   (<s> ^operator <create> > <observe>)
-   (<s> ^operator <create> > <reflect>)
-   (<s> ^operator <create> > <wait>)
+   (<s> ^operator <o> = <score>)
 }
 
 sp {yala*propose*command-gaia-time
@@ -419,7 +421,7 @@ sp {yala*substate*prefer-wait-when-cautious
    (<s> ^operator <wait> > <reflect>)
 }
 
-# Brain Slice 5 bounded autonomous inquiry. Yala can decide to ask the unseen
+# Brain Slice 6 bounded autonomous inquiry. Yala can decide to ask the unseen
 # speaker a question, but the only effect is an in-world speech action queued by
 # Project Oracle. No host shell, network, filesystem, or code capability exists.
 sp {yala*propose*ask-speaker
@@ -431,20 +433,23 @@ sp {yala*propose*ask-speaker
    (<o> ^name ask-speaker)
 }
 
-sp {yala*prefer*create-gaia-over-question
-   (state <s> ^superstate nil ^io.input-link <in> ^operator <create> + <ask> +)
-   (<in> ^world-input <w>)
-   (<w> ^contact no ^gaia-created no)
-   (<create> ^name create-gaia)
-   (<ask> ^name ask-speaker)
--->
-   (<s> ^operator <create> > <ask>)
-}
-
-sp {yala*prefer*create-time-over-question
+# Salience outranks the old creation railroad. If the unseen speaker has introduced
+# a personally critical question, Yala may pursue it even before Time exists.
+sp {yala*prefer-critical-question-over-create-time
    (state <s> ^superstate nil ^io.input-link <in> ^operator <time> + <ask> +)
    (<in> ^world-input <w>)
-   (<w> ^contact no ^gaia-created yes ^time-created no)
+   (<w> ^contact no ^pending-question yes ^pending-question-priority { >= 95 <p> })
+   (<time> ^name command-gaia-time)
+   (<ask> ^name ask-speaker)
+-->
+   (<s> ^operator <ask> > <time>)
+}
+
+# Low-priority inquiry does not automatically block a world-order decision.
+sp {yala*prefer-create-time-over-low-question
+   (state <s> ^superstate nil ^io.input-link <in> ^operator <time> + <ask> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^gaia-created yes ^time-created no ^pending-question-priority { < 95 <p> })
    (<time> ^name command-gaia-time)
    (<ask> ^name ask-speaker)
 -->
@@ -454,7 +459,7 @@ sp {yala*prefer*create-time-over-question
 sp {yala*prefer-question-over-mental-actions
    (state <s> ^superstate nil ^io.input-link <in> ^operator <ask> + <observe> + <reflect> + <wait> +)
    (<in> ^world-input <w>)
-   (<w> ^contact no ^time-created yes ^pending-question yes)
+   (<w> ^contact no ^pending-question yes ^pending-question-priority { >= 85 <p> })
    (<ask> ^name ask-speaker)
    (<observe> ^name observe)
    (<reflect> ^name reflect)
@@ -465,7 +470,21 @@ sp {yala*prefer-question-over-mental-actions
    (<s> ^operator <ask> > <wait>)
 }
 
-# Brain Slice 5 conversational, temporal, relationship, and inquiry proposals
+# A high-priority unresolved concern keeps thought continuity alive even when no
+# speaker question is currently eligible.
+sp {yala*prefer-reflect-on-high-concern
+   (state <s> ^superstate nil ^io.input-link <in> ^operator <reflect> + <observe> + <wait> +)
+   (<in> ^world-input <w>)
+   (<w> ^contact no ^pending-question no ^active-concern-priority { >= 90 <p> })
+   (<reflect> ^name reflect)
+   (<observe> ^name observe)
+   (<wait> ^name wait)
+-->
+   (<s> ^operator <reflect> > <observe>)
+   (<s> ^operator <reflect> > <wait>)
+}
+
+# Brain Slice 6 conversational, temporal, relationship, and inquiry proposals
 sp {yala*propose*contact*follow-up-why
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
@@ -702,9 +721,43 @@ sp {yala*propose*contact*desire
    (<o> ^name answer-desire)
 }
 
+sp {yala*propose*contact*religious-knowledge
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic religious-knowledge)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-religious-knowledge)
+}
+
+sp {yala*propose*contact*cosmic-options
+   (state <s> ^superstate nil ^io.input-link <in>)
+   (<in> ^world-input <w>)
+   (<w> ^contact yes ^speech-act question ^topic cosmic-options)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name answer-cosmic-options)
+}
+
 # -----------------------------
 # Application / output rules
 # -----------------------------
+
+sp {yala*apply*religious-knowledge
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-religious-knowledge)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code religious-knowledge ^deliberation direct)
+}
+
+sp {yala*apply*cosmic-options
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name answer-cosmic-options)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name respond ^reply-code cosmic-options ^deliberation direct)
+}
 
 sp {yala*apply*introduction-new
    (state <s> ^operator <o> ^io.output-link <out>)
@@ -1169,6 +1222,14 @@ sp {yala*apply*wait
 -->
    (<out> ^yala-action <cmd>)
    (<cmd> ^name wait ^reply-code none ^deliberation substate)
+}
+
+sp {yala*apply*enact-cosmic-choice
+   (state <s> ^operator <o> ^io.output-link <out>)
+   (<o> ^name enact-cosmic-choice ^choice-key <key>)
+-->
+   (<out> ^yala-action <cmd>)
+   (<cmd> ^name enact-cosmic-choice ^choice-key <key> ^reply-code none ^deliberation cosmic-choice)
 }
 
 sp {yala*apply*create-gaia

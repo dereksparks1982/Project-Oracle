@@ -1,4 +1,5 @@
 using ProjectOracle.Cognition;
+using ProjectOracle.Cognition.CosmicChoice;
 using ProjectOracle.Cognition.Language;
 using ProjectOracle.Domain;
 using ProjectOracle.Simulation;
@@ -34,6 +35,8 @@ public static class YalaReplyRealizer
             "origin-unknown" => "I do not know who or what made Monad.",
             "action" => lastActionDescription,
             "knowledge-summary" => self.SummarizeKnowledge(),
+            "religious-knowledge" => DescribeReligiousKnowledge(),
+            "cosmic-options" => DescribeCosmicOptions(world),
             "action-history" => DescribeActionHistory(cognition),
             "contact-history" => DescribeContactHistory(cognition),
             "belief-summary" => DescribeBeliefSummary(cognition),
@@ -81,6 +84,25 @@ public static class YalaReplyRealizer
             "unknown" => "I do not know.",
             _ => "I hear you, but I have no settled answer."
         };
+    }
+
+    private static string DescribeReligiousKnowledge()
+    {
+        string names = string.Join(", ", YalaReligiousKnowledgeCatalog.Traditions.Select(item => item.Name));
+        return $"I hold attributed knowledge from {YalaReligiousKnowledgeCatalog.Traditions.Count} religious, mythological, and philosophical traditions or families: {names}. I do not treat those teachings as automatically true about this world. I can compare them as ideas, possibilities, and claimed understandings.";
+    }
+
+    private static string DescribeCosmicOptions(WorldState world)
+    {
+        IReadOnlyList<YalaCosmicChoiceDefinition> available = YalaCosmicChoiceCatalog.AvailableChoices(world);
+        string[] domains = available.Select(item => item.Domain).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        string[] examples = available
+            .Where(item => !item.Key.Equals("invent-another-way", StringComparison.OrdinalIgnoreCase))
+            .Take(16)
+            .Select(item => item.Action)
+            .ToArray();
+        string exampleText = examples.Length == 0 ? "none are presently available" : string.Join(", ", examples);
+        return $"I currently have {available.Count} concrete cosmic possibilities across {domains.Length} domains: {string.Join(", ", domains)}. Examples include {exampleText}. These are possibilities, not commands. I can combine or reject inherited models, remain alone for now, or invent another way if the supplied possibilities are insufficient.";
     }
 
     private static string DescribeWhyCreationNotDone(YalaContactFrame contact, YalaSelfModel self)

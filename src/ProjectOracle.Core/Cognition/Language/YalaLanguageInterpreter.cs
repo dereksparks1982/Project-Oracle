@@ -1,3 +1,4 @@
+using ProjectOracle.Cognition;
 using ProjectOracle.Domain;
 using System.Text.RegularExpressions;
 
@@ -51,7 +52,12 @@ public static partial class YalaLanguageInterpreter
         {
             string word = YalaLexicon.NormalizeWord(token);
             if (word.Length < 2 || FunctionWords.Contains(word) || int.TryParse(word, out _)) continue;
-            if (!YalaLexicon.TryResolve(word, learned, out _) && !unknown.Contains(word, StringComparer.OrdinalIgnoreCase)) unknown.Add(word);
+            if (!YalaLexicon.TryResolve(word, learned, out _) &&
+                YalaFoundationalLanguage.ShouldCreateDefinitionGap(word, raw, learned) &&
+                !unknown.Contains(word, StringComparer.OrdinalIgnoreCase))
+            {
+                unknown.Add(word);
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(definedWord))

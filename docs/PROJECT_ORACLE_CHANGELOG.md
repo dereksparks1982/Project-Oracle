@@ -1,5 +1,25 @@
 # Project Oracle Changelog
 
+## v0.0.23 - candidate - Yala Soar Brain Slice 6 / Cosmic Choice, Cognitive Continuity, Desktop Observatory, and Emergent Law Foundation
+
+- Adds a structured comparative religious, mythological, and philosophical semantic-memory catalogue with 30 traditions/families and 92 attributed ideas.
+- Marks imported tradition material `attributed-tradition-knowledge-not-world-fact`, preventing it from becoming automatic Project Oracle canon.
+- Adds 71 concrete cosmic possibilities across beings, cosmic structure, life, moral order, mortal destiny, knowledge, governance, renewal, and meta-choice.
+- Adds transparent drive-affinity scoring from Yala's curiosity, caution, authority, companionship, comfort, and uncertainty.
+- Replaces the autonomous hard-wired `create-gaia` proposal with generic `enact-cosmic-choice`; Gaia remains available as one option.
+- Persists committed choices in `CosmicState.EstablishedChoices` and Yala action memory.
+- Adds `invent-another-way`, which opens an `invent-new-cosmology` goal and `cosmic-invention` knowledge gap instead of forcing a supplied template.
+- Adds Yala conversation routes for `What religions do you know?` and `What choices do you have for creation?`.
+- Starts fresh schema 5 at `save_v5.json` and fresh `yala_soar_v0_0_23` Soar semantic/episodic memory, preserving v0.0.22 state separately.
+- Expands inherited foundational language so ordinary movement and everyday concepts do not become toddler-style definition questions.
+- Adds persistent salience, concerns, hypotheses, speaker trust/threat/help modeling, and appraisal for personally important statements such as `prison` and demands for divine recognition.
+- Adds cognitive inheritance manifests and a strict creation ceiling: a created being begins with lower world authority than its creator while remaining an independent mind.
+- Adds a graphical Avalonia Linux desktop observatory with World, Yala Mind, Minds, Memory, Cosmology, Laws, History, and Debug surfaces.
+- Publishes the graphical application as the root `Project_Oracle_v0_0_23` Linux executable and installs an Applications-menu launcher with `Terminal=false`.
+- Adds the Oracle Emergent Law Engine foundation and a laboratory-only Rule 30 demonstration. Host-supported laboratory rules do not become world law or canon automatically.
+- Adds persistent empty emergent-law state plus law-authority hooks for future divine law creation.
+- Expands the acceptance inventory to 165 tests.
+
 ## v0.0.22 - candidate - Yala Soar Brain Slice 5
 
 - Supersedes the unaccepted v0.0.21 development candidate while retaining its Brain Slice 4 reasoning, temporal, relationship, inquiry, memory, and bounded-agency work.

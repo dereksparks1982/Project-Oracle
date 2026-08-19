@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectOracle.Core", "src/P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectOracle.Console", "src/ProjectOracle.Console/ProjectOracle.Console.csproj", "{0DE8A6EF-FF20-43E1-8E97-32E652629AE4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectOracle.Desktop", "src/ProjectOracle.Desktop/ProjectOracle.Desktop.csproj", "{D51623D2-CB3A-458D-B96B-8267B627B045}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectOracle.AcceptanceTests", "tests/ProjectOracle.AcceptanceTests/ProjectOracle.AcceptanceTests.csproj", "{F8B44775-3256-48D5-8D6F-40993D4EC18B}"
 EndProject
 Global
@@ -22,6 +24,10 @@ Global
 		{0DE8A6EF-FF20-43E1-8E97-32E652629AE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DE8A6EF-FF20-43E1-8E97-32E652629AE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DE8A6EF-FF20-43E1-8E97-32E652629AE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D51623D2-CB3A-458D-B96B-8267B627B045}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D51623D2-CB3A-458D-B96B-8267B627B045}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D51623D2-CB3A-458D-B96B-8267B627B045}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D51623D2-CB3A-458D-B96B-8267B627B045}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F8B44775-3256-48D5-8D6F-40993D4EC18B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F8B44775-3256-48D5-8D6F-40993D4EC18B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8B44775-3256-48D5-8D6F-40993D4EC18B}.Release|Any CPU.ActiveCfg = Release|Any CPU

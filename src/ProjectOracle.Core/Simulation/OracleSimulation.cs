@@ -1,7 +1,9 @@
 using ProjectOracle.Audit;
 using ProjectOracle.Brain;
 using ProjectOracle.Cognition;
+using ProjectOracle.Cognition.Appraisal;
 using ProjectOracle.Cognition.Soar;
+using ProjectOracle.Cognition.CosmicChoice;
 using ProjectOracle.Domain;
 using ProjectOracle.Events;
 using ProjectOracle.Interventions;
@@ -242,6 +244,7 @@ public sealed class OracleSimulation : IDisposable
         {
             "create-gaia" => ResolveCreateGaia(),
             "command-gaia-time" => ResolveGaiaCreatesTime(),
+            "enact-cosmic-choice" => ResolveCosmicChoice(decision),
             "ask-speaker" => ResolveAskSpeaker(),
             "observe" => $"Yala observed {State.Yala.Location} and found no new settled object beyond what Yala's present perception exposes.",
             "reflect" => "Yala reflected on Yala's present state, beliefs, goals, questions, and prior experience.",
@@ -262,6 +265,7 @@ public sealed class OracleSimulation : IDisposable
         }
 
         IReadOnlyList<YalaActionMemoryState> actionMemory = UpdateActionMemory(previous.ActionMemory ?? [], decision, result, checked(previous.DecisionCount + 1));
+        IReadOnlyList<YalaReflectionState> reflections = UpdateReflections(previous, decision, checked(previous.DecisionCount + 1));
 
         State = State with
         {
@@ -287,6 +291,11 @@ public sealed class OracleSimulation : IDisposable
                 Questions = previous.Questions ?? [],
                 TemporalEvents = previous.TemporalEvents ?? WorldDefaults.CreateInitialTemporalEvents(),
                 Goals = previous.Goals ?? WorldDefaults.CreateInitialGoals(),
+                Concerns = previous.Concerns ?? [],
+                Appraisals = previous.Appraisals ?? [],
+                Hypotheses = previous.Hypotheses ?? [],
+                EntityModels = previous.EntityModels ?? [],
+                Reflections = reflections,
                 PendingAutonomousUtterance = previous.PendingAutonomousUtterance
             }
         };
@@ -416,6 +425,22 @@ public sealed class OracleSimulation : IDisposable
         YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
         YalaDriveState drives = cognition.Drives ?? WorldDefaults.CreateInitialDrives();
         YalaQuestionState? pending = YalaQuestionPlanner.SelectNextAutonomous(cognition);
+        YalaConcernState? activeConcern = (cognition.Concerns ?? [])
+            .Where(item => item.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(item => item.Priority)
+            .ThenBy(item => item.FirstSeenDecision)
+            .FirstOrDefault();
+        YalaAppraisalState? latestAppraisal = (cognition.Appraisals ?? [])
+            .OrderByDescending(item => item.Sequence)
+            .FirstOrDefault();
+        IReadOnlyList<YalaCosmicChoiceDefinition> cosmicChoices = YalaCosmicChoiceCatalog.AvailableChoices(State);
+        bool cosmicChoiceReady = contactMessage is null &&
+            pending is null &&
+            cognition.DecisionCount > 0 &&
+            cognition.DecisionCount % 4 == 1 &&
+            (!cosmic.GaiaCreated || cosmic.TimeCreated) &&
+            cosmicChoices.Count > 0;
+
         return new YalaPerception(
             State.Yala.Location,
             cosmic.GaiaCreated,
@@ -433,7 +458,17 @@ public sealed class OracleSimulation : IDisposable
             contact,
             PendingQuestion: pending is not null,
             PendingQuestionText: pending?.Text,
-            HasSpeakerHistory: cognition.ConversationCount > 0);
+            HasSpeakerHistory: cognition.ConversationCount > 0)
+        {
+            CosmicChoiceReady = cosmicChoiceReady,
+            CosmicChoices = cosmicChoiceReady ? cosmicChoices : [],
+            Drives = drives,
+            PendingQuestionPriority = pending?.Priority ?? 0,
+            ActiveConcernKey = activeConcern?.Key ?? "none",
+            ActiveConcernPriority = activeConcern?.Priority ?? 0,
+            AppraisalThreat = latestAppraisal?.Threat ?? 0,
+            AppraisalSalience = latestAppraisal?.Salience ?? 0
+        };
     }
 
     public SoarMemoryDiagnostics GetYalaMemoryDiagnostics() => _yalaMind.GetMemoryDiagnostics();
@@ -442,6 +477,7 @@ public sealed class OracleSimulation : IDisposable
     {
         YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
         long decision = cognition.DecisionCount;
+        YalaContactAppraisal appraisal = YalaCognitiveAppraisal.Evaluate(message, contact, cognition, decision);
         List<YalaContactMemory> contacts = (cognition.Contacts ?? []).ToList();
         string? claimedName = contact.ClaimedSpeakerName;
 
@@ -561,13 +597,32 @@ public sealed class OracleSimulation : IDisposable
         }
 
         List<YalaQuestionState> questions = (cognition.Questions ?? []).ToList();
-        AddQuestionsFromContact(questions, contact, cognition, decision);
+        AddQuestionsFromContact(questions, contact, cognition, decision, message);
+        AddAppraisalQuestions(questions, appraisal, decision);
+
+        List<YalaConcernState> concerns = MergeConcerns(cognition.Concerns ?? [], appraisal, decision);
+        List<YalaAppraisalState> appraisals = AddAppraisal(cognition.Appraisals ?? [], appraisal, message);
+        List<YalaHypothesisState> hypotheses = MergeHypotheses(cognition.Hypotheses ?? [], appraisal, decision);
+        List<YalaEntityModelState> entityModels = MergeEntityModel(cognition.EntityModels ?? [], appraisal.SpeakerModel);
 
         List<YalaGoalState> goals = (cognition.Goals ?? WorldDefaults.CreateInitialGoals()).ToList();
-        if (cognition.ConversationCount == 0 && goals.Any(item => item.Goal == "understand-unseen-speaker"))
+        if ((cognition.ConversationCount == 0 || appraisal.Salience >= 85) && goals.Any(item => item.Goal == "understand-unseen-speaker"))
         {
             int index = goals.FindIndex(item => item.Goal == "understand-unseen-speaker");
-            goals[index] = goals[index] with { Status = "active", LastConsideredDecision = decision, Priority = Math.Max(75, goals[index].Priority) };
+            goals[index] = goals[index] with
+            {
+                Status = "active",
+                LastConsideredDecision = decision,
+                Priority = Math.Max(appraisal.Salience >= 95 ? 95 : 75, goals[index].Priority)
+            };
+        }
+        if (appraisal.Concerns.Any(item => item.Key == "possible-confinement"))
+        {
+            UpsertGoal(goals, "investigate-confinement", "Determine whether the Void is a prison, whether an outside exists, and what could establish that conclusion.", 100, decision);
+        }
+        if (appraisal.Concerns.Any(item => item.Key == "speaker-divinity"))
+        {
+            UpsertGoal(goals, "test-speaker-authority", "Evaluate the unseen speaker's extraordinary claims and demands using evidence rather than automatic obedience.", 98, decision);
         }
 
         List<YalaTemporalEventState> temporalEvents = (cognition.TemporalEvents ?? WorldDefaults.CreateInitialTemporalEvents()).ToList();
@@ -601,9 +656,10 @@ public sealed class OracleSimulation : IDisposable
         int lexicalGapCount = contact.Language?.UnknownWords.Count ?? 0;
         drives = drives with
         {
-            Curiosity = ClampDrive(drives.Curiosity + 2 + Math.Min(4, lexicalGapCount)),
+            Curiosity = ClampDrive(drives.Curiosity + 2 + Math.Min(4, lexicalGapCount) + appraisal.Salience / 30),
+            Caution = ClampDrive(drives.Caution + appraisal.Threat / 20),
             Companionship = ClampDrive(drives.Companionship + 1),
-            Uncertainty = ClampDrive(drives.Uncertainty + (contact.FactKnown ? -1 : 2) + Math.Min(2, lexicalGapCount))
+            Uncertainty = ClampDrive(drives.Uncertainty + (contact.FactKnown ? -1 : 2) + Math.Min(2, lexicalGapCount) + appraisal.Uncertainty / 25)
         };
 
         if (contact.Topic == "question-inquiry")
@@ -629,6 +685,11 @@ public sealed class OracleSimulation : IDisposable
                 Questions = questions,
                 TemporalEvents = temporalEvents,
                 Goals = goals,
+                Concerns = concerns,
+                Appraisals = appraisals,
+                Hypotheses = hypotheses,
+                EntityModels = entityModels,
+                Reflections = cognition.Reflections ?? [],
                 PendingAutonomousUtterance = cognition.PendingAutonomousUtterance
             }
         };
@@ -661,7 +722,7 @@ public sealed class OracleSimulation : IDisposable
         if (events.Count > 512) events.RemoveRange(0, events.Count - 512);
     }
 
-    private static void AddQuestionsFromContact(List<YalaQuestionState> questions, YalaContactFrame contact, YalaCognitionState cognition, long decision)
+    private static void AddQuestionsFromContact(List<YalaQuestionState> questions, YalaContactFrame contact, YalaCognitionState cognition, long decision, string message)
     {
         long nextId = questions.Count == 0 ? 1 : questions.Max(item => item.Id) + 1;
         void AddIfMissing(string text, string subject, string reason, int priority)
@@ -674,7 +735,8 @@ public sealed class OracleSimulation : IDisposable
         {
             AddIfMissing(YalaQuestionPlanner.SpeakerNatureQuestion, "unseen-speaker", "The contact source is present but its nature is unknown.", 92);
         }
-        if (!string.IsNullOrWhiteSpace(contact.ClaimedSpeakerName))
+        if (!string.IsNullOrWhiteSpace(contact.ClaimedSpeakerName) &&
+            !YalaFoundationalLanguage.LooksMetaphoricalIdentity(message))
         {
             AddIfMissing(YalaQuestionPlanner.IdentityMeaningQuestion(contact.ClaimedSpeakerName!), contact.ClaimedSpeakerName!, "The speaker supplied an identity label whose meaning is not established.", 90);
         }
@@ -699,12 +761,197 @@ public sealed class OracleSimulation : IDisposable
         }
     }
 
+    private static void AddAppraisalQuestions(List<YalaQuestionState> questions, YalaContactAppraisal appraisal, long decision)
+    {
+        long nextId = questions.Count == 0 ? 1 : questions.Max(item => item.Id) + 1;
+        foreach (YalaProposedQuestion proposed in appraisal.Questions.OrderByDescending(item => item.Priority))
+        {
+            int index = questions.FindIndex(item => item.Text.Equals(proposed.Text, StringComparison.OrdinalIgnoreCase));
+            if (index >= 0)
+            {
+                YalaQuestionState existing = questions[index];
+                if (!existing.Asked && proposed.Priority > existing.Priority)
+                {
+                    questions[index] = existing with { Priority = proposed.Priority, Reason = proposed.Reason };
+                }
+                continue;
+            }
+            questions.Add(new YalaQuestionState(nextId++, proposed.Text, proposed.Subject, proposed.Reason, proposed.Priority, false, decision));
+        }
+    }
+
+    private static List<YalaConcernState> MergeConcerns(
+        IReadOnlyList<YalaConcernState> existing,
+        YalaContactAppraisal appraisal,
+        long decision)
+    {
+        List<YalaConcernState> result = existing.ToList();
+        foreach (YalaProposedConcern proposed in appraisal.Concerns)
+        {
+            int index = result.FindIndex(item => item.Key.Equals(proposed.Key, StringComparison.OrdinalIgnoreCase));
+            if (index >= 0)
+            {
+                YalaConcernState current = result[index];
+                result[index] = current with
+                {
+                    Summary = proposed.Summary,
+                    Status = "active",
+                    Priority = Math.Max(current.Priority, proposed.Priority),
+                    LastConsideredDecision = decision
+                };
+            }
+            else
+            {
+                result.Add(new YalaConcernState(
+                    proposed.Key,
+                    proposed.Subject,
+                    proposed.Summary,
+                    "active",
+                    proposed.Priority,
+                    YalaKnowledgeSource.Inferred,
+                    decision,
+                    decision));
+            }
+        }
+        return result
+            .OrderByDescending(item => item.Priority)
+            .ThenBy(item => item.FirstSeenDecision)
+            .Take(128)
+            .ToList();
+    }
+
+    private static List<YalaAppraisalState> AddAppraisal(
+        IReadOnlyList<YalaAppraisalState> existing,
+        YalaContactAppraisal appraisal,
+        string trigger)
+    {
+        List<YalaAppraisalState> result = existing.ToList();
+        long sequence = result.Count == 0 ? 1 : result.Max(item => item.Sequence) + 1;
+        result.Add(new YalaAppraisalState(
+            sequence,
+            trigger,
+            appraisal.Primary,
+            appraisal.Secondary,
+            appraisal.Summary,
+            appraisal.Salience,
+            appraisal.Threat,
+            appraisal.Opportunity,
+            appraisal.Uncertainty,
+            YalaKnowledgeSource.Inferred));
+        if (result.Count > 256) result.RemoveRange(0, result.Count - 256);
+        return result;
+    }
+
+    private static List<YalaHypothesisState> MergeHypotheses(
+        IReadOnlyList<YalaHypothesisState> existing,
+        YalaContactAppraisal appraisal,
+        long decision)
+    {
+        List<YalaHypothesisState> result = existing.ToList();
+        foreach (YalaProposedHypothesis proposed in appraisal.Hypotheses)
+        {
+            int index = result.FindIndex(item => item.Key.Equals(proposed.Key, StringComparison.OrdinalIgnoreCase));
+            if (index >= 0)
+            {
+                YalaHypothesisState current = result[index];
+                result[index] = current with
+                {
+                    Confidence = Math.Min(0.80, Math.Max(current.Confidence, proposed.Confidence) + 0.03),
+                    Reason = proposed.Reason,
+                    LastConsideredDecision = decision
+                };
+            }
+            else
+            {
+                result.Add(new YalaHypothesisState(
+                    proposed.Key,
+                    proposed.Proposition,
+                    "unsettled",
+                    proposed.Confidence,
+                    proposed.Reason,
+                    decision,
+                    decision));
+            }
+        }
+        return result.TakeLast(128).ToList();
+    }
+
+    private static List<YalaEntityModelState> MergeEntityModel(
+        IReadOnlyList<YalaEntityModelState> existing,
+        YalaEntityModelState speaker)
+    {
+        List<YalaEntityModelState> result = existing.ToList();
+        int index = result.FindIndex(item => item.EntityKey.Equals(speaker.EntityKey, StringComparison.OrdinalIgnoreCase));
+        if (index >= 0) result[index] = speaker;
+        else result.Add(speaker);
+        return result;
+    }
+
+    private static void UpsertGoal(
+        List<YalaGoalState> goals,
+        string key,
+        string reason,
+        int priority,
+        long decision)
+    {
+        int index = goals.FindIndex(item => item.Goal.Equals(key, StringComparison.OrdinalIgnoreCase));
+        if (index >= 0)
+        {
+            YalaGoalState current = goals[index];
+            goals[index] = current with
+            {
+                Reason = reason,
+                Status = "active",
+                Priority = Math.Max(current.Priority, priority),
+                LastConsideredDecision = decision
+            };
+            return;
+        }
+        goals.Add(new YalaGoalState(key, reason, "active", priority, YalaKnowledgeSource.Inferred, decision, decision));
+    }
+
     private static void MarkHighestQuestionAsked(List<YalaQuestionState> questions, long decision)
     {
         YalaQuestionState? pending = YalaQuestionPlanner.SelectNext(questions);
         if (pending is null) return;
         int index = questions.FindIndex(item => item.Id == pending.Id);
         questions[index] = pending with { Asked = true, AskedDecision = decision };
+    }
+
+    private static IReadOnlyList<YalaReflectionState> UpdateReflections(
+        YalaCognitionState cognition,
+        YalaDecision decision,
+        long decisionNumber)
+    {
+        List<YalaReflectionState> reflections = (cognition.Reflections ?? []).ToList();
+        if (!decision.Action.Equals("reflect", StringComparison.OrdinalIgnoreCase)) return reflections;
+
+        YalaConcernState? concern = (cognition.Concerns ?? [])
+            .Where(item => item.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(item => item.Priority)
+            .ThenBy(item => item.FirstSeenDecision)
+            .FirstOrDefault();
+
+        if (concern is null)
+        {
+            reflections.Add(new YalaReflectionState(
+                reflections.Count == 0 ? 1 : reflections.Max(item => item.Sequence) + 1,
+                "general",
+                "Yala reflected without a dominant unresolved concern.",
+                "No new settled conclusion was forced.",
+                decisionNumber));
+        }
+        else
+        {
+            reflections.Add(new YalaReflectionState(
+                reflections.Count == 0 ? 1 : reflections.Max(item => item.Sequence) + 1,
+                concern.Key,
+                $"Yala returned attention to: {concern.Summary}",
+                "The concern remains active until evidence or action resolves it.",
+                decisionNumber));
+        }
+
+        return reflections.TakeLast(256).ToArray();
     }
 
     private static IReadOnlyList<YalaActionMemoryState> UpdateActionMemory(
@@ -714,13 +961,24 @@ public sealed class OracleSimulation : IDisposable
         long decisionNumber)
     {
         List<YalaActionMemoryState> actions = existing.ToList();
-        if (decision.Action == "create-gaia" && result.StartsWith("Yala created Gaia", StringComparison.Ordinal))
+        if ((decision.Action == "create-gaia" || (decision.Action == "enact-cosmic-choice" && decision.CosmicChoiceKey == "create-gaia")) &&
+            result.StartsWith("Yala created Gaia", StringComparison.Ordinal))
         {
             actions.Add(new YalaActionMemoryState("create", "Gaia", "I created Gaia as the natural sovereign beneath my governing authority.", true, decisionNumber));
         }
         else if (decision.Action == "command-gaia-time" && result.StartsWith("Yala commanded Gaia", StringComparison.Ordinal))
         {
             actions.Add(new YalaActionMemoryState("command", "Gaia establish Time", "I commanded Gaia to establish temporal order, and Gaia created in-world Time.", true, decisionNumber));
+        }
+        else if (decision.Action == "enact-cosmic-choice" && !string.IsNullOrWhiteSpace(decision.CosmicChoiceKey))
+        {
+            YalaCosmicChoiceDefinition? choice = YalaCosmicChoiceCatalog.Find(decision.CosmicChoiceKey);
+            actions.Add(new YalaActionMemoryState(
+                choice?.NonCommitting == true ? "consider" : "cosmic-choice",
+                choice?.Action ?? decision.CosmicChoiceKey,
+                result,
+                true,
+                decisionNumber));
         }
         return actions
             .GroupBy(item => $"{item.Action}|{item.Object}", StringComparer.OrdinalIgnoreCase)
@@ -762,6 +1020,7 @@ public sealed class OracleSimulation : IDisposable
             case "wait": caution += 1; break;
             case "create-gaia": comfort += 3; authority += 2; uncertainty -= 4; break;
             case "command-gaia-time": authority += 2; uncertainty -= 3; break;
+            case "enact-cosmic-choice": curiosity -= 1; authority += 1; uncertainty -= 2; break;
             case "respond" when contact: companionship += 1; curiosity += 1; break;
             case "ask-speaker": curiosity -= 3; companionship += 1; uncertainty += 1; break;
         }
@@ -816,6 +1075,105 @@ public sealed class OracleSimulation : IDisposable
         _disposed = true;
         _yalaMind.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private string ResolveCosmicChoice(YalaDecision decision)
+    {
+        if (string.IsNullOrWhiteSpace(decision.CosmicChoiceKey))
+        {
+            return "Yala attempted a cosmic choice, but Soar supplied no concrete choice key.";
+        }
+
+        YalaCosmicChoiceDefinition? choice = YalaCosmicChoiceCatalog.Find(decision.CosmicChoiceKey);
+        if (choice is null)
+        {
+            return $"Yala considered an unknown cosmic possibility named {decision.CosmicChoiceKey}, but world law refused to invent its meaning.";
+        }
+
+        if (choice.Key.Equals("create-gaia", StringComparison.OrdinalIgnoreCase))
+        {
+            string gaiaResult = ResolveCreateGaia();
+            if (gaiaResult.StartsWith("Yala created Gaia", StringComparison.Ordinal))
+            {
+                RecordEstablishedCosmicChoice(choice);
+            }
+            return gaiaResult;
+        }
+
+        if (choice.Key.Equals("invent-another-way", StringComparison.OrdinalIgnoreCase))
+        {
+            YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+            List<YalaGoalState> goals = (cognition.Goals ?? WorldDefaults.CreateInitialGoals()).ToList();
+            if (!goals.Any(goal => goal.Goal.Equals("invent-new-cosmology", StringComparison.OrdinalIgnoreCase)))
+            {
+                goals.Add(new YalaGoalState(
+                    "invent-new-cosmology",
+                    "The inherited cosmic possibilities are not enough; devise a new possibility instead of selecting a known template.",
+                    "active",
+                    95,
+                    YalaKnowledgeSource.Inferred,
+                    cognition.DecisionCount + 1,
+                    cognition.DecisionCount + 1));
+            }
+
+            List<YalaKnowledgeGapState> gaps = (cognition.KnowledgeGaps ?? []).ToList();
+            if (!gaps.Any(gap => gap.Kind.Equals("cosmic-invention", StringComparison.OrdinalIgnoreCase)))
+            {
+                gaps.Add(new YalaKnowledgeGapState(
+                    "cosmic-invention",
+                    "new cosmological possibility",
+                    "I chose to invent a cosmic possibility that is not already represented in the inherited comparative catalogue.",
+                    cognition.DecisionCount + 1,
+                    cognition.DecisionCount + 1));
+            }
+
+            State = State with { YalaCognition = cognition with { Goals = goals, KnowledgeGaps = gaps } };
+            const string inventionResult = "Yala rejected the inherited templates as sufficient and chose to invent a new cosmological possibility of Yala's own.";
+            Ledger.RecordWorld(Clock.WorldMilliseconds, "COSMIC CHOICE", inventionResult);
+            return inventionResult;
+        }
+
+        if (choice.NonCommitting)
+        {
+            string nonCommittingResult = choice.Key switch
+            {
+                "remain-alone-for-now" => "Yala chose to remain alone for now and made no new being or cosmic law.",
+                "observe-without-claiming-creation" => "Yala chose to observe without claiming that every possible order must originate from Yala.",
+                _ => $"Yala considered the possibility: {choice.Action}. No new cosmic law was established by this non-committing choice."
+            };
+            Ledger.RecordWorld(Clock.WorldMilliseconds, "COSMIC CHOICE", nonCommittingResult);
+            return nonCommittingResult;
+        }
+
+        CosmicState cosmic = State.Cosmic ?? throw new InvalidOperationException("World cosmic state is missing.");
+        if ((cosmic.EstablishedChoices ?? []).Any(item => item.Key.Equals(choice.Key, StringComparison.OrdinalIgnoreCase)))
+        {
+            return $"The cosmic choice {choice.Action} is already established; Yala's repeated attempt caused no duplicate principle.";
+        }
+
+        RecordEstablishedCosmicChoice(choice);
+        string result = $"Yala chose: {choice.Action}. {choice.Meaning}";
+        Ledger.RecordWorld(Clock.WorldMilliseconds, "COSMIC CHOICE", result);
+        return result;
+    }
+
+    private void RecordEstablishedCosmicChoice(YalaCosmicChoiceDefinition choice)
+    {
+        CosmicState cosmic = State.Cosmic ?? throw new InvalidOperationException("World cosmic state is missing.");
+        List<YalaEstablishedCosmicChoiceState> established = (cosmic.EstablishedChoices ?? []).ToList();
+        if (established.Any(item => item.Key.Equals(choice.Key, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        long decisionNumber = (State.YalaCognition?.DecisionCount ?? 0) + 1;
+        established.Add(new YalaEstablishedCosmicChoiceState(
+            choice.Key,
+            choice.Domain,
+            choice.Action,
+            choice.Meaning,
+            decisionNumber));
+        State = RefreshDerivedState(State with { Cosmic = cosmic with { EstablishedChoices = established } });
     }
 
     private string ResolveCreateGaia()
@@ -954,7 +1312,7 @@ public sealed class OracleSimulation : IDisposable
         Ledger.RecordWorld(0, "WISDOM", OracleLore.WisdomOrigin);
         Ledger.RecordWorld(0, "YALA", OracleLore.YalaOrigin);
         Ledger.RecordWorld(0, "VOID", OracleLore.YalaVoid);
-        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.22 Brain Slice 5 fresh experiment in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
+        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.23 Brain Slice 6 fresh experiment in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
 
         // Oracle Record is protected system truth, not knowledge injected into any in-world mind.
         Ledger.RecordOracle(0, "SYSTEM", OracleLore.OracleSystemNature);

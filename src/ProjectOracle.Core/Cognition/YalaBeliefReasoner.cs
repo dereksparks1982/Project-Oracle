@@ -3,7 +3,7 @@ using ProjectOracle.Domain;
 namespace ProjectOracle.Cognition;
 
 /// <summary>
-/// Small, inspectable belief utilities for Brain Slice 5. Claims remain separate
+/// Small, inspectable belief utilities for Brain Slice 6. Claims remain separate
 /// from settled knowledge and can gain confidence without silently becoming truth.
 /// </summary>
 public static class YalaBeliefReasoner

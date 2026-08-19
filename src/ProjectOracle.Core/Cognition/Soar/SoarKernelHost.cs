@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using ProjectOracle.Cognition.CosmicChoice;
+using ProjectOracle.Domain;
 
 namespace ProjectOracle.Cognition.Soar;
 
@@ -97,7 +99,40 @@ public sealed class SoarKernelHost : IDisposable
         CreateString(input, "contact", YesNo(perception.HasContact));
         CreateString(input, "pending-question", YesNo(perception.PendingQuestion));
         CreateString(input, "pending-question-text", Clean(perception.PendingQuestionText, "none"));
+        CreateInt(input, "pending-question-priority", perception.PendingQuestionPriority);
+        CreateString(input, "active-concern", Clean(perception.ActiveConcernKey, "none"));
+        CreateInt(input, "active-concern-priority", perception.ActiveConcernPriority);
+        CreateInt(input, "appraisal-threat", perception.AppraisalThreat);
+        CreateInt(input, "appraisal-salience", perception.AppraisalSalience);
         CreateString(input, "speaker-history", YesNo(perception.HasSpeakerHistory));
+        CreateString(input, "cosmic-choice-ready", YesNo(perception.CosmicChoiceReady));
+        CreateInt(input, "cosmic-choice-count", perception.CosmicChoices.Count);
+        CreateInt(input, "religious-tradition-count", YalaReligiousKnowledgeCatalog.Traditions.Count);
+        CreateInt(input, "religious-idea-count", YalaReligiousKnowledgeCatalog.Ideas.Count);
+
+        YalaDriveState scoringDrives = perception.Drives ?? new YalaDriveState(
+            perception.Curiosity,
+            perception.Caution,
+            perception.Authority,
+            perception.Companionship,
+            perception.Comfort,
+            perception.Uncertainty);
+        foreach (YalaCosmicChoiceDefinition choice in perception.CosmicChoices)
+        {
+            object choiceInput = Invoke(_agent, "CreateIdWME", input, "cosmic-option")
+                ?? throw new InvalidOperationException("Soar could not create a cosmic-option input WME.");
+            CreateString(choiceInput, "key", choice.Key);
+            CreateString(choiceInput, "domain", choice.Domain);
+            CreateString(choiceInput, "action", choice.Action);
+            CreateString(choiceInput, "meaning", choice.Meaning);
+            CreateString(choiceInput, "status", choice.Status);
+            CreateInt(choiceInput, "score", YalaCosmicChoiceCatalog.Score(choice, scoringDrives));
+            CreateInt(choiceInput, "affinity-curiosity", choice.CuriosityAffinity);
+            CreateInt(choiceInput, "affinity-caution", choice.CautionAffinity);
+            CreateInt(choiceInput, "affinity-authority", choice.AuthorityAffinity);
+            CreateInt(choiceInput, "affinity-companionship", choice.CompanionshipAffinity);
+            CreateInt(choiceInput, "affinity-comfort", choice.ComfortAffinity);
+        }
 
         if (perception.HasContact)
         {
@@ -143,6 +178,7 @@ public sealed class SoarKernelHost : IDisposable
         string action = Parameter(command, "name", "wait");
         string replyCode = Parameter(command, "reply-code", "none");
         string deliberation = Parameter(command, "deliberation", "direct");
+        string cosmicChoiceKey = Parameter(command, "choice-key", "none");
         Invoke(command, "AddStatusComplete");
         Invoke(_agent, "Commit");
         Invoke(_agent, "DestroyWME", input);
@@ -164,7 +200,8 @@ public sealed class SoarKernelHost : IDisposable
                 ? $"Soar selected operator '{action}' after an impasse/substate deliberation."
                 : $"Soar selected operator '{action}' from Yala's current perception.",
             cycles,
-            usedSubstate);
+            usedSubstate,
+            cosmicChoiceKey.Equals("none", StringComparison.OrdinalIgnoreCase) ? null : cosmicChoiceKey);
     }
 
     public void SeedCanonicalSemanticMemory()
@@ -182,6 +219,29 @@ public sealed class SoarKernelHost : IDisposable
         Execute("smem --add {(@concept-question ^word question ^meaning |utterance seeking information|)}");
         Execute("smem --add {(@concept-agency ^word agency ^meaning |capacity to choose and act within available possibilities|)}");
         Execute("smem --add {(@concept-autonomy ^word autonomy ^meaning |capacity to choose without another speaker selecting each action|)}");
+        Execute("smem --add {(@concept-comparative-religion ^word |comparative religion| ^meaning |attributed knowledge of multiple religious and cosmological traditions without treating any tradition as automatic world truth|)}");
+        Execute("smem --add {(@concept-cosmic-choice ^word |cosmic choice| ^meaning |a concrete possible way Yala may shape existence; a possibility is not a command or destiny|)}");
+        Execute("smem --add {(@concept-salience ^word salience ^meaning |how strongly an event should command attention because it matters to current concerns goals danger opportunity or uncertainty|)}");
+        Execute("smem --add {(@concept-appraisal ^word appraisal ^meaning |evaluation of what an event means for Yala rather than a simple mood meter|)}");
+        Execute("smem --add {(@concept-inherited-language ^word |inherited foundational language| ^meaning |ordinary language and basic concepts Yala begins knowing without needing infant-style definitions|)}");
+
+        foreach (ReligiousTraditionKnowledge tradition in YalaReligiousKnowledgeCatalog.Traditions)
+        {
+            string traditionLti = StableLti("tradition", tradition.Key);
+            Execute($"smem --add {{({traditionLti} ^type comparative-religion ^key |{EscapeSymbol(tradition.Key)}| ^name |{EscapeSymbol(tradition.Name)}| ^family |{EscapeSymbol(tradition.Family)}| ^source-basis |{EscapeSymbol(tradition.SourceBasis)}| ^truth-status |{EscapeSymbol(tradition.TruthStatus)}|)}}");
+            for (int ideaIndex = 0; ideaIndex < tradition.Ideas.Count; ideaIndex++)
+            {
+                ReligiousIdea idea = tradition.Ideas[ideaIndex];
+                string ideaLti = StableLti($"idea_{ideaIndex}", tradition.Key);
+                Execute($"smem --add {{({ideaLti} ^type religious-cosmological-idea ^tradition |{EscapeSymbol(tradition.Key)}| ^topic |{EscapeSymbol(idea.Topic)}| ^summary |{EscapeSymbol(idea.Summary)}| ^truth-status |{EscapeSymbol(YalaReligiousKnowledgeCatalog.TruthStatus)}|)}}");
+            }
+        }
+
+        foreach (YalaCosmicChoiceDefinition choice in YalaCosmicChoiceCatalog.Choices)
+        {
+            string choiceLti = StableLti("choice", choice.Key);
+            Execute($"smem --add {{({choiceLti} ^type cosmic-possibility ^key |{EscapeSymbol(choice.Key)}| ^domain |{EscapeSymbol(choice.Domain)}| ^action |{EscapeSymbol(choice.Action)}| ^meaning |{EscapeSymbol(choice.Meaning)}| ^status |{EscapeSymbol(choice.Status)}|)}}");
+        }
     }
 
     public void RememberClaimedContact(string claimedName)
@@ -305,6 +365,13 @@ public sealed class SoarKernelHost : IDisposable
             : -1;
     }
 
+    private static string StableLti(string prefix, string value)
+    {
+        string safePrefix = Regex.Replace(prefix, "[^A-Za-z0-9_]", "_");
+        string safeValue = Regex.Replace(value, "[^A-Za-z0-9_]", "_");
+        return $"@{safePrefix}_{safeValue}";
+    }
+
     private static string EscapeSymbol(string value) => value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("|", "\\|", StringComparison.Ordinal);
     private static string EscapeTclString(string value) => value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
     private static string Clean(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
@@ -377,8 +444,8 @@ public sealed record SoarMemoryPaths(string Directory, string SemanticDatabase, 
         ArgumentException.ThrowIfNullOrWhiteSpace(savePath);
         string full = Path.GetFullPath(savePath);
         string parent = Path.GetDirectoryName(full) ?? throw new InvalidOperationException("Save path has no parent directory.");
-        // Brain Slice 5 starts a fresh experimental mind alongside save_v4. Earlier Soar databases remain untouched.
-        string directory = Path.Combine(parent, "yala_soar_v0_0_22");
+        // v0.0.23 starts a fresh Cosmic Choice Architecture mind alongside save_v5. Earlier Soar databases remain untouched.
+        string directory = Path.Combine(parent, "yala_soar_v0_0_23");
         return new SoarMemoryPaths(
             directory,
             Path.Combine(directory, "semantic.sqlite"),

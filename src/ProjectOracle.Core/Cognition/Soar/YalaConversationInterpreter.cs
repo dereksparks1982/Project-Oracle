@@ -158,6 +158,9 @@ public static partial class YalaConversationInterpreter
             return new("entity-about", recentEntity, "describe", recentEntity, PriorTopic: YalaDialogueContext.LatestMeaningful(cognition)?.Topic);
         }
 
+        if (IsReligiousKnowledgeQuestion(text)) return new("religious-knowledge", "Yala", "know", "religious traditions");
+        if (IsCosmicChoiceQuestion(text)) return new("cosmic-options", "Yala", "choose", "cosmic possibilities");
+
         if (text.Contains("tell me what you know", StringComparison.Ordinal) ||
             text is "what do you know" or "what do you know?" ||
             text.Contains("tell me everything you know", StringComparison.Ordinal)) return new("knowledge-summary", "Yala", "know", null);
@@ -289,6 +292,29 @@ public static partial class YalaConversationInterpreter
         text.StartsWith("tell me about ", StringComparison.Ordinal) ||
         text.StartsWith("tell me more", StringComparison.Ordinal) ||
         text.StartsWith("show me what you know", StringComparison.Ordinal);
+
+    private static bool IsReligiousKnowledgeQuestion(string text) =>
+        text.Contains("what religions", StringComparison.Ordinal) ||
+        text.Contains("which religions", StringComparison.Ordinal) ||
+        text.Contains("what religious", StringComparison.Ordinal) ||
+        text.Contains("religious traditions", StringComparison.Ordinal) ||
+        text.Contains("religions do you know", StringComparison.Ordinal) ||
+        text.Contains("belief systems do you know", StringComparison.Ordinal) ||
+        text.Contains("what traditions do you know", StringComparison.Ordinal);
+
+    private static bool IsCosmicChoiceQuestion(string text) =>
+        text.Contains("what choices do you have", StringComparison.Ordinal) ||
+        text.Contains("what can you choose", StringComparison.Ordinal) ||
+        text.Contains("what could you choose", StringComparison.Ordinal) ||
+        text.Contains("what can you create", StringComparison.Ordinal) ||
+        text.Contains("what could you create", StringComparison.Ordinal) ||
+        text.Contains("what can you make", StringComparison.Ordinal) ||
+        text.Contains("what could you make", StringComparison.Ordinal) ||
+        text.Contains("ways can you create", StringComparison.Ordinal) ||
+        text.Contains("ways could you create", StringComparison.Ordinal) ||
+        text.Contains("options for creation", StringComparison.Ordinal) ||
+        text.Contains("cosmic choices", StringComparison.Ordinal) ||
+        text.Contains("cosmic options", StringComparison.Ordinal);
 
     private static bool IsOwnCreationQuestion(string text) =>
         text.Contains("have you made ", StringComparison.Ordinal) ||

@@ -72,8 +72,8 @@ internal static class Program
         }
         ConsoleTheme.WriteLine(ProjectVersion.Display);
         ConsoleTheme.WriteLine($"World Seed: {simulation.State.Seed}");
-        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.22 experimental world started at Yala's pre-Time Void state.");
-        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 5 with temporal reasoning, dialogue context, relationships, inquiry, goals, memory, and bounded in-world agency.");
+        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.23 experimental world started at Yala's pre-Time Void state.");
+        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 6 with temporal reasoning, dialogue context, relationships, inquiry, goals, memory, and bounded in-world agency.");
         ConsoleTheme.WriteLine("Ctrl+Y enters persistent Yala conversation mode. Escape returns to the normal system prompt.");
         ConsoleTheme.WriteLine("Type help for system-console commands and direct-call syntax.");
         PrintRecords(simulation.Ledger.WorldRecords, "WORLD RECORD");
@@ -273,7 +273,7 @@ internal static class Program
         }
         else
         {
-            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.22.");
+            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.23.");
         }
     }
 
@@ -412,7 +412,7 @@ internal static class Program
         ConsoleTheme.WriteLine("status                          Show current cosmology and Yala state.");
         ConsoleTheme.WriteLine("Ctrl+Y                          Enter persistent Yala conversation mode; the mode stays active after each reply.");
         ConsoleTheme.WriteLine("Escape                          Leave Yala conversation mode and return to the normal system prompt.");
-        ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 5 state, dialogue, relationships, questions, goals, and memory diagnostics.");
+        ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 6 state, dialogue, relationships, questions, goals, and memory diagnostics.");
         ConsoleTheme.WriteLine("creation / powers               Show currently existing in-world powers.");
         ConsoleTheme.WriteLine("records world                   Show settled in-world history.");
         ConsoleTheme.WriteLine("records oracle                  Show protected Oracle/system truth.");

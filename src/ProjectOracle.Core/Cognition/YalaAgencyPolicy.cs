@@ -14,6 +14,7 @@ public static class YalaAgencyPolicy
         "wait",
         "create-gaia",
         "command-gaia-time",
+        "enact-cosmic-choice",
         "respond",
         "ask-speaker"
     };
