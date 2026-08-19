@@ -5,7 +5,7 @@ namespace ProjectOracle.Brain;
 
 /// <summary>
 /// Later-world Adam planning scaffold retained dormant until autonomous history actually reaches Adam.
-/// Yala's v0.0.23 cognition is handled by the real Soar 9.6.5 Brain Slice 6 integration.
+/// Yala's v0.0.24 cognition is handled by the real Soar 9.6.5 Brain Slice 7 integration.
 /// </summary>
 public static class AdamBrainPlanner
 {

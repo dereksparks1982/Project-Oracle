@@ -1,5 +1,21 @@
 # Project Oracle Changelog
 
+## v0.0.24 candidate - Yala Brain Slice 7: Deliberation, Planning, Cognitive Flight Recorder, Adaptive Desktop
+
+- Added durable investigations and multi-step plans derived from high-salience concerns.
+- Added counterfactual benefit/risk alternatives and a bounded Soar `deliberate` operator.
+- Added before/after decision cognition snapshots and rationale trace.
+- Added Core JSON cognitive-flight-recorder export and readable conversation text export, both using the full ledger-backed conversation timeline so autonomous Yala questions are not lost when recent dialogue memory rolls over.
+- Added fresh schema-6 `save_v6.json` and isolated `yala_soar_v0_0_24` memory line.
+- Added adaptive monitor working-area/scaling/aspect-ratio sizing, window placement persistence/clamping, `FIT TO SCREEN`, conversation auto-follow, and `JUMP TO LATEST`.
+- Added official Project Oracle emblem/eye branding for Avalonia resources, launcher icon, navigation panel, and GNOME/GIO executable metadata where supported.
+- Preserved v0.0.23 comparative religion, Cosmic Choice, cognitive inheritance/power ceiling, and emergent-law foundation.
+- Expanded the automated acceptance inventory to 180 tests.
+- Repaired Brain Slice 7 answer routing so a speaker reply is preserved both against the literal asked-question subject and the active investigation/plan that caused Yala to ask; replies remain attributed evidence and never become automatic proof.
+- Added the living `Yala Manual` with a post-PASS manual trial battery, including ordinary-language, prison, godhood contradiction, trust/evidence, Sophia relationship, provenance, planning, counterfactual, long-thread, and substrate-of-existence tests.
+- Added the shared `Oracle Mind Architecture Manual` and a policy for separate future manuals for Sophia, Gaia, Adam, Eve, and other major independent minds when implemented.
+- No startup splash screen.
+
 ## v0.0.23 - candidate - Yala Soar Brain Slice 6 / Cosmic Choice, Cognitive Continuity, Desktop Observatory, and Emergent Law Foundation
 
 - Adds a structured comparative religious, mythological, and philosophical semantic-memory catalogue with 30 traditions/families and 92 attributed ideas.
@@ -198,3 +214,6 @@ Acceptance remains pending automated target-machine validation and Derek's manua
 - Repaired the current-scope religious-boundary validator so its own documentation no longer trips the prohibited-token scan.
 - No feature behavior changed. The candidate scope remains Persistent Yala Mode, Live World Clock, and Brain Slice 3 Reachability.
 
+## v0.0.24 final candidate repair
+- Prevent `deliberate` from being proposed while a speaker question is already pending, so an active evidence-seeking plan executes its ask step instead of deliberating about asking.
+- Add `StartupWMClass=ProjectOracle` to the Linux desktop launcher so GNOME can associate the running ProjectOracle window with the installed Oracle icon rather than a generic gear.

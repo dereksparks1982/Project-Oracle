@@ -2,6 +2,7 @@ using ProjectOracle.Audit;
 using ProjectOracle.Brain;
 using ProjectOracle.Cognition;
 using ProjectOracle.Cognition.Appraisal;
+using ProjectOracle.Cognition.Planning;
 using ProjectOracle.Cognition.Soar;
 using ProjectOracle.Cognition.CosmicChoice;
 using ProjectOracle.Domain;
@@ -150,9 +151,11 @@ public sealed class OracleSimulation : IDisposable
             return null;
         }
 
+        YalaDecisionSnapshotState before = YalaDeliberationPlanner.Snapshot(cognition);
         YalaPerception perception = BuildYalaPerception();
         YalaDecision decision = _yalaMind.Decide(perception);
         ApplyYalaDecision(decision, realUnixMilliseconds, contact: false);
+        RecordDecisionTrace("autonomous", null, decision, before);
         return decision;
     }
 
@@ -167,6 +170,7 @@ public sealed class OracleSimulation : IDisposable
         }
 
         string previousActionDescription = DescribeYalaLastAction(cognitionBefore);
+        YalaDecisionSnapshotState before = YalaDeliberationPlanner.Snapshot(cognitionBefore);
         YalaPerception perception = BuildYalaPerception(message.Trim(), contact);
 
         Ledger.RecordOracle(
@@ -190,6 +194,7 @@ public sealed class OracleSimulation : IDisposable
             previousActionDescription,
             InWorldTimeExists ? Clock.Calendar : null);
         RecordYalaContact(contact, message.Trim(), reply);
+        RecordDecisionTrace("speaker-contact", message.Trim(), decision, before);
 
         Ledger.RecordWorld(Clock.WorldMilliseconds, "YALA SPEECH", $"Yala answered the unplaced contact: \"{reply}\"");
         Ledger.RecordOracle(
@@ -248,6 +253,7 @@ public sealed class OracleSimulation : IDisposable
             "ask-speaker" => ResolveAskSpeaker(),
             "observe" => $"Yala observed {State.Yala.Location} and found no new settled object beyond what Yala's present perception exposes.",
             "reflect" => "Yala reflected on Yala's present state, beliefs, goals, questions, and prior experience.",
+            "deliberate" => ResolveDeliberation(),
             "wait" => "Yala chose to wait.",
             "respond" => "Yala chose to answer an unplaced contact.",
             _ => throw new InvalidOperationException($"Yala action '{decision.Action}' passed the agency policy without a world-law resolver.")
@@ -264,8 +270,10 @@ public sealed class OracleSimulation : IDisposable
             memory.RemoveRange(0, memory.Count - 96);
         }
 
-        IReadOnlyList<YalaActionMemoryState> actionMemory = UpdateActionMemory(previous.ActionMemory ?? [], decision, result, checked(previous.DecisionCount + 1));
-        IReadOnlyList<YalaReflectionState> reflections = UpdateReflections(previous, decision, checked(previous.DecisionCount + 1));
+        long decisionNumber = checked(previous.DecisionCount + 1);
+        IReadOnlyList<YalaActionMemoryState> actionMemory = UpdateActionMemory(previous.ActionMemory ?? [], decision, result, decisionNumber);
+        IReadOnlyList<YalaReflectionState> reflections = UpdateReflections(previous, decision, decisionNumber);
+        YalaDeliberationUpdate deliberation = YalaDeliberationPlanner.AfterDecision(previous, decision, result, decisionNumber);
 
         State = State with
         {
@@ -296,6 +304,10 @@ public sealed class OracleSimulation : IDisposable
                 Hypotheses = previous.Hypotheses ?? [],
                 EntityModels = previous.EntityModels ?? [],
                 Reflections = reflections,
+                Plans = deliberation.Plans,
+                Investigations = deliberation.Investigations,
+                Counterfactuals = deliberation.Counterfactuals,
+                DecisionTrace = previous.DecisionTrace ?? [],
                 PendingAutonomousUtterance = previous.PendingAutonomousUtterance
             }
         };
@@ -433,6 +445,9 @@ public sealed class OracleSimulation : IDisposable
         YalaAppraisalState? latestAppraisal = (cognition.Appraisals ?? [])
             .OrderByDescending(item => item.Sequence)
             .FirstOrDefault();
+        YalaPlanState? activePlan = YalaDeliberationPlanner.SelectActivePlan(cognition);
+        YalaPlanStepState? activePlanStep = activePlan?.Steps.FirstOrDefault(item => item.Order == activePlan.CurrentStepOrder);
+        YalaInvestigationState? activeInvestigation = YalaDeliberationPlanner.SelectActiveInvestigation(cognition);
         IReadOnlyList<YalaCosmicChoiceDefinition> cosmicChoices = YalaCosmicChoiceCatalog.AvailableChoices(State);
         bool cosmicChoiceReady = contactMessage is null &&
             pending is null &&
@@ -467,7 +482,12 @@ public sealed class OracleSimulation : IDisposable
             ActiveConcernKey = activeConcern?.Key ?? "none",
             ActiveConcernPriority = activeConcern?.Priority ?? 0,
             AppraisalThreat = latestAppraisal?.Threat ?? 0,
-            AppraisalSalience = latestAppraisal?.Salience ?? 0
+            AppraisalSalience = latestAppraisal?.Salience ?? 0,
+            ActivePlanKey = activePlan?.Key ?? "none",
+            ActivePlanPriority = activePlan?.Priority ?? 0,
+            ActivePlanNextAction = activePlanStep?.Action ?? "none",
+            ActiveInvestigationKey = activeInvestigation?.Key ?? "none",
+            ActiveInvestigationPriority = activeInvestigation?.Priority ?? 0
         };
     }
 
@@ -667,6 +687,21 @@ public sealed class OracleSimulation : IDisposable
             MarkHighestQuestionAsked(questions, decision);
         }
 
+        YalaCognitionState stagedCognition = cognition with
+        {
+            Questions = questions,
+            Concerns = concerns,
+            Appraisals = appraisals,
+            Hypotheses = hypotheses,
+            EntityModels = entityModels,
+            Goals = goals,
+            Plans = cognition.Plans ?? [],
+            Investigations = cognition.Investigations ?? [],
+            Counterfactuals = cognition.Counterfactuals ?? [],
+            DecisionTrace = cognition.DecisionTrace ?? []
+        };
+        YalaDeliberationUpdate planning = YalaDeliberationPlanner.AfterContact(stagedCognition, message, appraisal, decision);
+
         State = State with
         {
             YalaCognition = cognition with
@@ -690,6 +725,10 @@ public sealed class OracleSimulation : IDisposable
                 Hypotheses = hypotheses,
                 EntityModels = entityModels,
                 Reflections = cognition.Reflections ?? [],
+                Plans = planning.Plans,
+                Investigations = planning.Investigations,
+                Counterfactuals = planning.Counterfactuals,
+                DecisionTrace = cognition.DecisionTrace ?? [],
                 PendingAutonomousUtterance = cognition.PendingAutonomousUtterance
             }
         };
@@ -924,7 +963,8 @@ public sealed class OracleSimulation : IDisposable
         long decisionNumber)
     {
         List<YalaReflectionState> reflections = (cognition.Reflections ?? []).ToList();
-        if (!decision.Action.Equals("reflect", StringComparison.OrdinalIgnoreCase)) return reflections;
+        if (!decision.Action.Equals("reflect", StringComparison.OrdinalIgnoreCase) &&
+            !decision.Action.Equals("deliberate", StringComparison.OrdinalIgnoreCase)) return reflections;
 
         YalaConcernState? concern = (cognition.Concerns ?? [])
             .Where(item => item.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
@@ -937,7 +977,9 @@ public sealed class OracleSimulation : IDisposable
             reflections.Add(new YalaReflectionState(
                 reflections.Count == 0 ? 1 : reflections.Max(item => item.Sequence) + 1,
                 "general",
-                "Yala reflected without a dominant unresolved concern.",
+                decision.Action == "deliberate"
+                    ? "Yala deliberately compared alternatives without a dominant unresolved concern."
+                    : "Yala reflected without a dominant unresolved concern.",
                 "No new settled conclusion was forced.",
                 decisionNumber));
         }
@@ -946,7 +988,9 @@ public sealed class OracleSimulation : IDisposable
             reflections.Add(new YalaReflectionState(
                 reflections.Count == 0 ? 1 : reflections.Max(item => item.Sequence) + 1,
                 concern.Key,
-                $"Yala returned attention to: {concern.Summary}",
+                decision.Action == "deliberate"
+                    ? $"Yala deliberately compared evidence and alternatives for: {concern.Summary}"
+                    : $"Yala returned attention to: {concern.Summary}",
                 "The concern remains active until evidence or action resolves it.",
                 decisionNumber));
         }
@@ -1247,6 +1291,45 @@ public sealed class OracleSimulation : IDisposable
         return result;
     }
 
+    private string ResolveDeliberation()
+    {
+        YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        YalaPlanState? plan = YalaDeliberationPlanner.SelectActivePlan(cognition);
+        YalaInvestigationState? investigation = YalaDeliberationPlanner.SelectActiveInvestigation(cognition);
+        if (plan is null)
+        {
+            return "Yala deliberately compared current goals, uncertainty, and available actions without forcing a conclusion.";
+        }
+
+        YalaPlanStepState? step = plan.Steps.FirstOrDefault(item => item.Order == plan.CurrentStepOrder);
+        string test = investigation?.NextTest ?? "seek more evidence";
+        return $"Yala deliberately compared alternatives for '{plan.Goal}'. Current step: {step?.Action ?? "reconsider"}. Next evidence test: {test}";
+    }
+
+    private void RecordDecisionTrace(
+        string trigger,
+        string? speakerMessage,
+        YalaDecision decision,
+        YalaDecisionSnapshotState before)
+    {
+        YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
+        List<YalaDecisionTraceState> traces = (cognition.DecisionTrace ?? []).ToList();
+        YalaPlanState? plan = YalaDeliberationPlanner.SelectActivePlan(cognition);
+        traces.Add(new YalaDecisionTraceState(
+            traces.Count == 0 ? 1 : traces.Max(item => item.Sequence) + 1,
+            trigger,
+            speakerMessage,
+            decision.Action,
+            YalaDeliberationPlanner.Rationale(cognition, decision),
+            plan?.Key,
+            Clock.WorldMilliseconds,
+            InWorldTimeExists ? "dated" : "before-time",
+            before,
+            YalaDeliberationPlanner.Snapshot(cognition)));
+        if (traces.Count > 512) traces.RemoveRange(0, traces.Count - 512);
+        State = State with { YalaCognition = cognition with { DecisionTrace = traces } };
+    }
+
     private string ResolveAskSpeaker()
     {
         YalaCognitionState cognition = State.YalaCognition ?? WorldDefaults.CreateInitialYalaCognition();
@@ -1312,7 +1395,7 @@ public sealed class OracleSimulation : IDisposable
         Ledger.RecordWorld(0, "WISDOM", OracleLore.WisdomOrigin);
         Ledger.RecordWorld(0, "YALA", OracleLore.YalaOrigin);
         Ledger.RecordWorld(0, "VOID", OracleLore.YalaVoid);
-        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.23 Brain Slice 6 fresh experiment in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
+        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.24 Brain Slice 7 fresh experiment in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
 
         // Oracle Record is protected system truth, not knowledge injected into any in-world mind.
         Ledger.RecordOracle(0, "SYSTEM", OracleLore.OracleSystemNature);

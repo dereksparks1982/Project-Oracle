@@ -104,6 +104,11 @@ public sealed class SoarKernelHost : IDisposable
         CreateInt(input, "active-concern-priority", perception.ActiveConcernPriority);
         CreateInt(input, "appraisal-threat", perception.AppraisalThreat);
         CreateInt(input, "appraisal-salience", perception.AppraisalSalience);
+        CreateString(input, "active-plan", Clean(perception.ActivePlanKey, "none"));
+        CreateInt(input, "active-plan-priority", perception.ActivePlanPriority);
+        CreateString(input, "active-plan-next-action", Clean(perception.ActivePlanNextAction, "none"));
+        CreateString(input, "active-investigation", Clean(perception.ActiveInvestigationKey, "none"));
+        CreateInt(input, "active-investigation-priority", perception.ActiveInvestigationPriority);
         CreateString(input, "speaker-history", YesNo(perception.HasSpeakerHistory));
         CreateString(input, "cosmic-choice-ready", YesNo(perception.CosmicChoiceReady));
         CreateInt(input, "cosmic-choice-count", perception.CosmicChoices.Count);
@@ -224,6 +229,10 @@ public sealed class SoarKernelHost : IDisposable
         Execute("smem --add {(@concept-salience ^word salience ^meaning |how strongly an event should command attention because it matters to current concerns goals danger opportunity or uncertainty|)}");
         Execute("smem --add {(@concept-appraisal ^word appraisal ^meaning |evaluation of what an event means for Yala rather than a simple mood meter|)}");
         Execute("smem --add {(@concept-inherited-language ^word |inherited foundational language| ^meaning |ordinary language and basic concepts Yala begins knowing without needing infant-style definitions|)}");
+        Execute("smem --add {(@concept-plan ^word plan ^meaning |an ordered revisable sequence of intended actions toward a goal|)}");
+        Execute("smem --add {(@concept-investigation ^word investigation ^meaning |a persistent question pursued through evidence tests and revisable conclusions|)}");
+        Execute("smem --add {(@concept-counterfactual ^word counterfactual ^meaning |a considered possibility about what might happen if another action were taken|)}");
+        Execute("smem --add {(@concept-metacognition ^word metacognition ^meaning |reasoning about uncertainty evidence and the quality of one's own reasoning|)}");
 
         foreach (ReligiousTraditionKnowledge tradition in YalaReligiousKnowledgeCatalog.Traditions)
         {
@@ -444,8 +453,8 @@ public sealed record SoarMemoryPaths(string Directory, string SemanticDatabase, 
         ArgumentException.ThrowIfNullOrWhiteSpace(savePath);
         string full = Path.GetFullPath(savePath);
         string parent = Path.GetDirectoryName(full) ?? throw new InvalidOperationException("Save path has no parent directory.");
-        // v0.0.23 starts a fresh Cosmic Choice Architecture mind alongside save_v5. Earlier Soar databases remain untouched.
-        string directory = Path.Combine(parent, "yala_soar_v0_0_23");
+        // v0.0.24 starts a fresh Brain Slice 7 deliberation mind alongside save_v6. Earlier Soar databases remain untouched.
+        string directory = Path.Combine(parent, "yala_soar_v0_0_24");
         return new SoarMemoryPaths(
             directory,
             Path.Combine(directory, "semantic.sqlite"),

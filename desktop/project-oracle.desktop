@@ -1,10 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Project Oracle
-Comment=Project Oracle v0.0.23 cognitive world observatory
+Comment=Project Oracle v0.0.24 cognitive world observatory
 Exec="PROJECT_ORACLE_EXEC_PLACEHOLDER"
-Icon=applications-science
+Icon=project-oracle
 Terminal=false
 Categories=Game;Science;
 StartupNotify=true
+StartupWMClass=ProjectOracle
 Keywords=Oracle;Simulation;Yala;Soar;

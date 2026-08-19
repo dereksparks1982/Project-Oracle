@@ -11,6 +11,7 @@ public static class YalaAgencyPolicy
     {
         "observe",
         "reflect",
+        "deliberate",
         "wait",
         "create-gaia",
         "command-gaia-time",

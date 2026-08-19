@@ -2,7 +2,7 @@
 set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
-printf '\033]0;%s\007' 'Project Oracle v0.0.23 - Yala Soar Console'
+printf '\033]0;%s\007' 'Project Oracle v0.0.24 - Yala Soar Console'
 
 lock_parent="${XDG_RUNTIME_DIR:-/tmp}"
 lock_dir="$lock_parent/project-oracle-live.lock"

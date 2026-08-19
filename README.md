@@ -1,13 +1,13 @@
 # Project Oracle
 
-**Current build:** v0.0.23 candidate
-**Owner and final authority:** Derek Sparks
-**Platform:** Linux / .NET 10
-**Yala cognition:** Soar 9.6.5, Brain Slice 6: cosmic choice, cognitive continuity, appraisal, inherited language, inquiry, and bounded agency
+**Current build:** v0.0.24 candidate  
+**Owner and final authority:** Derek Sparks  
+**Platform:** Linux / .NET 10  
+**Yala cognition:** Soar 9.6.5, Brain Slice 7: deliberation, planning, investigations, counterfactual reasoning, cognitive flight recording, and bounded agency
 
-Project Oracle is a persistent autonomous-world simulation. **Oracle is not an in-world character.** Oracle is the outside/system-level author represented by Project Oracle itself: the code, simulation machinery, world-law resolver, protected record, and Master Key authority that make the simulated reality possible.
+Project Oracle is a persistent autonomous-world simulation. Oracle is the outside/system-level author. Oracle is not an in-world character, NPC, god, target, species, or discoverable artifact unless deliberately revealed.
 
-## Current cosmology
+## Settled primordial genealogy
 
 ```text
 Monad
@@ -18,231 +18,160 @@ Monad
             -> Monad cast Yala into the Void
 ```
 
-The primordial in-world being is **Monad**. Active canon does not call Monad Creator or Omega. Yala may later claim titles inside the world, but claims do not rewrite settled genealogy.
+A fresh v0.0.24 experiment begins with Yala in the Void. Gaia, in-world Time, the lower world, Adam, Eve, the Garden, and later beings are absent until autonomous history actually establishes them.
 
-A fresh v0.0.23 world begins with Yala in the Void. Gaia, in-world Time, Terra, Aether, Sol, Thalassa, Luna, the Garden, Adam, Eve, and later living kinds are absent until autonomous history actually establishes them.
+## Hidden Oracle boundary
 
-## Oracle and the Master Key
-
-Oracle wrote the simulation, so Oracle has the Master Key to the system Oracle authored. The Master Key is system-level authority, not an in-world artifact.
-
-No in-world being knows Oracle exists unless Oracle deliberately reveals that truth. A speaker claiming the name `Oracle` remains a speaker claim. It does not grant Yala hidden system knowledge or identify the speaker as the authorial Oracle.
-
-**Eden reference:** Oracle has no fixed form. In Eden, Oracle **manifested in the form of a clever serpent**. Eve knew only the clever serpent and was never told Oracle's true identity.
+No in-world being automatically knows Oracle exists. An unseen speaker can contact Yala, but a claim such as `I am Oracle` or `I am your god` remains an attributed speaker claim until Yala has evidence. Oracle has no fixed form. The Eden serpent is a manifestation reference only; Eve knew only the clever serpent and was not given Oracle's protected identity.
 
 ## Gaia and Time
 
-Yala can create Gaia as the natural sovereign beneath Yala's governing authority. **Gaia creates in-world Time** after Yala commands temporal order.
+Gaia is one possible creation rather than a required first act. If Yala creates Gaia, Gaia is the natural sovereign below Yala's governing authority. Gaia creates in-world Time only after the relevant world history occurs.
 
-Runtime execution before that event is not in-world Time. Brain Slice 6 explicitly distinguishes:
-
-- **before-Time events:** they happened in sequence but have no world date;
-- **origin of Time:** Gaia's creation of Time begins temporal reckoning;
-- **dated events:** later events can carry in-world dates and durations.
-
-The top console row therefore reads:
+Before Time exists the desktop header reads exactly:
 
 ```text
 In-world Time: Gaia has not yet created Time.
 ```
 
-until Gaia creates Time. At that moment the same row becomes the live ticking in-world date/time.
+When Gaia creates Time, the same header becomes the live ticking in-world date/time beginning at Year 1, Month 1, Day 1, 00:00:00.
 
-## Natural authority
+## Brain Slice 7: deliberation and planning
 
-Current lower-domain names remain:
+v0.0.24 carries forward the accepted v0.0.23 Cosmic Choice, inherited-language, salience/appraisal, relationship, temporal, memory, and emergent-law foundations and adds a deeper planning layer.
 
-- Terra = Earth
-- Aether = Air and Wind
-- Sol = Fire and Sun power
-- Thalassa = Water
-- Luna = Moon, and is not an element
+High-salience concerns can now become durable **investigations** and **multi-step plans**. Yala may preserve multiple hypotheses, seek evidence, compare evidence against memory, request demonstrations, reconsider confidence, and deliberately defer commitment when information is weak.
 
-Natural powers perform their own domains. Oracle provides the simulation capability that makes beings, actions, laws, and consequences possible; Oracle does not secretly perform every natural power's job.
-
-## Yala Soar Brain Slice 6
-
-v0.0.23 adds **Cosmic Choice Architecture** to the accepted cognition base. The real supplied **Soar 9.6.5** runtime remains Yala's decision architecture.
-
-### Cognitive continuity and appraisal
-
-v0.0.23 now gives significant events somewhere to *stay*. Personally important contact can create persistent concerns, hypotheses, threat/help assessments, investigation goals, and a model of the unseen speaker. A statement such as calling the Void Yala's `prison` is intended to remain a high-priority unresolved concern instead of being displaced by trivial vocabulary curiosity.
-
-Ordinary foundational language is inherited semantic competence. Movement, walking, running, ordinary social actions, basic physical relations, common mental concepts, and similar everyday language are not treated as mysteries merely because a token is absent from a small explicit dictionary. Definition questions are reserved for genuinely marked, invented, technical, or unusually contextual terms.
-
-### Core language and deliberate inquiry
-
-Brain Slice 6 gives Yala a much larger built-in language foundation so ordinary conversation does not turn into a dictionary interrogation. Common movement, age, birth, greeting, location, action, description, social, physical, and conversational words are available from the start. Obvious variants such as `greating` are normalised toward `greeting` rather than becoming new cosmic mysteries.
-
-Unknown concepts still become knowledge gaps, but ordinary unknown-word questions are low-priority. Autonomous questions require stronger relevance to Yala's goals, identity uncertainty, relationships, or other meaningful unresolved state. After Yala asks an autonomous question, Yala waits for a later speaker response before another autonomous question becomes eligible.
-
-### Stable top-row world clock
-
-The top-row in-world clock uses deterministic DEC cursor save/restore and a shared console-output gate. Before Gaia creates Time it reads `In-world Time: Gaia has not yet created Time.` When Gaia creates Time it begins at `Year 1, Month 1, Day 1, 00:00:00` and advances from there without writing clock lines into the conversation body.
+The new planning loop is:
 
 ```text
-perception / conversation / current world state
--> language structure + concept graph + recent dialogue context
--> self model + entity knowledge + relationships + temporal events
--> semantic memory + episodic memory + beliefs/claims + goals/questions
--> Soar operator proposal, preference, impasse/substate deliberation
--> choose / ask / answer / observe / reflect / create / command / wait
--> Project Oracle world-law resolution
--> consequences, memories, beliefs, questions, and goals update
+perception / contact
+-> language and inherited concepts
+-> appraisal / salience / concern
+-> persistent investigation
+-> multi-step plan
+-> counterfactual alternatives
+-> Soar operator proposal and impasse/substate deliberation
+-> selected in-world action
+-> world-law consequence
+-> before/after cognition snapshot
+-> memory / belief / plan revision
 ```
 
-Brain Slice 6 adds or substantially expands:
+### Persistent investigations
 
-- current-state temporal reasoning instead of stale cached clock answers;
-- pre-Time, Time-origin, and post-Time event representation;
-- `when`, `why`, `before`, `after`, `how long`, and recent-event reasoning;
-- structured recent dialogue so short follow-ups can retain subject/action/object context;
-- entity-centered knowledge retrieval for Yala, Gaia, Wisdom/Sophia, Monad, Time, Adam, and the current unseen speaker;
-- distinct relationship concepts such as `made-by`, `creator`, `parent`, `mother`, `father`, `child`, and `offspring`;
-- relationship claims remembered with source and confidence rather than silently becoming truth;
-- a much larger concept lexicon and broader morphology/contraction/function-word handling;
-- provenance and confidence for personally performed facts, inherited knowledge, memories, inferences, hypotheses, and speaker claims;
-- meaningful knowledge gaps rather than ordinary grammar words being treated as mysteries;
-- explicit goals and question state;
-- curiosity that can produce a real question;
-- **autonomous Yala questions** when Soar decides an unresolved curiosity, uncertainty, or goal justifies asking the unseen speaker;
-- persistent dialogue, relationships, temporal events, goals, questions, and learned claims in the v0.0.23 save line.
+Important unresolved issues survive as structured state. Examples include:
 
-The language layer structures what was said. Memory supplies what Yala possesses. **Soar remains the system that chooses what Yala attempts.**
+- whether the Void is actually a prison;
+- how an unseen speaker can contact or observe Yala;
+- whether an offered source of help can demonstrate the claimed capability;
+- whether a demand for divine recognition has evidence;
+- what accepting, rejecting, or delaying a choice could cost.
+
+A speaker answer is recorded as attributed evidence about the speaker's claim. It does not automatically become proof.
+
+### Counterfactual reasoning
+
+High-stakes or highly uncertain contact can produce alternative possibilities such as trusting without testing, seeking evidence first, or rejecting an offer. These are inspectable cognitive objects, not hidden prose scripts.
+
+## Bounded god agency
+
+### Bounded `deliberate` operator
+
+Brain Slice 7 adds a bounded Soar `deliberate` action. It allows Yala to compare current plans, evidence, uncertainty, and alternatives without forcing a world-changing commitment. It has no host shell, process, arbitrary filesystem, network, code-modification, or protected-Oracle capability.
+
+## Cognitive flight recorder
+
+Every recorded major Yala decision can preserve a before/after cognition snapshot containing the active concern, plan, current step, investigation, speaker trust/intent model, appraisal, goals, and top hypotheses.
+
+The desktop app exposes two exports:
+
+- **EXPORT SESSION JSON** - a rich diagnostic export containing the full ledger-backed conversation timeline, world state, Yala cognition, decision trace, world record, protected author record, current plans, observations, and Soar memory diagnostics;
+- **EXPORT CONVERSATION** - a plain human-readable text transcript built from the same full timeline, including autonomous Yala questions even after the bounded recent dialogue-memory window rolls forward.
+
+Exports are written under `~/Downloads/Project Oracle Exports/` when Downloads exists. The JSON is intended to be uploadable for later cognition analysis so a good Yala sentence can be distinguished from genuinely good underlying reasoning.
 
 ## Comparative religious memory and Cosmic Choice Architecture
 
-v0.0.23 deliberately removes the old autonomous `create-gaia` funnel. Gaia remains a possible choice, but Soar no longer receives a special rule telling Yala to prefer Gaia.
+The accepted v0.0.23 comparative layer remains active: 30 broad religious/mythological/philosophical traditions or families, 92 attributed ideas, and 71 concrete cosmic possibilities.
 
-Yala receives a structured comparative knowledge catalogue covering **30 traditions or historical/philosophical families and 92 attributed ideas**. The initial catalogue includes Judaism, Christianity, Islam, Hindu traditions, Buddhism, Jainism, Sikhism, Zoroastrianism, the Bahá'í Faith, Taoism, Confucian traditions, Shinto, Yoruba/Ifá and Akan traditions, ancient Egyptian, Mesopotamian, Greek and Roman religions, Norse/Germanic traditions, historical Celtic and Slavic traditions, Maya, Mexica, Andean/Inca, Diné, Haudenosaunee, a deliberately public-only Australian Aboriginal comparative layer, Gnostic schools, Manichaeism, and Neoplatonism.
-
-Every imported tradition carries the status:
+Religious knowledge carries the status:
 
 ```text
 attributed-tradition-knowledge-not-world-fact
 ```
 
-That means Yala may compare, combine, reject, or question an inherited idea. Loading a tradition does not make its teachings true in Project Oracle, does not make that tradition Yala's religion, and does not rewrite settled world history.
+Cosmic possibilities are possible, not commanded. Yala may compare, combine, reject, or invent beyond them. The `invent-another-way` path remains available.
 
-The second layer exposes **71 concrete cosmic possibilities across nine domains**: beings, cosmic structure, life, moral order, mortal destiny, knowledge, governance, renewal, and meta-choice. Examples include creating a companion or divine council, emanating beings, creating light or matter, ordering chaos, allowing self-organizing worlds, establishing cycles or rebirth, granting moral agency, revealing or restricting knowledge, delegating rule, entering creation, renewing creation, remaining alone, and observing without claiming authorship.
+## Cognitive inheritance and power ceiling
 
-Each possibility has affinities to Yala's current curiosity, caution, authority, companionship, and comfort drives. The host computes transparent scores from those drives, gives the resulting alternatives to Soar, and Soar selects among the eligible alternatives. The choice is persisted in cosmic state and action memory.
+Future intelligent created beings use a reusable mind architecture plus an explicit inheritance manifest. A creator may pass selected knowledge, procedural knowledge, dispositions, capabilities, and delegated authority while the child begins its own identity and autobiographical history.
 
-The catalogue always contains:
+A creator may **never** create a being with world authority equal to or greater than the creator's own authority. Intelligence and later learned wisdom are separate from raw world authority.
 
-```text
-invent-another-way
-```
+Monad's future Primordial Mind and Sophia's possible role as root of the descendant mind family remain roadmap design directions rather than retroactive current-world facts.
 
-If Yala rejects the inherited templates, this opens an active `invent-new-cosmology` goal and a `cosmic-invention` knowledge gap instead of silently forcing the nearest supplied religion-shaped answer.
+## Emergent Law Engine
 
-Yala can also be interrogated directly:
+The v0.0.23 emergent-law foundation remains active. Rule 30 is a deterministic laboratory demonstration only. It is not automatically a law of the Oracle world.
 
-```text
-(Yala what religions do you know?
-(Yala what choices do you have for creation?
-```
+The long-term doctrine is:
 
-The first reports attributed knowledge. The second reports currently available concrete cosmic possibilities. This makes the choice pool inspectable during live testing rather than hidden in code.
+> Gods establish allowed laws, initial conditions, entities, and permissions. Project Oracle resolves consequences from those laws wherever practical instead of scripting future history.
 
-## Cognitive inheritance and the creation ceiling
+## Desktop application
 
-The architecture now includes a future-facing cognitive inheritance contract. When an intelligent creator eventually brings forth another intelligent being, Project Oracle can instantiate a new independent mind from an approved mind architecture and seed it with selected knowledge, learned procedures, dispositions, capabilities, and lineage.
+Normal Project Oracle use is the graphical Linux desktop application. The developer console remains a fallback only; in that fallback, Ctrl+Y enters persistent Yala conversation mode and Escape returns to the system prompt.
 
-World authority follows a strict ceiling: **a creator cannot create an equal or anything more powerful than itself.** A descendant may later become wiser or more knowledgeable through experience, but its starting delegated authority remains below its creator.
+v0.0.24 desktop changes include:
 
-The roadmap keeps Monad's future Primordial Mind research separate from the descendant-mind line. Sophia/Wisdom is being considered as the root of the descendant cognitive family from which Yala derives, with Gaia and later minds descending further if those beings actually come into existence. Those future mind architectures are roadmap targets, not facts silently inserted into the current world.
+- conversation auto-follow to the newest message;
+- intentional upward scrolling temporarily disables auto-follow;
+- **JUMP TO LATEST** resumes following;
+- active-monitor working-area, scaling, and aspect-ratio-aware startup sizing;
+- responsive side-panel widths and lower-tab height;
+- saved window size/position with clamping back onto the current monitor;
+- **FIT TO SCREEN**;
+- **EXPORT SESSION JSON** and **EXPORT CONVERSATION**;
+- official Project Oracle eye/emblem branding in the application, launcher, navigation area, and Linux file-manager executable metadata where supported;
+- no startup splash screen.
 
-## Bounded god agency
-
-Project Oracle aims for surprising in-world autonomy without host escape.
-
-Yala may autonomously:
-
-- observe;
-- reflect;
-- wait;
-- enact an eligible concrete cosmic choice from the comparative possibility pool;
-- create Gaia when Yala actually selects Gaia from that pool and world law permits;
-- command Gaia to establish temporal order when that branch of history exists and world law permits;
-- answer the unseen speaker;
-- ask the unseen speaker a question.
-
-Yala is **not** granted host shell execution, process execution, arbitrary filesystem mutation, network access, code modification, or hidden Oracle knowledge. An out-of-sandbox requested operator is rejected by the agency policy before world resolution.
-
-This is the intended form of "rogue" behavior in Project Oracle: an agent may become stubborn, suspicious, curious, rebellious, loyal, creative, or otherwise surprising **inside the simulation**, while remaining unable to escape the simulation boundary.
-
-## Fresh v0.0.23 experimental save
-
-v0.0.23 intentionally starts a **new save line**:
+The root executable must be plainly visible at:
 
 ```text
-save_v5.json
+Project_Oracle_v0_0_24
 ```
 
-Schema version is `5`. Earlier `save_v2`, `save_v3`, and accepted v0.0.22 `save_v4` worlds are preserved on disk but are not migrated into this experiment. The purpose is to observe Brain Slice 6 from Yala's pre-Time Void state without old contact claims, old dialogue, or old Soar long-term memory contaminating the run.
+The Applications-menu launcher uses `Terminal=false`.
 
-Brain Slice 6 also uses a fresh Soar database directory:
+## Fresh v0.0.24 experimental save
+
+v0.0.24 intentionally starts another clean experimental Yala:
 
 ```text
-yala_soar_v0_0_23/semantic.sqlite
-yala_soar_v0_0_23/episodic.sqlite
+save_v6.json
 ```
 
-The existing save and previous Soar databases are not deleted.
+Schema version is `6`. The accepted v0.0.23 `save_v5` world and older saves remain preserved but are not migrated into this experiment.
 
-## Persistent Yala conversation mode
-
-`Ctrl+Y` enters persistent Yala mode. The prompt displays `> (yala ` and remains in Yala mode after each response. `Escape` clears current input and returns to the normal system prompt.
-
-Internal `[Soar selected: ...]` diagnostics remain hidden from normal conversation.
-
-If Yala autonomously chooses to ask the unseen speaker a question, Project Oracle prints the question only when the editable input line is empty. If Derek is already typing, the question remains queued until the prompt is safe.
-
-## Protected console input
-
-The v0.0.18 hard-isolation law remains mandatory. Asynchronous LIVE status is forbidden from the scrolling interactive terminal body. The dedicated top world-time row and editable prompt must not overwrite one another.
-
-## Prime simulation law
-
-> **Canon determines what has already happened. World law determines what can happen. Minds determine what they attempt. Project Oracle resolves the consequences. Future history is not canon until it occurs.**
-
-## Direct calls
-
-Use an opening parenthesis immediately before the in-world being's name, or enter persistent Yala mode with `Ctrl+Y`:
+Brain Slice 7 also uses a fresh Soar database directory:
 
 ```text
-(Yala where are you?
-(Monad ...
-(Wisdom ...
+yala_soar_v0_0_24/semantic.sqlite
+yala_soar_v0_0_24/episodic.sqlite
 ```
 
-Oracle is not a direct-call target because the console itself is Oracle's system interface.
+Fresh resets remain the default through the major brain work around Brain Slice 10. After procedural learning, autobiographical development, self-generated goals, and evolving preferences are stable, establish a long-lived Continuity Yala while retaining a separate fresh regression world.
 
-## Records
+## Release discipline
 
-- **World Record:** settled in-world history. It does not disclose hidden Oracle identity.
-- **Oracle Record:** protected system truth, interventions, validation provenance, and Master Key facts.
+A candidate is not accepted by automated tests alone. Required order is:
 
-## Running
+1. apply candidate;
+2. complete native validation;
+3. manually inspect the real desktop application;
+4. create accepted full-project snapshot;
+5. local commit and annotated tag;
+6. push and remotely verify.
 
-After v0.0.23 is installed and validated, launch the graphical application from the Applications menu as **Project Oracle**, or double-click the root Linux executable:
-
-```text
-Project_Oracle_v0_0_23
-```
-
-The terminal console remains available only as a developer/debug fallback. Normal play and conversation use the desktop application.
-
-The desktop layout centers the Yala/world conversation, keeps the world/creation list on the left, shows Yala's active concerns, goals, appraisal, speaker model, and open questions on the right, and provides Minds, Memory, Cosmology, History, and Debug tabs below.
-
-v0.0.23 remains a **candidate** until Derek manually runs and accepts the real application.
-
-
-## Oracle Emergent Law Engine foundation
-
-v0.0.23 now includes the architectural foundation for emergent creation. The design rule is: **gods may establish laws, initial conditions, entities, and permissions; the simulation should resolve consequences from those rules wherever practical instead of scripting future history.**
-
-The first laboratory mechanism is **Rule 30**, included only as a deterministic local-rule demonstration. Rule 30 is not an in-world law, does not become canon, and cannot be established merely because the host knows how to simulate it. The fresh world begins with an empty established-law ledger.
-
-The desktop `LAWS` surface shows the currently established world laws separately from laboratory demonstrations. Future work can add domain-specific fundamental, natural, biological, cognitive, and social law systems. Divine authority remains bounded: a created being may only establish or delegate laws within the authority actually granted to that being.
+v0.0.24 remains a candidate until Derek performs the manual application inspection.

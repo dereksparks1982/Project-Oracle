@@ -44,7 +44,7 @@ public static class WorldDefaults
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.23 starts the fresh save_v5 Cosmic Choice experiment while retaining the same settled cosmology. Missing cosmic state never
+        // v0.0.24 starts the fresh save_v6 Brain Slice 7 experiment while retaining the same settled cosmology. Missing cosmic state never
         // resurrects the old Garden-era save; it normalises to the new Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
@@ -196,6 +196,10 @@ public static class WorldDefaults
             Hypotheses = cognition.Hypotheses ?? [],
             EntityModels = cognition.EntityModels ?? [],
             Reflections = cognition.Reflections ?? [],
+            Plans = cognition.Plans ?? [],
+            Investigations = cognition.Investigations ?? [],
+            Counterfactuals = cognition.Counterfactuals ?? [],
+            DecisionTrace = cognition.DecisionTrace ?? [],
             PendingAutonomousUtterance = cognition.PendingAutonomousUtterance
         };
     }
@@ -278,7 +282,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.23; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.24; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;
@@ -388,6 +392,10 @@ public static class WorldDefaults
             Hypotheses: [],
             EntityModels: [],
             Reflections: [],
+            Plans: [],
+            Investigations: [],
+            Counterfactuals: [],
+            DecisionTrace: [],
             PendingAutonomousUtterance: null);
 
     public static IReadOnlyList<YalaRelationshipState> CreateInitialRelationships() =>

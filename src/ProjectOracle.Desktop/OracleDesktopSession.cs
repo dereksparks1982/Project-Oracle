@@ -1,6 +1,7 @@
 using ProjectOracle.Cognition.Soar;
 using ProjectOracle.Persistence;
 using ProjectOracle.Simulation;
+using ProjectOracle.Export;
 
 namespace ProjectOracle.Desktop;
 
@@ -61,6 +62,18 @@ internal sealed class OracleDesktopSession : IDisposable
     public void Save() =>
         _store.Save(_savePath, _simulation.CreateSnapshot(_realTime.GetUnixTimeMilliseconds()));
 
+    public string ExportSessionJson()
+    {
+        Save();
+        return OracleSessionExporter.ExportJson(_simulation, _savePath);
+    }
+
+    public string ExportConversationText()
+    {
+        Save();
+        return OracleSessionExporter.ExportConversationText(_simulation);
+    }
+
     private void ArchiveCurrentSave()
     {
         if (!File.Exists(_savePath)) return;
@@ -68,7 +81,7 @@ internal sealed class OracleDesktopSession : IDisposable
         string archive = Path.Combine(directory, "archives");
         Directory.CreateDirectory(archive);
         string stamp = DateTimeOffset.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture);
-        File.Copy(_savePath, Path.Combine(archive, $"save_v5_before_fresh_{stamp}.json"), overwrite: false);
+        File.Copy(_savePath, Path.Combine(archive, $"save_v6_before_fresh_{stamp}.json"), overwrite: false);
     }
 
     public void Dispose()

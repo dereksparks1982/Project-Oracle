@@ -62,6 +62,11 @@ public sealed record YalaPerception(
     public int ActiveConcernPriority { get; init; }
     public int AppraisalThreat { get; init; }
     public int AppraisalSalience { get; init; }
+    public string ActivePlanKey { get; init; } = "none";
+    public int ActivePlanPriority { get; init; }
+    public string ActivePlanNextAction { get; init; } = "none";
+    public string ActiveInvestigationKey { get; init; } = "none";
+    public int ActiveInvestigationPriority { get; init; }
 }
 
 public sealed record YalaDirectReply(

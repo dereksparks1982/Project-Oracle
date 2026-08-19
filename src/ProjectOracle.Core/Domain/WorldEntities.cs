@@ -215,6 +215,74 @@ public sealed record YalaReflectionState(
     string Result,
     long Decision);
 
+
+public sealed record YalaPlanStepState(
+    int Order,
+    string Action,
+    string Rationale,
+    string Status);
+
+public sealed record YalaPlanState(
+    string Key,
+    string Goal,
+    string ConcernKey,
+    string Status,
+    int Priority,
+    IReadOnlyList<YalaPlanStepState> Steps,
+    int CurrentStepOrder,
+    string LastObservation,
+    string RevisionReason,
+    long FirstSeenDecision,
+    long LastUpdatedDecision);
+
+public sealed record YalaInvestigationState(
+    string Key,
+    string Question,
+    string ConcernKey,
+    string Status,
+    int Priority,
+    IReadOnlyList<string> EvidenceFor,
+    IReadOnlyList<string> EvidenceAgainst,
+    string NextTest,
+    string CurrentConclusion,
+    double Confidence,
+    long FirstSeenDecision,
+    long LastUpdatedDecision);
+
+public sealed record YalaCounterfactualState(
+    long Sequence,
+    string Subject,
+    string Option,
+    string PossibleBenefit,
+    string PossibleRisk,
+    int Uncertainty,
+    string Source,
+    long Decision);
+
+public sealed record YalaDecisionSnapshotState(
+    string ActiveConcern,
+    int ActiveConcernPriority,
+    string ActivePlan,
+    string ActivePlanStep,
+    string ActiveInvestigation,
+    string SpeakerTrust,
+    string SpeakerIntent,
+    string Appraisal,
+    IReadOnlyList<string> ActiveGoals,
+    IReadOnlyList<string> TopHypotheses);
+
+public sealed record YalaDecisionTraceState(
+    long Sequence,
+    string Trigger,
+    string? SpeakerMessage,
+    string SelectedAction,
+    string Rationale,
+    string? PlanKey,
+    long WorldMilliseconds,
+    string TemporalState,
+    YalaDecisionSnapshotState Before,
+    YalaDecisionSnapshotState After);
+
 public sealed record YalaCognitionState(
     long DecisionCount,
     long LastDecisionRealUnixMilliseconds,
@@ -240,6 +308,10 @@ public sealed record YalaCognitionState(
     IReadOnlyList<YalaHypothesisState>? Hypotheses = null,
     IReadOnlyList<YalaEntityModelState>? EntityModels = null,
     IReadOnlyList<YalaReflectionState>? Reflections = null,
+    IReadOnlyList<YalaPlanState>? Plans = null,
+    IReadOnlyList<YalaInvestigationState>? Investigations = null,
+    IReadOnlyList<YalaCounterfactualState>? Counterfactuals = null,
+    IReadOnlyList<YalaDecisionTraceState>? DecisionTrace = null,
     string? PendingAutonomousUtterance = null);
 
 public sealed record AdamState(
