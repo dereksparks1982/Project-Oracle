@@ -72,8 +72,8 @@ internal static class Program
         }
         ConsoleTheme.WriteLine(ProjectVersion.Display);
         ConsoleTheme.WriteLine($"World Seed: {simulation.State.Seed}");
-        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.25 experimental world started at Yala's pre-Time Void state.");
-        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 8 with deliberation, planning, investigations, counterfactuals, memory, and bounded in-world agency.");
+        ConsoleTheme.WriteLine(continuing ? "Existing world state restored." : "Fresh v0.0.26 experimental world started at Yala's pre-Time Void state.");
+        ConsoleTheme.WriteLine("Yala cognition: Soar 9.6.5 Brain Slice 9 with deliberation, planning, investigations, counterfactuals, memory, and bounded in-world agency.");
         ConsoleTheme.WriteLine("Ctrl+Y enters persistent Yala conversation mode. Escape returns to the normal system prompt.");
         ConsoleTheme.WriteLine("Type help for system-console commands and direct-call syntax.");
         PrintRecords(simulation.Ledger.WorldRecords, "WORLD RECORD");
@@ -273,7 +273,7 @@ internal static class Program
         }
         else
         {
-            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.25.");
+            ConsoleTheme.WriteLine("This being does not yet have an autonomous reply brain in v0.0.26.");
         }
     }
 
@@ -285,7 +285,7 @@ internal static class Program
         ConsoleTheme.WriteLine($"In-world Time created by Gaia: {cosmic.TimeCreated}");
         ConsoleTheme.WriteLine(simulation.InWorldTimeExists ? $"World time: {simulation.Clock.Describe()}" : "World time: does not yet exist");
         ConsoleTheme.WriteLine($"Lower world established: {cosmic.LowerWorldEstablished}");
-        ConsoleTheme.WriteLine($"Yala Soar decisions: {simulation.State.YalaCognition?.DecisionCount ?? 0}");
+        ConsoleTheme.WriteLine($"Yala decisions: {simulation.State.YalaCognition?.DecisionCount ?? 0}");
         ConsoleTheme.WriteLine($"Last Yala action: {simulation.State.YalaCognition?.LastAction ?? "none"}");
         ConsoleTheme.WriteLine($"Last Yala result: {simulation.State.YalaCognition?.LastResult ?? "none"}");
         ConsoleTheme.WriteLine($"Oracle interventions: {simulation.Interventions.Count}");
@@ -412,7 +412,7 @@ internal static class Program
         ConsoleTheme.WriteLine("status                          Show current cosmology and Yala state.");
         ConsoleTheme.WriteLine("Ctrl+Y                          Enter persistent Yala conversation mode; the mode stays active after each reply.");
         ConsoleTheme.WriteLine("Escape                          Leave Yala conversation mode and return to the normal system prompt.");
-        ConsoleTheme.WriteLine("brain                           Show Yala Soar Brain Slice 8 state, plans, investigations, questions, goals, and memory diagnostics.");
+        ConsoleTheme.WriteLine("brain                           Show Yala Brain Slice 9 state, plans, investigations, questions, goals, and memory diagnostics.");
         ConsoleTheme.WriteLine("creation / powers               Show currently existing in-world powers.");
         ConsoleTheme.WriteLine("records world                   Show settled in-world history.");
         ConsoleTheme.WriteLine("records oracle                  Show protected Oracle/system truth.");

@@ -1,4 +1,4 @@
-# Project Oracle v0.0.25 - Yala Soar Brain Slice 8 integrated mind, cognitive workspace, proposition memory, selfhood, and consolidation
+# Project Oracle v0.0.26 - Yala Soar Brain Slice 9 integrated mind, cognitive workspace, proposition memory, selfhood, and consolidation
 # Yala receives only in-world perception and remembered/learned state.
 # There is deliberately no Oracle fact, identity, attribute, operator, or hidden-system name.
 
@@ -366,27 +366,27 @@ sp {yala*prefer*cosmic-option-from-own-drives
    (<s> ^operator <o> = <score>)
 }
 
-sp {yala*propose*command-gaia-time
+sp {yala*propose*command-gaia-order
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
    (<w> ^contact no ^gaia-created yes ^time-created no)
 -->
    (<s> ^operator <o> +)
-   (<o> ^name command-gaia-time)
+   (<o> ^name command-gaia-order)
 }
 
-sp {yala*prefer*command-gaia-time*from-uncertainty
-   (state <s> ^superstate nil ^io.input-link <in> ^operator <time> + <observe> + <reflect> + <wait> +)
+sp {yala*prefer*command-gaia-order*from-uncertainty
+   (state <s> ^superstate nil ^io.input-link <in> ^operator <order> + <observe> + <reflect> + <wait> +)
    (<in> ^world-input <w>)
    (<w> ^contact no ^gaia-created yes ^time-created no ^uncertainty { >= 60 <u> })
-   (<time> ^name command-gaia-time)
+   (<order> ^name command-gaia-order)
    (<observe> ^name observe)
    (<reflect> ^name reflect)
    (<wait> ^name wait)
 -->
-   (<s> ^operator <time> > <observe>)
-   (<s> ^operator <time> > <reflect>)
-   (<s> ^operator <time> > <wait>)
+   (<s> ^operator <order> > <observe>)
+   (<s> ^operator <order> > <reflect>)
+   (<s> ^operator <order> > <wait>)
 }
 
 # If no creation action has a decisive preference, ordinary cognition is allowed to
@@ -430,7 +430,7 @@ sp {yala*substate*prefer-wait-when-cautious
    (<s> ^operator <wait> > <reflect>)
 }
 
-# Brain Slice 8 cognitive-workspace stall recovery. Repeating the same mental
+# Brain Slice 9 cognitive-workspace stall recovery. Repeating the same mental
 # operation without changing focus becomes information in its own right. Yala
 # deliberately waits rather than spinning indefinitely, allowing the workspace
 # to refresh, suspend exhausted plans, or move to another salient thread.
@@ -447,7 +447,7 @@ sp {yala*substate*prefer-wait-when-workspace-stagnant
    (<s> ^operator <wait> > <reflect>)
 }
 
-# Brain Slice 8 bounded autonomous inquiry. Yala can decide to ask the unseen
+# Brain Slice 9 bounded autonomous inquiry. Yala can decide to ask the unseen
 # speaker a question, but the only effect is an in-world speech action queued by
 # Project Oracle. No host shell, network, filesystem, or code capability exists.
 sp {yala*propose*ask-speaker
@@ -461,25 +461,25 @@ sp {yala*propose*ask-speaker
 
 # Salience outranks the old creation railroad. If the unseen speaker has introduced
 # a personally critical question, Yala may pursue it even before Time exists.
-sp {yala*prefer-critical-question-over-create-time
-   (state <s> ^superstate nil ^io.input-link <in> ^operator <time> + <ask> +)
+sp {yala*prefer-critical-question-over-establish-order
+   (state <s> ^superstate nil ^io.input-link <in> ^operator <order> + <ask> +)
    (<in> ^world-input <w>)
    (<w> ^contact no ^pending-question yes ^pending-question-priority { >= 95 <p> })
-   (<time> ^name command-gaia-time)
+   (<order> ^name command-gaia-order)
    (<ask> ^name ask-speaker)
 -->
-   (<s> ^operator <ask> > <time>)
+   (<s> ^operator <ask> > <order>)
 }
 
 # Low-priority inquiry does not automatically block a world-order decision.
-sp {yala*prefer-create-time-over-low-question
-   (state <s> ^superstate nil ^io.input-link <in> ^operator <time> + <ask> +)
+sp {yala*prefer-establish-order-over-low-question
+   (state <s> ^superstate nil ^io.input-link <in> ^operator <order> + <ask> +)
    (<in> ^world-input <w>)
    (<w> ^contact no ^gaia-created yes ^time-created no ^pending-question-priority { < 95 <p> })
-   (<time> ^name command-gaia-time)
+   (<order> ^name command-gaia-order)
    (<ask> ^name ask-speaker)
 -->
-   (<s> ^operator <time> > <ask>)
+   (<s> ^operator <order> > <ask>)
 }
 
 # When an active plan's current step is to ask the unseen speaker, carrying out
@@ -524,7 +524,7 @@ sp {yala*prefer-reflect-on-high-concern
    (<s> ^operator <reflect> > <wait>)
 }
 
-# Brain Slice 8 lets an active investigation plan drive a distinct deliberation act
+# Brain Slice 9 lets an active investigation plan drive a distinct deliberation act
 # after evidence has been gathered. The plan signal is inspectable world state.
 sp {yala*prefer-deliberate-on-active-plan
    (state <s> ^superstate nil ^io.input-link <in> ^operator <delib> + <reflect> + <observe> + <wait> +)
@@ -540,7 +540,7 @@ sp {yala*prefer-deliberate-on-active-plan
    (<s> ^operator <delib> > <wait>)
 }
 
-# Brain Slice 8 conversational, temporal, relationship, investigation, and inquiry proposals
+# Brain Slice 9 conversational, temporal, relationship, investigation, and inquiry proposals
 sp {yala*propose*contact*follow-up-why
    (state <s> ^superstate nil ^io.input-link <in>)
    (<in> ^world-input <w>)
@@ -1304,12 +1304,12 @@ sp {yala*apply*create-gaia
    (<cmd> ^name create-gaia ^reply-code none ^deliberation direct)
 }
 
-sp {yala*apply*command-gaia-time
+sp {yala*apply*command-gaia-order
    (state <s> ^operator <o> ^io.output-link <out>)
-   (<o> ^name command-gaia-time)
+   (<o> ^name command-gaia-order)
 -->
    (<out> ^yala-action <cmd>)
-   (<cmd> ^name command-gaia-time ^reply-code none ^deliberation direct)
+   (<cmd> ^name command-gaia-order ^reply-code none ^deliberation direct)
 }
 
 sp {yala*propose*contact*temporal-duration
@@ -1348,7 +1348,7 @@ sp {yala*apply*temporal-cause
 
 
 # ------------------------------------------------------------
-# Brain Slice 8 integrated-mind question routes. These explicit
+# Brain Slice 9 integrated-mind question routes. These explicit
 # operators keep new selfhood, proposition, provenance, and
 # counterfactual questions inside Soar decision selection rather
 # than dropping them into generic fallback speech.

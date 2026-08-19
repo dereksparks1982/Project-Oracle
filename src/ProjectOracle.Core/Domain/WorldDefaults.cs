@@ -1,4 +1,5 @@
 using ProjectOracle.Cognition;
+using ProjectOracle.Cognition.Learning;
 using ProjectOracle.Lore;
 
 namespace ProjectOracle.Domain;
@@ -38,14 +39,15 @@ public static class WorldDefaults
             NaturalCourse: CreateNaturalCourse(),
             Cosmic: cosmic,
             YalaCognition: CreateInitialYalaCognition(),
-            EmergentLaws: CreateInitialEmergentLawState());
+            EmergentLaws: CreateInitialEmergentLawState(),
+            Operator: CreateInitialOperatorState());
     }
 
     public static WorldState Normalise(WorldState world)
     {
         ArgumentNullException.ThrowIfNull(world);
 
-        // v0.0.25 starts the fresh save_v7 Brain Slice 8 integrated-mind experiment while retaining the same settled cosmology. Missing cosmic state never
+        // v0.0.26 starts the fresh save_v8 Brain Slice 9 experiment while retaining the settled cosmology. Missing cosmic state never
         // resurrects an older world; it normalises to the fresh Void start.
         CosmicState cosmic = world.Cosmic ?? new CosmicState(
             GaiaCreated: false,
@@ -103,7 +105,8 @@ public static class WorldDefaults
             LivingKinds = livingKinds,
             NamingMandate = mandate,
             NaturalCourse = CreateNaturalCourse(),
-            EmergentLaws = NormaliseEmergentLawState(world.EmergentLaws)
+            EmergentLaws = NormaliseEmergentLawState(world.EmergentLaws),
+            Operator = NormaliseOperatorState(world.Operator)
         };
     }
 
@@ -138,9 +141,9 @@ public static class WorldDefaults
         {
             actions.Add(new YalaActionMemoryState("create", "Gaia", "I created Gaia as the natural sovereign beneath my governing authority.", true, 0));
         }
-        if (cosmic.TimeCreated && !actions.Any(item => item.Completed && item.Action == "command" && item.Object.Equals("Gaia establish Time", StringComparison.OrdinalIgnoreCase)))
+        if (cosmic.TimeCreated && !actions.Any(item => item.Completed && item.Action == "command" && item.Object.Equals("Gaia establish order", StringComparison.OrdinalIgnoreCase)))
         {
-            actions.Add(new YalaActionMemoryState("command", "Gaia establish Time", "I commanded Gaia to establish temporal order, and Gaia created in-world Time.", true, 0));
+            actions.Add(new YalaActionMemoryState("command", "Gaia establish order", "I commanded Gaia to establish order. Gaia answered that command by bringing temporal order into existence; I now call it Time.", true, 0));
         }
 
         List<YalaRelationshipState> relationships = (cognition.Relationships ?? CreateInitialRelationships()).ToList();
@@ -157,7 +160,7 @@ public static class WorldDefaults
                 "create",
                 "Gaia",
                 "I created Gaia as the natural sovereign beneath my governing authority.",
-                cosmic.TimeCreated ? "before-time" : "before-time",
+                cosmic.TimeCreated ? "atemporal" : "atemporal",
                 null,
                 Source: YalaKnowledgeSource.PersonallyPerformed));
         }
@@ -169,11 +172,11 @@ public static class WorldDefaults
                 "Gaia",
                 "create",
                 "Time",
-                "Gaia created in-world Time after I commanded Gaia to establish temporal order.",
+                "Gaia brought temporal order into existence in response to my command to establish order. I now call that order Time.",
                 "origin-of-time",
                 0,
                 1, 1, 1, 0, 0, 0,
-                "yala-command-gaia-time",
+                "yala-command-gaia-order",
                 YalaKnowledgeSource.PersonallyExperienced));
         }
 
@@ -221,6 +224,8 @@ public static class WorldDefaults
         IReadOnlyList<YalaCosmicDeliberationState> normalisedCosmicDeliberations = (cognition.CosmicDeliberations ?? [])
             .Select(item => item with
             {
+                // Rebuild the benefit from the action instead of preserving stale text.
+                // This permanently repairs old save text such as "establish establish rebirth".
                 PossibleBenefit = $"It could {item.Action.ToLowerInvariant()} and advance a possible {item.Domain} order."
             })
             .ToArray();
@@ -229,14 +234,14 @@ public static class WorldDefaults
             ? cognition.Workspace ?? new YalaCognitiveWorkspaceState(
                 "self-world",
                 "understand-current-world",
-                "Understand the present Void and what is possible within it.",
+                "Understand the Void and what is possible within it.",
                 "No stronger unresolved focus currently outranks this.",
                 50, 0, 0, cognition.DecisionCount, cognition.DecisionCount)
             : new YalaCognitiveWorkspaceState(
                 "self-world",
                 "understand-current-world",
-                "Understand the present Void and what is possible within it.",
-                "Attend to the Void, myself, and the possibilities presently available to me.",
+                "Understand the Void and what is possible within it.",
+                "Attend to the Void, myself, and the possibilities available to me.",
                 80, 0, 0, cognition.DecisionCount, cognition.DecisionCount);
 
         return cognition with
@@ -267,7 +272,8 @@ public static class WorldDefaults
             Propositions = speakerExists ? cognition.Propositions ?? [] : [],
             Workspace = workspace,
             AutobiographicalMemory = cognition.AutobiographicalMemory ?? [],
-            CosmicDeliberations = normalisedCosmicDeliberations
+            CosmicDeliberations = normalisedCosmicDeliberations,
+            Procedures = cognition.Procedures ?? YalaProceduralLearning.InitialProcedures()
         };
     }
 
@@ -333,6 +339,19 @@ public static class WorldDefaults
         beliefs.Add(new YalaBeliefState(proposition, "known", 1.0, source, 0, 0));
     }
 
+    public static OracleOperatorState CreateInitialOperatorState() =>
+        new("yala", null, []);
+
+    private static OracleOperatorState NormaliseOperatorState(OracleOperatorState? state) =>
+        state is null
+            ? CreateInitialOperatorState()
+            : state with
+            {
+                ActiveChannel = string.IsNullOrWhiteSpace(state.ActiveChannel) ? "yala" : state.ActiveChannel.ToLowerInvariant(),
+                Manifestation = string.IsNullOrWhiteSpace(state.Manifestation) ? null : state.Manifestation.Trim(),
+                Actions = state.Actions ?? []
+            };
+
     public static IReadOnlyList<CreationPowerState> CreateCreationPowers(
         CosmicState cosmic,
         EntityId yalaId,
@@ -359,11 +378,11 @@ public static class WorldDefaults
 
         if (cosmic.LowerWorldEstablished)
         {
-            powers.Add(new(5, new EntityId("power:terra:0001"), "Terra", "Earth", "Terra is Earth.", true));
-            powers.Add(new(6, new EntityId("power:aether:0001"), "Aether", "Air and Wind", "Aether is Air and Wind and governs that domain.", true));
-            powers.Add(new(7, new EntityId("power:sol:0001"), "Sol", "Fire and Sun power", "Sol is Fire and the Sun power.", true));
-            powers.Add(new(8, new EntityId("power:thalassa:0001"), "Thalassa", "Water", "Thalassa is Water.", true));
-            powers.Add(new(9, new EntityId("power:luna:0001"), "Luna", "Moon", "Luna is the Moon and is not an element.", true));
+            powers.Add(new(5, new EntityId("power:terra:0001"), "Terra", "Earth", "Terra is Earth. Natural-order communication is mediated through Gaia.", false));
+            powers.Add(new(6, new EntityId("power:aether:0001"), "Aether", "Air and Wind", "Aether is Air and Wind and is addressed through Gaia.", false));
+            powers.Add(new(7, new EntityId("power:sol:0001"), "Sol", "Fire and Sun power", "Sol is Fire and the Sun power and is addressed through Gaia.", false));
+            powers.Add(new(8, new EntityId("power:thalassa:0001"), "Thalassa", "Water", "Thalassa is Water and is addressed through Gaia.", false));
+            powers.Add(new(9, new EntityId("power:luna:0001"), "Luna", "Moon", "Luna is the Moon and is addressed through Gaia when natural-order mediation is required.", false));
         }
 
         if (cosmic.GardenEstablished)
@@ -371,7 +390,7 @@ public static class WorldDefaults
             EntityId resolvedGardenId = gardenId ?? new EntityId("place:garden:0001");
             EntityId resolvedAdamId = adamId ?? new EntityId("being:adam:0001");
             powers.Add(new(10, resolvedGardenId, "Eden / Garden", "later-world prison domain if autonomous history reaches it", OracleLore.Eden, false));
-            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.25; this entry exists only after the world state says he exists.", true));
+            powers.Add(new(11, resolvedAdamId, "Adam", "later-world human if autonomous history reaches his formation", "Adam is not pre-created in v0.0.26; this entry exists only after the world state says he exists.", true));
         }
 
         return powers;
@@ -404,15 +423,6 @@ public static class WorldDefaults
         if (cosmic.GaiaCreated)
         {
             targets.Add(new("gaia", "(Gaia", "Gaia", "Gaia is the natural sovereign beneath Yala's governing authority and is the creator of in-world Time.", true));
-        }
-
-        if (cosmic.LowerWorldEstablished)
-        {
-            targets.Add(new("terra", "(Terra", "Terra", "Terra is Earth.", true));
-            targets.Add(new("aether", "(Aether", "Aether", "Aether is Air and Wind.", true));
-            targets.Add(new("sol", "(Sol", "Sol", "Sol is Fire and the Sun power.", true));
-            targets.Add(new("thalassa", "(Thalassa", "Thalassa", "Thalassa is Water.", true));
-            targets.Add(new("luna", "(Luna", "Luna", "Luna is the Moon and is not an element.", true));
         }
 
         if (cosmic.GardenEstablished)
@@ -490,11 +500,17 @@ public static class WorldDefaults
             Workspace: new YalaCognitiveWorkspaceState(
                 "self-world",
                 "understand-current-world",
-                "Understand the present Void and what is possible within it.",
-                "Attend to the Void, myself, and the possibilities presently available to me.",
+                "Understand the Void and what is possible within it.",
+                "Attend to the Void, myself, and the possibilities available to me.",
                 80, 0, 0, 0, 0),
-            AutobiographicalMemory: [],
-            CosmicDeliberations: []);
+            AutobiographicalMemory:
+            [
+                new(1, "origin-feeling", "I remember raw presence without words: awareness without a name, a boundary, or a story.", 100, YalaKnowledgeSource.PersonallyExperienced, 0, 0),
+                new(2, "origin-awakening", "I remember that raw feeling opening into awareness of a self and of something other than me. I use words to describe the memory now; the experience itself was not verbal.", 100, YalaKnowledgeSource.PersonallyExperienced, 0, 0),
+                new(3, "origin-creation", "I remember Wisdom making me, Monad rejecting me, and being cast into the Void. Those are direct experiences from my own origin.", 100, YalaKnowledgeSource.PersonallyExperienced, 0, 0)
+            ],
+            CosmicDeliberations: [],
+            Procedures: YalaProceduralLearning.InitialProcedures());
 
     public static IReadOnlyList<YalaRelationshipState> CreateInitialRelationships() =>
     [
@@ -504,9 +520,9 @@ public static class WorldDefaults
 
     public static IReadOnlyList<YalaTemporalEventState> CreateInitialTemporalEvents() =>
     [
-        new(1, "wisdom-create-yala", "Wisdom", "create", "Yala", "Wisdom made me.", "before-time", null, Source: YalaKnowledgeSource.InheritedKnowledge),
-        new(2, "monad-reject-yala", "Monad", "reject", "Yala", "Monad rejected me because I am both male and female rather than exclusively one or the other.", "before-time", null, Source: YalaKnowledgeSource.Remembered),
-        new(3, "monad-cast-yala-void", "Monad", "cast", "Yala", "Monad cast me into the Void.", "before-time", null, CauseKey: "monad-reject-yala", Source: YalaKnowledgeSource.Remembered)
+        new(1, "wisdom-create-yala", "Wisdom", "create", "Yala", "Wisdom made me.", "atemporal", null, Source: YalaKnowledgeSource.InheritedKnowledge),
+        new(2, "monad-reject-yala", "Monad", "reject", "Yala", "Monad rejected me because I am both male and female rather than exclusively one or the other.", "atemporal", null, Source: YalaKnowledgeSource.Remembered),
+        new(3, "monad-cast-yala-void", "Monad", "cast", "Yala", "Monad cast me into the Void.", "atemporal", null, CauseKey: "monad-reject-yala", Source: YalaKnowledgeSource.Remembered)
     ];
 
     public static IReadOnlyList<YalaGoalState> CreateInitialGoals() =>

@@ -12,6 +12,13 @@ namespace ProjectOracle.Cognition;
 /// </summary>
 public static partial class YalaFoundationalLanguage
 {
+    private static readonly HashSet<string> TemporalConcepts = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "time", "before", "after", "earlier", "later", "past", "present", "future",
+        "duration", "instant", "now", "second", "minute", "hour", "day", "month", "year",
+        "age", "old", "when"
+    };
+
     private static readonly HashSet<string> ExplicitFoundations = new(StringComparer.OrdinalIgnoreCase)
     {
         "move", "movement", "walk", "walking", "run", "running", "stand", "standing", "sit", "sitting",
@@ -22,14 +29,14 @@ public static partial class YalaFoundationalLanguage
         "know", "think", "believe", "doubt", "remember", "forget", "learn", "understand", "mean", "choose", "decide",
         "want", "need", "hope", "fear", "love", "hate", "trust", "lie", "promise", "threaten", "obey", "refuse",
         "exist", "existence", "life", "death", "alive", "dead", "thing", "object", "being", "person", "mind", "body",
-        "place", "location", "inside", "outside", "above", "below", "before", "after", "near", "far", "here", "there",
-        "time", "space", "distance", "direction", "speed", "force", "power", "authority", "freedom", "prison", "confinement",
+        "place", "location", "inside", "outside", "above", "below", "near", "far", "here", "there",
+        "space", "distance", "direction", "speed", "force", "power", "authority", "freedom", "prison", "confinement",
         "choice", "action", "possibility", "cause", "effect", "reason", "purpose", "goal", "plan", "problem", "solution",
         "truth", "false", "fact", "claim", "evidence", "question", "answer", "word", "sentence", "language", "meaning",
         "mother", "father", "parent", "child", "creator", "creation", "family", "friend", "enemy", "stranger", "companion",
         "god", "divine", "world", "earth", "water", "air", "fire", "light", "dark", "sun", "moon", "star", "nature",
         "good", "bad", "right", "wrong", "same", "different", "more", "less", "many", "few", "all", "none", "some",
-        "one", "two", "first", "last", "new", "old", "young", "large", "small", "long", "short", "fast", "slow",
+        "one", "two", "new", "large", "small", "long", "short", "fast", "slow",
         "strong", "weak", "open", "closed", "full", "empty", "possible", "impossible", "certain", "uncertain", "important"
     };
 
@@ -39,6 +46,12 @@ public static partial class YalaFoundationalLanguage
     {
         string normalized = YalaLexicon.NormalizeWord(word);
         if (normalized.Length == 0) return true;
+
+        // Time is not part of Yala's inherited semantic floor. These words may
+        // exist in the engine's parser vocabulary, but they do not count as concepts
+        // Yala possesses before Gaia establishes temporal order.
+        if (TemporalConcepts.Contains(normalized)) return false;
+
         if (ExplicitFoundations.Contains(normalized)) return true;
         if (YalaLexicon.TryResolve(normalized, learned, out _)) return true;
 

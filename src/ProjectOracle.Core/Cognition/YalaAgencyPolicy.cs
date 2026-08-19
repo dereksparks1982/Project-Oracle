@@ -14,7 +14,7 @@ public static class YalaAgencyPolicy
         "deliberate",
         "wait",
         "create-gaia",
-        "command-gaia-time",
+        "command-gaia-order",
         "enact-cosmic-choice",
         "respond",
         "ask-speaker"

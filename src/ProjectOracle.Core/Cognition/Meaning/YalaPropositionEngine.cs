@@ -4,7 +4,7 @@ using ProjectOracle.Domain;
 namespace ProjectOracle.Cognition.Meaning;
 
 /// <summary>
-/// Brain Slice 8 proposition memory. It keeps the form and provenance of what a
+/// Brain Slice 9 proposition memory. It keeps the form and provenance of what a
 /// speaker actually did with a sentence. A question is not silently converted
 /// into a claim, a repeated claim is not silently converted into proof, and
 /// contradictory claims remain independently attributable to the speaker.

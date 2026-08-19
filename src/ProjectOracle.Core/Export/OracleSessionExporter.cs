@@ -42,6 +42,9 @@ public static class OracleSessionExporter
                 ? simulation.Clock.Calendar.DescribeDateAndTime()
                 : "Gaia has not yet created Time.",
             conversation = BuildConversationTimeline(simulation),
+            action_history = simulation.OperatorState.Actions ?? [],
+            oracle_action_history = (simulation.OperatorState.Actions ?? []).Where(action => action.Actor.Equals("Oracle", StringComparison.OrdinalIgnoreCase)).ToArray(),
+            entity_action_history = (simulation.OperatorState.Actions ?? []).Where(action => !action.Actor.Equals("Oracle", StringComparison.OrdinalIgnoreCase)).ToArray(),
             recent_dialogue_memory = cognition.Dialogue ?? [],
             cognitive_flight_recorder = cognition.DecisionTrace ?? [],
             current_yala_cognition = cognition,
@@ -80,6 +83,20 @@ public static class OracleSessionExporter
             builder.AppendLine();
         }
 
+        builder.AppendLine("ACTION HISTORY");
+        foreach (OracleActionState action in simulation.OperatorState.Actions ?? [])
+        {
+            string form = string.IsNullOrWhiteSpace(action.Manifestation) ? "" : $" as {action.Manifestation}";
+            string target = string.IsNullOrWhiteSpace(action.Target) ? "" : $" -> {action.Target}";
+            string witnesses = action.Witnesses is null || action.Witnesses.Count == 0
+                ? "none recorded"
+                : string.Join(", ", action.Witnesses);
+            builder.AppendLine($"#{action.Sequence} {action.Actor}{form}{target} [{action.ActionKind}] ({action.ControlSource}): {action.Description}");
+            builder.AppendLine($"Witnesses: {witnesses}");
+            builder.AppendLine($"Result: {action.Result}");
+            builder.AppendLine();
+        }
+
         File.WriteAllText(path, builder.ToString());
         return path;
     }
@@ -93,7 +110,7 @@ public static class OracleSessionExporter
             string speaker;
             if (record.Audience == RecordAudience.Oracle && record.Category == "DIRECT CONTACT")
             {
-                speaker = "You";
+                speaker = "Oracle";
             }
             else if (record.Audience == RecordAudience.World && record.Category is "YALA SPEECH" or "YALA QUESTION")
             {

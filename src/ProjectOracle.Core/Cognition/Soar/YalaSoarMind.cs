@@ -4,10 +4,11 @@ namespace ProjectOracle.Cognition.Soar;
 
 public sealed class YalaSoarMind : IDisposable
 {
-    public const string BrainName = "Yala Soar Brain Slice 8";
+    public const string BrainName = "Yala Brain Slice 9";
     public const string Architecture = "Soar 9.6.5";
 
     private readonly SoarKernelHost _host;
+    private bool _timeConceptSeeded;
     private bool _disposed;
 
     public YalaSoarMind(SoarMemoryPaths? memoryPaths = null, YalaCognitionState? cognition = null)
@@ -30,6 +31,11 @@ public sealed class YalaSoarMind : IDisposable
     public YalaDecision Decide(YalaPerception perception)
     {
         ThrowIfDisposed();
+        if (perception.TimeCreated && !_timeConceptSeeded)
+        {
+            _host.SeedTemporalSemanticMemory();
+            _timeConceptSeeded = true;
+        }
         return _host.Run(perception);
     }
 

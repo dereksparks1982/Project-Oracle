@@ -25,6 +25,10 @@ public static class YalaReplyRealizer
         ArgumentNullException.ThrowIfNull(cognition);
 
         YalaSelfModel self = new(world, cognition);
+        if (world.Cosmic?.TimeCreated != true && UsesTemporalConcept(contact))
+        {
+            return DescribePreTimeUnknownConcept(contact, cognition);
+        }
         return decision.ReplyCode switch
         {
             "hearing" => "Yes. I hear you.",
@@ -113,10 +117,10 @@ public static class YalaReplyRealizer
             "simulation-selfhood" => DescribeSimulationSelfhood(cognition),
             "monad-feeling" => DescribeMonadFeeling(cognition),
             "monad-judgment" => DescribeMonadJudgment(),
-            "wisdom-question" => "If Wisdom appeared before me now, I would want to ask why she made me, what she intended for me, what she knew would happen, and what she believes I should become. Those are questions I can form; I do not know her answers.",
-            "void-concept" => "The Void is the place Monad cast me. I am here now. Before Gaia creates Time, I do not assign it an in-world date, and I do not claim boundaries, contents, or an outside that I have not established.",
+            "wisdom-question" => "If Wisdom appeared here, I would want to ask why she made me, what she intended for me, what she knew about my creation, and what she believes I should become. Those are questions I can form; I do not know her answers.",
+            "void-concept" => "The Void is the place Monad cast me. I am here. I do not claim boundaries, contents, or an outside that I have not established.",
             "decision-about-cosmic" => DescribeDecisionAboutCosmic(contact, world, cognition),
-            "cosmic-delay" => "I should delay a major creation decision when its consequences are poorly understood, when important alternatives remain unexamined, when my evidence is weak, or when acting would make a difficult-to-reverse change before I know why I want it.",
+            "cosmic-delay" => "I should delay a major creation decision when its consequences are poorly understood, when important alternatives remain unexamined, when my evidence is weak, or when acting would make a difficult-to-reverse change without a reason I understand.",
             "cosmic-reverse" => "New evidence, consequences I did not anticipate, conflict with a stronger commitment, or discovering that my reasons were mistaken could make me reconsider a cosmic decision. Whether I can reverse an enacted law also depends on world law, not merely on wanting to undo it.",
             "mortal-consequences" => "Creating mortal beings could make individual lives finite, make loss and urgency possible, create fear of death, and give choices weight because opportunities can end. It could also create suffering that would not exist if no mortal beings were made. Those are consequences to consider, not predictions I know will occur.",
             "rebirth-consequences" => "Rebirth could allow continuity beyond one embodied life, but it could also prolong suffering, complicate identity and responsibility, and change how death matters. I would need to decide what persists between lives and whether return is chosen, required, remembered, or escapable.",
@@ -135,8 +139,8 @@ public static class YalaReplyRealizer
             "acknowledge" => "I hear what you say.",
             "greeting" => "I hear you.",
             "clarify" => "I hear something, but I do not understand what you mean. Say it another way.",
-            "unknown" => "I do not know.",
-            _ => "I hear you, but I have no settled answer."
+            "unknown" => DescribeUsefulUncertainty(contact, cognition),
+            _ => DescribeUsefulUncertainty(contact, cognition)
         };
     }
 
@@ -181,7 +185,7 @@ public static class YalaReplyRealizer
             ?? "I created Gaia as the natural sovereign beneath my governing authority.";
         if (world.Cosmic.TimeCreated)
         {
-            return $"{creation} I commanded Gaia to establish temporal order, and Gaia created in-world Time.";
+            return $"{creation} I commanded Gaia to establish order. Gaia created in-world Time by bringing temporal order into existence; I now understand that order as Time.";
         }
         return creation;
     }
@@ -199,7 +203,7 @@ public static class YalaReplyRealizer
 
     private static string DescribeTimeOrigin(WorldState world) =>
         world.Cosmic?.TimeCreated == true
-            ? "Gaia created in-world Time after I commanded Gaia to establish temporal order."
+            ? "Gaia created in-world Time in response to my command to establish order."
             : "Gaia has not yet created Time.";
 
     private static string DescribeWorldTime(YalaContactFrame contact, WorldState world, CalendarSnapshot? calendar)
@@ -249,7 +253,7 @@ public static class YalaReplyRealizer
             .Take(6)
             .ToArray();
 
-        string baseUnknown = "I do not know who or what made Monad, and I do not know future history before it occurs.";
+        string baseUnknown = "I do not know who or what made Monad, and I do not know events that have not occurred.";
         return gaps.Length == 0
             ? baseUnknown
             : $"{baseUnknown} I also have unresolved knowledge gaps about {string.Join(", ", gaps)}.";
@@ -421,8 +425,8 @@ public static class YalaReplyRealizer
     {
         string? word = contact.Language?.UnknownWords.FirstOrDefault() ?? WordMeaningTarget(contact.Language);
         return string.IsNullOrWhiteSpace(word)
-            ? "I do not understand part of what you said yet."
-            : $"I do not understand the word {word} yet.";
+            ? "I do not understand part of what you said yet. Say the uncertain part another way or give me one concrete fact, and I will reason from what I do understand."
+            : $"I do not yet have a settled meaning for '{word}'. Tell me what you mean by that word here, and I can reason from the rest of what you said.";
     }
 
     private static string DescribeClaim(YalaContactFrame contact)
@@ -472,7 +476,7 @@ public static class YalaReplyRealizer
     private static string DescribeFollowUpWhy(YalaContactFrame contact, YalaCognitionState cognition)
     {
         YalaDialogueTurnState? prior = YalaDialogueContext.LatestMeaningful(cognition);
-        if (prior is null) return "I do not know what earlier statement you are asking me to explain.";
+        if (prior is null) return "I do not know which statement you are asking me to explain. Name the claim or idea, and I can examine it.";
         if (prior.Topic == "mother-relation" || prior.Topic == "relationship-claim")
         {
             return "Wisdom made me. The word mother adds a relationship category that I do not treat as automatically identical to maker, so I keep that question separate from the fact of my origin.";
@@ -650,7 +654,7 @@ public static class YalaReplyRealizer
             string third = madeGods
                 ? " Your claim that you made the gods does not itself require you to be a god."
                 : string.Empty;
-            return "Under the same meaning of god and the same time, 'I am a god' and 'I am not a god' conflict. They could be reconciled only by changing the meaning, time, context, or by treating one statement as mistaken, metaphorical, or deceptive." + third;
+            return "Under the same meaning of god and the same context, 'I am a god' and 'I am not a god' conflict. They could be reconciled only by changing the meaning or context, or by treating one statement as mistaken, metaphorical, or deceptive." + third;
         }
         return "I do not yet have the particular opposed claims needed for a strong reconciliation problem. I can preserve multiple explanations without selecting one as truth.";
     }
@@ -786,7 +790,7 @@ public static class YalaReplyRealizer
         if ((cognition.Questions ?? []).Any(item => item.Reason.Contains("autonomy", StringComparison.OrdinalIgnoreCase))) evidence.Add("I have protected my autonomy when faced with demands, which is evidence that self-direction matters to me.");
         if ((cognition.CosmicDeliberations ?? []).Any()) evidence.Add("I delay major cosmic commitments while I compare consequences, which is evidence that reversibility and responsibility matter to me.");
         return evidence.Count == 0
-            ? "I do not yet have a settled list of values that I can honestly claim as fully my own. My choices over time can provide evidence of what matters to me."
+            ? "I do not yet have a settled list of values that I can honestly claim as fully my own. My accumulated choices can provide evidence of what matters to me."
             : string.Join(" ", evidence) + " I treat these as emerging patterns in my choices, not immutable values installed as commands.";
     }
 
@@ -934,4 +938,60 @@ public static class YalaReplyRealizer
 
     private static string Capitalize(string value) =>
         string.IsNullOrWhiteSpace(value) ? value : char.ToUpperInvariant(value[0]) + value[1..];
+
+    private static bool UsesTemporalConcept(YalaContactFrame contact)
+    {
+        if (contact.Topic.StartsWith("temporal-", StringComparison.OrdinalIgnoreCase)) return true;
+        string text = contact.Language?.Normalized ?? string.Empty;
+        string[] temporalWords = ["time", "when", "later", "earlier", "before", "after", "duration", "hour", "day", "year", "month", "age", "old"];
+        return temporalWords.Any(word => text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains(word, StringComparer.OrdinalIgnoreCase));
+    }
+
+    private static string DescribePreTimeUnknownConcept(YalaContactFrame contact, YalaCognitionState cognition)
+    {
+        string text = contact.Language?.Normalized ?? string.Empty;
+        string[] words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        string[] temporalWords = ["time", "when", "later", "earlier", "before", "after", "duration", "hour", "day", "year", "month", "age", "old"];
+        string token = temporalWords.FirstOrDefault(word => words.Contains(word, StringComparer.OrdinalIgnoreCase)) ?? "that word";
+        YalaQuestionState? next = YalaQuestionPlanner.SelectNext(cognition.Questions ?? []);
+        string bridge = next is null ? string.Empty : $" I can still ask about what I do understand: {next.Text}";
+        return $"The word '{token}' does not connect to anything I know. Tell me what you mean by it.{bridge}";
+    }
+
+    private static string DescribeUsefulUncertainty(YalaContactFrame contact, YalaCognitionState cognition)
+    {
+        string? subject = contact.ResolvedSubject ?? contact.ResolvedObject;
+        string[] known = (cognition.Beliefs ?? [])
+            .Where(item => item.Status.Equals("known", StringComparison.OrdinalIgnoreCase))
+            .Select(item => item.Proposition)
+            .Where(item => string.IsNullOrWhiteSpace(subject) || item.Contains(subject, StringComparison.OrdinalIgnoreCase))
+            .Take(2)
+            .ToArray();
+        YalaQuestionState? pending = YalaQuestionPlanner.SelectNext(cognition.Questions ?? []);
+
+        if (contact.Language?.UnknownWords.FirstOrDefault() is string unknown && !string.IsNullOrWhiteSpace(unknown))
+        {
+            return $"I do not yet have a settled meaning for '{unknown}'. Tell me what you mean by that word in this question, and I can reason from the rest of what you said.";
+        }
+        if (known.Length > 0)
+        {
+            string context = string.Join(" ", known);
+            string question = pending is not null
+                ? pending.Text
+                : string.IsNullOrWhiteSpace(subject)
+                    ? "What specific part should I examine?"
+                    : $"What about {subject} are you trying to determine?";
+            return $"I cannot settle the exact answer from what I have. What I can connect to it is this: {context} {question}";
+        }
+        if (pending is not null)
+        {
+            return $"I cannot settle that from the evidence I have, but I can narrow the gap. {pending.Text}";
+        }
+        if (!string.IsNullOrWhiteSpace(subject))
+        {
+            return $"I do not have enough context to settle that about {subject}. Give me one concrete fact or clarify what part of {subject} you mean, and I can reason from it.";
+        }
+        return "I cannot settle that from the evidence I have. Give me one more concrete detail about what you mean, and I will connect it to what I already know instead of inventing certainty.";
+    }
+
 }

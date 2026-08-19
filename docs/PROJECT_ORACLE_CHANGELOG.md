@@ -1,5 +1,20 @@
 # Project Oracle Changelog
 
+## v0.0.26 - candidate - Yala Brain Slice 9
+
+- Adds Oracle manifestation state and F1-F5 Oracle contact routing: Oracle, Monad, Sophia, Yala, Gaia.
+- Adds exact desktop tab order: Oracle, Minds, Memory, Cosmology, Laws, History, Debug; no Chronicle tab.
+- Adds protected Oracle action history plus actor/control/target/witness/result provenance for major actions and exports.
+- Keeps Monad non-rejecting toward Oracle, Sophia/Yala autonomous, and Gaia an obedient natural-order intermediary.
+- Removes visible `YALA SOAR` / `Soar 9.6.5 selected ...` chatter from normal presentation; engine detail is Debug-only.
+- Adds Brain Slice 9 procedural-learning state with authored, Yala-developing, and Yala-learned provenance.
+- Adds useful uncertainty fallback so a bare `I don't know` is not the normal endpoint.
+- Adds raw-feeling/nonverbal autobiographical origin memory.
+- Adds fresh pre-Gaia Time-concept boundary while preserving hidden deterministic runtime ordering.
+- Starts schema 8 `save_v8.json` and `yala_soar_v0_0_26` memory isolation.
+- Requires the sole live root executable to be `Project_Oracle_v0_0_26`.
+- Preserves the v0.0.25 repair preventing duplicated deliberation wording such as `establish establish rebirth`.
+
 ## v0.0.25 milestone candidate - Yala Brain Slice 8: Integrated Mind, Cognitive Workspace, Proposition Memory, Selfhood, and Consolidation
 
 ### v0.0.25 Repair - visible versioned executable and deliberation wording

@@ -1,29 +1,32 @@
 # Project Oracle Future Implementation Requirements Roadmap v0.1
 
-## Current focus: v0.0.25 Brain Slice 8 Integrated Mind milestone
+## Current focus: v0.0.26 Brain Slice 9
 
-Connect Yala's existing cognition into one more coherent individual. v0.0.25 adds Cognitive Workspace attention, proposition/speech-act memory, first-person autobiographical consolidation, staged cosmic commitment, stronger investigation relevance, pre-contact speaker nonexistence, and slower manual testing that gives Yala room to initiate her own questions.
+v0.0.26 is the **Emergent Mind, Procedural Learning, and Pre-Time Cognition** build. It is built from the accepted v0.0.25 baseline and must remain a coherent feature release rather than a staging area for v0.0.27.
 
-A major architectural principle is now explicit: Project Oracle builds the local cognitive machinery required for Yala rather than treating an external token-service chatbot as her mind.
+Current v0.0.26 priorities are:
 
-## Near-term brain roadmap
+- Oracle operator mode and manifestation, with physical F1-F5 routing for Oracle, Monad, Sophia, Yala, and Gaia;
+- exact desktop order `Oracle | Minds | Memory | Cosmology | Laws | History | Debug`;
+- protected observer-side action provenance for Oracle interventions and major-entity actions;
+- normal Yala presentation that says `YALA`, never `YALA SOAR`, with Soar implementation chatter restricted to Debug/developer instrumentation;
+- useful uncertainty handling that seeks context or forms marked inference rather than ending at a bare `I don't know`;
+- Yala's direct autobiographical memory of creation beginning as raw subjective feeling before verbal cognition;
+- a hard pre-Gaia boundary in which deterministic host ordering exists but Yala does not yet possess Time as an understood world concept;
+- reusable procedural learning with authored/developing/learned provenance;
+- fresh schema-8/save-v8 and isolated v0.0.26 Soar memory;
+- the permanent visible-version executable law, with `Project_Oracle_v0_0_26` as the sole live root application executable.
 
-### Brain Slice 9 - Procedural learning / Soar chunking and memory integration
+## v0.0.27: major expansion gate
 
-Let successful reasoning produce reusable learned procedures. Preserve provenance so inherited, authored, and learned productions remain distinguishable.
+v0.0.27 is intentionally reserved for the next major expansion after Derek accepts v0.0.26. Do not quietly pull large v0.0.27 systems into v0.0.26.
 
-Also investigate the v0.0.24/v0.0.25 diagnostic question around Soar semantic/episodic query and retrieval counters. Determine exactly which memory operations occur in native Soar and which currently occur in Project Oracle's surrounding C# cognition, then strengthen real integration where it improves reasoning rather than merely increasing counters.
+Candidate Brain Slice 10 directions include consequence-driven preferences, stronger learning from outcomes, richer self-generated goals, and the first serious continuity gate. The exact scope must be proposed and approved after v0.0.26 manual inspection rather than pre-authoring the next mythos into the current experiment.
 
-### Brain Slice 10 - Reinforcement learning, evolving preferences, and continuity gate
-
-Use consequence-driven preference changes carefully. Avoid a single simplistic reward meter. Distinguish autonomy, knowledge, survival, creation, consistency, relationships, curiosity, power, freedom, stability, meaning, and justice where useful.
-
-After the architecture through roughly Slice 10 is stable enough that foundational cognition is no longer being replaced every build, create the first **Continuity Yala** that persists across upgrades while retaining a separate fresh Experimental Yala for regression and clean-room testing.
-
-### Later slices
+## Later cognitive roadmap
 
 - richer belief/evidence revision and explicit experiments;
-- deeper self-generated long-horizon goals;
+- stronger semantic and episodic retrieval integration where it demonstrably changes reasoning;
 - theory of mind for other beings;
 - richer appraisal/emotion and social cognition;
 - imagination and larger counterfactual simulation;
@@ -34,19 +37,19 @@ After the architecture through roughly Slice 10 is stable enough that foundation
 ## Cognitive lineage roadmap
 
 - **Monad:** research a distinct Primordial Mind architecture rather than a stronger Yala clone.
-- **Sophia/Wisdom:** research the root descendant-mind family and allow Sophia to independently interpret her relationship to Yala.
-- **Yala:** Sophia-derived independent descendant mind.
-- **Gaia:** if actually created and later given independent cognition, instantiate a lesser Yala-derived mind with selected inheritance and strictly lower world authority.
-- **Later beings:** recursive bounded inheritance, providing a technical divine-spark lineage without live-cloning identities.
+- **Sophia/Wisdom:** independent free-willed mind when implemented; do not fabricate autonomous cognition before it exists.
+- **Yala:** Sophia-derived independent descendant mind and the active Brain Slice 9 experimental cognition line.
+- **Gaia:** obedient natural-order intermediary under the current authority contract. If later given richer cognition, preserve the authority distinction rather than silently turning Gaia into Yala.
+- **Later beings:** recursive bounded inheritance with separate identity, autobiography, and provenance.
 
-Each major independent cognitive being receives its own living entity manual in addition to the shared Oracle Mind Architecture Manual.
+Each major independent cognitive being receives its own living entity manual once its cognition is actually implemented deeply enough to warrant one.
 
 ## Emergent Law Engine roadmap
 
-Expand beyond Rule 30 laboratory demonstrations into isolated candidate-law experiments for physical, natural, biological, cognitive, and social domains. A law mechanism existing in host code never becomes world canon by itself.
+Expand beyond Rule 30 laboratory demonstrations into isolated candidate-law experiments for physical, natural, biological, cognitive, and social domains. A mechanism existing in host code never becomes world canon by itself.
 
 Eventually allow authorised minds to test candidate laws in miniature simulations, compare outcomes, and establish only laws within their delegated authority.
 
-## Population roadmap
+## Population and mythos roadmap
 
-After the reusable Oracle Mind Architecture is mature, give later beings independent minds rather than scripted NPC behavior. Scale carefully from Yala -> Gaia -> a few beings -> communities -> civilizations. Preserve lineage, memory isolation, authority boundaries, and emergent cultural/religious history.
+After the reusable mind architecture is mature, add later beings carefully. Preserve knowledge boundaries, witness-specific perception, action provenance, lineage, memory isolation, and authority differences so mythology can emerge from what beings actually experience rather than from hidden system metadata.

@@ -222,7 +222,6 @@ public sealed class SoarKernelHost : IDisposable
         Execute("smem --add {(@concept-create ^word create ^meaning |cause something to begin existing| ^opposite destroy)}");
         Execute("smem --add {(@concept-reject ^word reject ^meaning |refuse to accept| ^opposite accept)}");
         Execute("smem --add {(@concept-claim ^word claim ^meaning |assertion whose truth is not guaranteed|)}");
-        Execute("smem --add {(@concept-time ^word time ^meaning |in-world temporal order created by Gaia after Yala's command| ^before |events before Time have no in-world date|)}");
         Execute("smem --add {(@concept-evidence ^word evidence ^meaning |information that can change confidence in a proposition|)}");
         Execute("smem --add {(@concept-relationship ^word relationship ^meaning |structured connection between beings|)}");
         Execute("smem --add {(@concept-question ^word question ^meaning |utterance seeking information|)}");
@@ -255,6 +254,12 @@ public sealed class SoarKernelHost : IDisposable
             string choiceLti = StableLti("choice", choice.Key);
             Execute($"smem --add {{({choiceLti} ^type cosmic-possibility ^key |{EscapeSymbol(choice.Key)}| ^domain |{EscapeSymbol(choice.Domain)}| ^action |{EscapeSymbol(choice.Action)}| ^meaning |{EscapeSymbol(choice.Meaning)}| ^status |{EscapeSymbol(choice.Status)}|)}}");
         }
+    }
+
+    public void SeedTemporalSemanticMemory()
+    {
+        ThrowIfDisposed();
+        Execute("smem --add {(@concept-time ^word time ^meaning |the temporal order Gaia brought into existence in response to Yala commanding Gaia to establish order|)}");
     }
 
     public void RememberClaimedContact(string claimedName)
@@ -457,8 +462,8 @@ public sealed record SoarMemoryPaths(string Directory, string SemanticDatabase, 
         ArgumentException.ThrowIfNullOrWhiteSpace(savePath);
         string full = Path.GetFullPath(savePath);
         string parent = Path.GetDirectoryName(full) ?? throw new InvalidOperationException("Save path has no parent directory.");
-        // v0.0.25 starts a fresh Brain Slice 8 integrated mind alongside save_v7. Earlier Soar databases remain untouched.
-        string directory = Path.Combine(parent, "yala_soar_v0_0_25");
+        // v0.0.26 starts a fresh Brain Slice 9 integrated mind alongside save_v8. Earlier Soar databases remain untouched.
+        string directory = Path.Combine(parent, "yala_soar_v0_0_26");
         return new SoarMemoryPaths(
             directory,
             Path.Combine(directory, "semantic.sqlite"),

@@ -19,6 +19,7 @@ public sealed class MainWindow : Window
     private readonly OracleDesktopSession _session = new();
     private readonly TextBlock _clockText = MakeText("", 14, FontWeight.SemiBold);
     private readonly TextBlock _worldText = MakeText("", 13);
+    private readonly TextBlock _oracleText = MakeText("", 13);
     private readonly TextBlock _mindText = MakeText("", 13);
     private readonly TextBlock _memoryText = MakeText("", 13);
     private readonly TextBlock _cosmologyText = MakeText("", 13);
@@ -33,7 +34,7 @@ public sealed class MainWindow : Window
         TextWrapping = TextWrapping.Wrap
     };
     private readonly TextBlock _statusText = MakeText("Ready.", 11);
-    private readonly TextBox _messageBox = new() { PlaceholderText = "Speak to Yala...", FontSize = 15, MinHeight = 40 };
+    private readonly TextBox _messageBox = new() { PlaceholderText = "YALA", FontSize = 15, MinHeight = 40 };
     private readonly ScrollViewer _conversationScroll;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private Grid? _mainGrid;
@@ -59,6 +60,7 @@ public sealed class MainWindow : Window
 
         Content = BuildLayout();
         _messageBox.KeyDown += OnMessageKeyDown;
+        KeyDown += OnWindowKeyDown;
         _timer.Tick += OnTimerTick;
         _timer.Start();
         Opened += OnOpened;
@@ -71,6 +73,7 @@ public sealed class MainWindow : Window
         Closed += (_, _) => _session.Dispose();
 
         LoadExistingDialogue();
+        UpdateMessageChannel();
         RefreshAll();
         Dispatcher.UIThread.Post(JumpToLatest, DispatcherPriority.Background);
     }
@@ -105,6 +108,7 @@ public sealed class MainWindow : Window
             Margin = new Thickness(0, 8, 0, 0),
             ItemsSource = new object[]
             {
+                Tab("ORACLE", _oracleText),
                 Tab("MINDS", _mindsText),
                 Tab("MEMORY", _memoryText),
                 Tab("COSMOLOGY", _cosmologyText),
@@ -162,7 +166,7 @@ public sealed class MainWindow : Window
     {
         Grid outer = new() { RowDefinitions = new RowDefinitions("Auto,*,Auto,Auto"), RowSpacing = 7 };
         Grid conversationHeader = new() { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        TextBlock heading = MakeText("YALA / WORLD CONVERSATION", 13, FontWeight.Bold);
+        TextBlock heading = MakeText("ORACLE / WORLD CONTACT", 13, FontWeight.Bold);
         heading.Foreground = new SolidColorBrush(Color.Parse("#76E586"));
         conversationHeader.Children.Add(heading);
         Button latest = MakeButton("JUMP TO LATEST", (_, _) => JumpToLatest());
@@ -296,6 +300,32 @@ public sealed class MainWindow : Window
         ApplyResponsiveLayout();
     }
 
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        string? channel = e.Key switch
+        {
+            Key.F1 => "oracle",
+            Key.F2 => "monad",
+            Key.F3 => "sophia",
+            Key.F4 => "yala",
+            Key.F5 => "gaia",
+            _ => null
+        };
+        if (channel is null) return;
+        e.Handled = true;
+        _session.SelectChannel(channel);
+        UpdateMessageChannel();
+        RefreshAll();
+        _messageBox.Focus();
+    }
+
+    private void UpdateMessageChannel()
+    {
+        string channel = _session.ActiveChannel.ToUpperInvariant();
+        _messageBox.PlaceholderText = channel;
+        SetStatus($"Active channel: {channel}. F1 Oracle | F2 Monad | F3 Sophia | F4 Yala | F5 Gaia");
+    }
+
     private void OnMessageKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter && e.KeyModifiers == KeyModifiers.None)
@@ -310,12 +340,29 @@ public sealed class MainWindow : Window
         string message = _messageBox.Text?.Trim() ?? string.Empty;
         if (message.Length == 0) return;
         _autoFollow = true;
-        AppendDialogue($"You: {message}");
+        string channel = _session.ActiveChannel.ToUpperInvariant();
+        string manifestation = string.IsNullOrWhiteSpace(_session.Simulation.OperatorState.Manifestation)
+            ? string.Empty
+            : $" as {_session.Simulation.OperatorState.Manifestation}";
+        AppendDialogue(channel == "ORACLE"
+            ? $"Oracle: {message}"
+            : $"Oracle{manifestation} -> {channel}: {message}");
         _messageBox.Text = string.Empty;
         try
         {
-            var reply = _session.Speak(message);
-            AppendDialogue($"Yala: {reply.Reply}");
+            OperatorDispatchResult dispatch = _session.Dispatch(message);
+            if (dispatch.YalaReply is not null)
+            {
+                AppendDialogue($"Yala: {dispatch.YalaReply.Reply}");
+            }
+            else if (dispatch.Channel == "oracle")
+            {
+                AppendDialogue($"ORACLE ACTION: {dispatch.Result}");
+            }
+            else
+            {
+                AppendDialogue($"SYSTEM: {dispatch.Result}");
+            }
         }
         catch (Exception error)
         {
@@ -357,7 +404,7 @@ public sealed class MainWindow : Window
             Icon = LoadWindowIcon("avares://ProjectOracle/Assets/project-oracle-icon-64.png")
         };
         Grid grid = new() { RowDefinitions = new RowDefinitions("*,Auto"), Margin = new Thickness(18) };
-        grid.Children.Add(MakeText("The current v0.0.25 save will be archived first. The new world starts with a fresh experimental Yala.", 14));
+        grid.Children.Add(MakeText("The current v0.0.26 save will be archived first. The new world starts with a fresh experimental Yala.", 14));
         StackPanel buttons = new() { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8 };
         Button cancel = MakeButton("CANCEL", (_, _) => confirm.Close(false));
         Button start = MakeButton("START FRESH", (_, _) => confirm.Close(true));
@@ -371,7 +418,7 @@ public sealed class MainWindow : Window
         _session.StartFreshWorld();
         _transcript.Text = string.Empty;
         _autoFollow = true;
-        AppendDialogue("SYSTEM: Fresh v0.0.25 experimental Yala started. Previous save archived.");
+        AppendDialogue("SYSTEM: Fresh v0.0.26 experimental Yala started. Previous save archived.");
         RefreshAll();
     }
 
@@ -405,7 +452,7 @@ public sealed class MainWindow : Window
     {
         foreach (YalaDialogueTurnState turn in _session.Simulation.State.YalaCognition?.Dialogue ?? [])
         {
-            AppendDialogue($"You: {turn.Message}", scroll: false);
+            AppendDialogue($"Oracle: {turn.Message}", scroll: false);
             if (!string.IsNullOrWhiteSpace(turn.Response)) AppendDialogue($"Yala: {turn.Response}", scroll: false);
         }
     }
@@ -560,12 +607,44 @@ public sealed class MainWindow : Window
             $"GOALS{Environment.NewLine}{Lines((cognition.Goals ?? []).Where(g => g.Status == "active").OrderByDescending(g => g.Priority).Take(5).Select(g => "• " + g.Goal))}{Environment.NewLine}{Environment.NewLine}" +
             $"OPEN QUESTIONS{Environment.NewLine}{Lines((cognition.Questions ?? []).Where(q => !q.Asked).OrderByDescending(q => q.Priority).Take(5).Select(q => $"• [{q.Priority}] {q.Text}"))}";
 
-        _mindsText.Text = "COGNITIVE LINEAGE\n\nYala: active descendant mind\nGaia and later created minds: not yet instantiated as independent minds.\n\nCreation inheritance architecture is present, with a strict rule that a created being begins below its creator's world-authority ceiling.\n\nFuture roadmap: Monad Primordial Mind research; Sophia root-descendant-mind research; neither future architecture is silently asserted as current world fact.";
+        IReadOnlyList<OracleActionState> actionHistory = simulation.OperatorState.Actions ?? [];
+        IReadOnlyList<OracleActionState> oracleActions = actionHistory
+            .Where(action => action.Actor.Equals("Oracle", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        _oracleText.Text =
+            $"ACTIVE CHANNEL: {simulation.OperatorState.ActiveChannel.ToUpperInvariant()}{Environment.NewLine}" +
+            $"CURRENT MANIFESTATION: {(string.IsNullOrWhiteSpace(simulation.OperatorState.Manifestation) ? "none / unrevealed" : simulation.OperatorState.Manifestation)}{Environment.NewLine}{Environment.NewLine}" +
+            $"ORACLE ACTION HISTORY{Environment.NewLine}" +
+            Lines(oracleActions.TakeLast(80).Select(action =>
+                $"#{action.Sequence} [{action.ActionKind}] {(string.IsNullOrWhiteSpace(action.Manifestation) ? "Oracle" : $"Oracle as {action.Manifestation}")}" +
+                $"{(string.IsNullOrWhiteSpace(action.Target) ? string.Empty : $" -> {action.Target}")}: {action.Description} | {action.Result}"));
+
+        string monadActions = Lines(actionHistory
+            .Where(action => action.Actor.Equals("Monad", StringComparison.OrdinalIgnoreCase))
+            .TakeLast(5)
+            .Select(action => $"• {action.Description} | {action.Result}"));
+        string sophiaActions = Lines(actionHistory
+            .Where(action => action.Actor.Equals("Sophia", StringComparison.OrdinalIgnoreCase))
+            .TakeLast(5)
+            .Select(action => $"• {action.Description} | {action.Result}"));
+        string yalaActions = Lines(actionHistory
+            .Where(action => action.Actor.Equals("Yala", StringComparison.OrdinalIgnoreCase))
+            .TakeLast(5)
+            .Select(action => $"• {action.Description} | {action.Result}"));
+        string gaiaPanel = simulation.State.Cosmic?.GaiaCreated == true
+            ? $"{Environment.NewLine}{Environment.NewLine}GAIA{Environment.NewLine}Present. Natural-order intermediary. Gaia does not possess the will to reject Oracle commands.{Environment.NewLine}{Lines(actionHistory.Where(action => action.Actor.Equals("Gaia", StringComparison.OrdinalIgnoreCase)).TakeLast(5).Select(action => $"• {action.Description} | {action.Result}"))}"
+            : string.Empty;
+        _mindsText.Text =
+            $"MONAD{Environment.NewLine}Present. Knows Oracle. Monad does not reject Oracle authority.{Environment.NewLine}{monadActions}{Environment.NewLine}{Environment.NewLine}" +
+            $"SOPHIA / WISDOM{Environment.NewLine}Present. Retains free will; no acceptance or rejection is fabricated without Sophia cognition.{Environment.NewLine}{sophiaActions}{Environment.NewLine}{Environment.NewLine}" +
+            $"YALA{Environment.NewLine}Active Brain Slice 9 mind. Yala retains free will and may reject Oracle claims, requests, or commands.{Environment.NewLine}{yalaActions}" +
+            gaiaPanel;
 
         _memoryText.Text =
             $"INHERITED / SETTLED{Environment.NewLine}{Lines((cognition.Beliefs ?? []).Where(b => b.Status == "known").Take(12).Select(b => "• " + b.Proposition))}{Environment.NewLine}{Environment.NewLine}" +
             $"RECENT EPISODES{Environment.NewLine}{Lines((cognition.Episodes ?? []).TakeLast(10).Select(e => $"• {e.Summary}"))}{Environment.NewLine}{Environment.NewLine}" +
-            $"REFLECTIONS / DELIBERATION{Environment.NewLine}{Lines((cognition.Reflections ?? []).TakeLast(8).Select(r => $"• {r.Summary}"))}";
+            $"REFLECTIONS / DELIBERATION{Environment.NewLine}{Lines((cognition.Reflections ?? []).TakeLast(8).Select(r => $"• {r.Summary}"))}{Environment.NewLine}{Environment.NewLine}" +
+            $"PROCEDURES{Environment.NewLine}{Lines((cognition.Procedures ?? []).OrderByDescending(p => p.Provenance == "Yala-learned").ThenByDescending(p => p.Uses).Take(10).Select(p => $"• [{p.Provenance}] {p.Strategy} (uses {p.Uses})"))}";
 
         _cosmologyText.Text =
             $"ATTRIBUTED TRADITIONS: {YalaReligiousKnowledgeCatalog.Traditions.Count}{Environment.NewLine}" +
@@ -585,7 +664,7 @@ public sealed class MainWindow : Window
 
         _historyText.Text =
             $"SESSION EXPORTS{Environment.NewLine}Use EXPORT SESSION JSON for the cognitive flight recorder or EXPORT CONVERSATION for a readable transcript.{Environment.NewLine}{Environment.NewLine}" +
-            Lines(simulation.Ledger.AllRecords.TakeLast(40).Select(r => $"#{r.Sequence} [{r.Category}] {r.Message}"));
+            Lines(simulation.Ledger.WorldRecords.TakeLast(40).Select(r => $"#{r.Sequence} [{r.Category}] {r.Message}"));
 
         _debugText.Text =
             $"VERSION: {ProjectVersion.Display}{Environment.NewLine}" +
@@ -597,9 +676,12 @@ public sealed class MainWindow : Window
             $"PLANS: {(cognition.Plans ?? []).Count}{Environment.NewLine}" +
             $"INVESTIGATIONS: {(cognition.Investigations ?? []).Count}{Environment.NewLine}" +
             $"COUNTERFACTUALS: {(cognition.Counterfactuals ?? []).Count}{Environment.NewLine}" +
-            $"FLIGHT RECORDER ENTRIES: {(cognition.DecisionTrace ?? []).Count}{Environment.NewLine}{Environment.NewLine}" +
+            $"FLIGHT RECORDER ENTRIES: {(cognition.DecisionTrace ?? []).Count}{Environment.NewLine}" +
+            $"PROCEDURES: {(cognition.Procedures ?? []).Count}{Environment.NewLine}{Environment.NewLine}" +
+            $"ENGINE DIAGNOSTICS (DEBUG ONLY){Environment.NewLine}Soar runtime: 9.6.5{Environment.NewLine}{Environment.NewLine}" +
             $"RECENT DECISION TRACE{Environment.NewLine}{Lines((cognition.DecisionTrace ?? []).TakeLast(8).Select(t => $"• #{t.Sequence} {t.Trigger}: {t.SelectedAction} | {t.Rationale}"))}{Environment.NewLine}{Environment.NewLine}" +
-            "Developer console remains available separately; normal Oracle use is this desktop application.";
+            $"RECENT COGNITION DEBUG{Environment.NewLine}{Lines(simulation.Ledger.OracleRecords.Where(r => r.Category == "COGNITION DEBUG").TakeLast(8).Select(r => $"• #{r.Sequence} {r.Message}"))}{Environment.NewLine}{Environment.NewLine}" +
+            "Developer console remains available separately; engine implementation details belong here, not in normal Yala output.";
     }
 
     private void SetStatus(string text)

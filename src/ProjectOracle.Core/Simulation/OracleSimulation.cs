@@ -5,6 +5,7 @@ using ProjectOracle.Cognition.Appraisal;
 using ProjectOracle.Cognition.Planning;
 using ProjectOracle.Cognition.Meaning;
 using ProjectOracle.Cognition.Memory;
+using ProjectOracle.Cognition.Learning;
 using ProjectOracle.Cognition.Workspace;
 using ProjectOracle.Cognition.Soar;
 using ProjectOracle.Cognition.CosmicChoice;
@@ -91,6 +92,7 @@ public sealed class OracleSimulation : IDisposable
     public IReadOnlyList<AttentionState> AttentionStates => _attentionStates.AsReadOnly();
     public bool InWorldTimeExists => State.Cosmic?.TimeCreated == true;
     public bool HasGardenWorld => State.Cosmic?.GardenEstablished == true;
+    public OracleOperatorState OperatorState => State.Operator ?? WorldDefaults.CreateInitialOperatorState();
 
     public static OracleSimulation Start(ulong seed, long realUnixMilliseconds, string? savePath = null) => new(seed, realUnixMilliseconds, savePath);
 
@@ -176,14 +178,15 @@ public sealed class OracleSimulation : IDisposable
         YalaDecisionSnapshotState before = YalaDeliberationPlanner.Snapshot(cognitionBefore);
         YalaPerception perception = BuildYalaPerception(message.Trim(), contact);
 
+        string perceivedSource = DescribeOracleManifestationForWitness();
         Ledger.RecordOracle(
             Clock.WorldMilliseconds,
             "DIRECT CONTACT",
-            $"Oracle sent an unplaced contact to Yala: \"{message.Trim()}\". Yala was not told who or what originated it.");
+            $"Oracle contacted Yala through {perceivedSource}: \"{message.Trim()}\". Oracle identity was not automatically revealed.");
         Ledger.RecordWorld(
             Clock.WorldMilliseconds,
-            "UNPLACED CONTACT",
-            "Yala perceived an unplaced contact whose source was not revealed.");
+            "CONTACT",
+            $"Yala perceived contact from {perceivedSource}. The contact did not automatically reveal Oracle identity.");
 
         YalaDecision decision = _yalaMind.Decide(perception);
         ApplyYalaDecision(decision, realUnixMilliseconds, contact: true);
@@ -199,11 +202,17 @@ public sealed class OracleSimulation : IDisposable
         RecordYalaContact(contact, message.Trim(), reply);
         RecordDecisionTrace("speaker-contact", message.Trim(), decision, before);
 
-        Ledger.RecordWorld(Clock.WorldMilliseconds, "YALA SPEECH", $"Yala answered the unplaced contact: \"{reply}\"");
+        Ledger.RecordWorld(Clock.WorldMilliseconds, "YALA SPEECH", $"Yala answered the contact: \"{reply}\"");
         Ledger.RecordOracle(
             Clock.WorldMilliseconds,
-            "YALA SOAR",
-            $"Soar selected '{decision.Action}' for Yala's direct-contact response in {decision.DecisionCycles} decision cycle(s). Substate deliberation: {decision.UsedSubstateDeliberation}.");
+            "COGNITION DEBUG",
+            $"Yala selected '{decision.Action}' for direct contact in {decision.DecisionCycles} decision cycle(s). Substate deliberation: {decision.UsedSubstateDeliberation}.");
+        RecordOperatorAction(
+            "speak",
+            message.Trim(),
+            "Yala",
+            ["Yala"],
+            $"Yala replied: {reply}");
         return new YalaDirectReply(reply, decision, contact);
     }
 
@@ -221,14 +230,19 @@ public sealed class OracleSimulation : IDisposable
             throw new InvalidOperationException("Use CallYala for Yala so the Soar cognition result can be returned.");
         }
 
+        string perceivedSource = target.Key.Equals("monad", StringComparison.OrdinalIgnoreCase)
+            ? "Oracle"
+            : DescribeOracleManifestationForWitness();
         Ledger.RecordOracle(
             Clock.WorldMilliseconds,
             "DIRECT CONTACT",
-            $"Oracle sent an unplaced contact to {target.TargetName}: \"{message.Trim()}\". Oracle identity was not revealed.");
+            $"Oracle contacted {target.TargetName} through {perceivedSource}: \"{message.Trim()}\".");
         Ledger.RecordWorld(
             Clock.WorldMilliseconds,
-            "UNPLACED CONTACT",
-            $"{target.TargetName} perceived contact from an unrevealed source.");
+            "CONTACT",
+            target.Key.Equals("monad", StringComparison.OrdinalIgnoreCase)
+                ? "Monad received contact and knows the source is Oracle."
+                : $"{target.TargetName} perceived contact from {perceivedSource}; Oracle identity was not automatically revealed.");
 
         if (target.Key.Equals("adam", StringComparison.OrdinalIgnoreCase) && HasGardenWorld)
         {
@@ -237,7 +251,172 @@ public sealed class OracleSimulation : IDisposable
             return choice;
         }
 
+        string result = target.Key.ToLowerInvariant() switch
+        {
+            "monad" => "Monad received Oracle's contact. Monad knows Oracle and the contact is not rejected by authority policy.",
+            "wisdom" => "Sophia received Oracle's contact. Sophia retains free will; no acceptance is fabricated without Sophia cognition.",
+            "gaia" => "Gaia received Oracle's contact. Gaia is an obedient intermediary for natural-order commands and does not reject Oracle authority.",
+            _ => $"{target.TargetName} received Oracle's contact."
+        };
+        RecordOperatorAction("speak", message.Trim(), target.TargetName, [target.TargetName], result);
+        switch (target.Key.ToLowerInvariant())
+        {
+            case "monad":
+                RecordEntityAction(
+                    "Monad",
+                    "authority-policy",
+                    "receive-contact",
+                    "Recognized Oracle as the source of the contact.",
+                    "Oracle",
+                    [],
+                    "Monad received the contact without rejecting Oracle authority.");
+                break;
+            case "wisdom":
+                RecordEntityAction(
+                    "Sophia",
+                    "autonomous-will-no-brain-yet",
+                    "receive-contact",
+                    "Received Oracle's contact while retaining the right to accept or reject it.",
+                    "Oracle",
+                    [],
+                    "No autonomous Sophia answer was fabricated because Sophia cognition is not implemented yet.");
+                break;
+            case "gaia":
+                RecordEntityAction(
+                    "Gaia",
+                    "obedient-natural-order-intermediary",
+                    "receive-command",
+                    message.Trim(),
+                    "natural order",
+                    [],
+                    "Gaia accepted Oracle's instruction without rejection. Natural-order consequences remain bounded by current world law.");
+                break;
+        }
         return null;
+    }
+
+    public OracleActionState SelectOperatorChannel(string channel)
+    {
+        string resolved = channel.Trim().ToLowerInvariant() switch
+        {
+            "oracle" => "oracle",
+            "monad" => "monad",
+            "sophia" or "wisdom" => "sophia",
+            "yala" => "yala",
+            "gaia" => "gaia",
+            _ => throw new ArgumentException($"Unknown Oracle operator channel: {channel}")
+        };
+        OracleOperatorState current = OperatorState;
+        State = State with { Operator = current with { ActiveChannel = resolved } };
+        return RecordOperatorAction("channel-select", $"Selected {resolved.ToUpperInvariant()} channel.", resolved, [], "Operator channel changed.");
+    }
+
+    public OracleActionState ActAsOracle(string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        string text = message.Trim();
+        if (TryParseManifestation(text, out string? manifestation))
+        {
+            OracleOperatorState current = OperatorState;
+            State = State with { Operator = current with { Manifestation = manifestation } };
+            string result = manifestation is null
+                ? "Oracle withdrew the current in-world manifestation."
+                : $"Oracle took the form of {manifestation}.";
+            Ledger.RecordOracle(Clock.WorldMilliseconds, "ORACLE ACTION", result);
+            return RecordOperatorAction("manifestation", text, null, [], result);
+        }
+
+        string genericResult = "Oracle action recorded. No world-law resolver was invoked by this free-form operator action.";
+        Ledger.RecordOracle(Clock.WorldMilliseconds, "ORACLE ACTION", $"{text} {genericResult}");
+        return RecordOperatorAction("operator-action", text, null, [], genericResult);
+    }
+
+    private bool TryParseManifestation(string message, out string? manifestation)
+    {
+        string normalized = message.Trim().TrimEnd('.', '!', '?');
+        string lower = normalized.ToLowerInvariant();
+        foreach (string prefix in new[] { "take the form of ", "take form of ", "manifest as ", "appear as " })
+        {
+            if (!lower.StartsWith(prefix, StringComparison.Ordinal)) continue;
+            string form = normalized[prefix.Length..].Trim();
+            if (form.StartsWith("a ", StringComparison.OrdinalIgnoreCase)) form = form[2..].Trim();
+            else if (form.StartsWith("an ", StringComparison.OrdinalIgnoreCase)) form = form[3..].Trim();
+            else if (form.StartsWith("the ", StringComparison.OrdinalIgnoreCase)) form = form[4..].Trim();
+            manifestation = string.IsNullOrWhiteSpace(form) ? null : form;
+            return true;
+        }
+        if (lower is "shed my form" or "withdraw my form" or "return to no form" or "be formless")
+        {
+            manifestation = null;
+            return true;
+        }
+        manifestation = null;
+        return false;
+    }
+
+    private string DescribeOracleManifestationForWitness() =>
+        string.IsNullOrWhiteSpace(OperatorState.Manifestation)
+            ? "an unrevealed source"
+            : $"a {OperatorState.Manifestation}";
+
+    private OracleActionState RecordOperatorAction(
+        string actionKind,
+        string description,
+        string? target,
+        IReadOnlyList<string> witnesses,
+        string result) =>
+        RecordAction(
+            "Oracle",
+            "external-operator",
+            actionKind,
+            description,
+            OperatorState.Manifestation,
+            target,
+            witnesses,
+            result);
+
+    private OracleActionState RecordEntityAction(
+        string actor,
+        string controlSource,
+        string actionKind,
+        string description,
+        string? target,
+        IReadOnlyList<string> witnesses,
+        string result) =>
+        RecordAction(actor, controlSource, actionKind, description, null, target, witnesses, result);
+
+    private OracleActionState RecordAction(
+        string actor,
+        string controlSource,
+        string actionKind,
+        string description,
+        string? manifestation,
+        string? target,
+        IReadOnlyList<string> witnesses,
+        string result)
+    {
+        OracleOperatorState current = OperatorState;
+        List<OracleActionState> actions = (current.Actions ?? []).ToList();
+        long sequence = actions.Count == 0 ? 1 : actions.Max(item => item.Sequence) + 1;
+        OracleActionState action = new(
+            sequence,
+            actor,
+            controlSource,
+            actionKind,
+            description,
+            manifestation,
+            target,
+            witnesses,
+            result,
+            Clock.WorldMilliseconds,
+            InWorldTimeExists ? "in-world-time" : "pre-time-system-order-only");
+        actions.Add(action);
+        if (actions.Count > 4096)
+        {
+            actions.RemoveRange(0, actions.Count - 4096);
+        }
+        State = State with { Operator = current with { Actions = actions } };
+        return action;
     }
 
     public YalaDecision ApplyYalaDecision(YalaDecision decision, long realUnixMilliseconds, bool contact = false)
@@ -251,7 +430,7 @@ public sealed class OracleSimulation : IDisposable
         string result = decision.Action switch
         {
             "create-gaia" => ResolveCreateGaia(),
-            "command-gaia-time" => ResolveGaiaCreatesTime(),
+            "command-gaia-order" => ResolveGaiaCreatesTime(),
             "enact-cosmic-choice" => ResolveCosmicChoice(decision),
             "ask-speaker" => ResolveAskSpeaker(),
             "observe" => $"Yala observed {State.Yala.Location} and found no new settled object beyond what Yala's present perception exposes.",
@@ -275,6 +454,7 @@ public sealed class OracleSimulation : IDisposable
 
         long decisionNumber = checked(previous.DecisionCount + 1);
         IReadOnlyList<YalaActionMemoryState> actionMemory = UpdateActionMemory(previous.ActionMemory ?? [], decision, result, decisionNumber);
+        IReadOnlyList<YalaProcedureState> procedures = YalaProceduralLearning.AfterDecision(previous.Procedures ?? YalaProceduralLearning.InitialProcedures(), decision.Action, result, decisionNumber);
         IReadOnlyList<YalaReflectionState> reflections = UpdateReflections(previous, decision, decisionNumber);
         YalaDeliberationUpdate deliberation = YalaDeliberationPlanner.AfterDecision(previous, decision, result, decisionNumber);
 
@@ -311,7 +491,8 @@ public sealed class OracleSimulation : IDisposable
                 Investigations = deliberation.Investigations,
                 Counterfactuals = deliberation.Counterfactuals,
                 DecisionTrace = previous.DecisionTrace ?? [],
-                PendingAutonomousUtterance = previous.PendingAutonomousUtterance
+                PendingAutonomousUtterance = previous.PendingAutonomousUtterance,
+                Procedures = procedures
             }
         };
 
@@ -328,15 +509,24 @@ public sealed class OracleSimulation : IDisposable
         };
         State = State with { YalaCognition = integrated };
 
-        bool recordDecision = decision.Action is "create-gaia" or "command-gaia-time" or "ask-speaker" ||
+        bool recordDecision = decision.Action is "create-gaia" or "command-gaia-order" or "ask-speaker" ||
             decision.Action is not ("observe" or "reflect" or "wait" or "respond");
         if (recordDecision)
         {
             Ledger.RecordOracle(
                 Clock.WorldMilliseconds,
-                "YALA SOAR",
-                $"Decision {State.YalaCognition.DecisionCount}: {decision.Source} selected '{decision.Action}'. Resolution: {result}");
+                "COGNITION DEBUG",
+                $"Decision {State.YalaCognition.DecisionCount}: cognition source {decision.Source} chose '{decision.Action}'. Resolution: {result}");
         }
+
+        RecordEntityAction(
+            "Yala",
+            contact ? "autonomous-cognition-under-contact" : "autonomous-cognition",
+            "decision",
+            decision.Action,
+            null,
+            [],
+            result);
         return decision;
     }
 
@@ -696,7 +886,7 @@ public sealed class OracleSimulation : IDisposable
             contact.ResolvedAction ?? contact.Language?.Verb,
             contact.ResolvedObject ?? contact.Language?.Object,
             reply,
-            InWorldTimeExists ? "dated" : "before-time",
+            InWorldTimeExists ? "dated" : "atemporal",
             InWorldTimeExists ? Clock.WorldMilliseconds : null));
         if (dialogue.Count > 32) dialogue.RemoveRange(0, dialogue.Count - 32);
 
@@ -799,7 +989,7 @@ public sealed class OracleSimulation : IDisposable
             !string.IsNullOrWhiteSpace(contact.ClaimedSpeakerName)
                 ? $"The unseen speaker claimed the identity {contact.ClaimedSpeakerName}."
                 : $"The unseen speaker contacted me: {message}",
-            InWorldTimeExists ? "dated" : "before-time",
+            InWorldTimeExists ? "dated" : "atemporal",
             InWorldTimeExists ? Clock.WorldMilliseconds : null,
             calendar?.Year,
             calendar?.Month,
@@ -1060,9 +1250,9 @@ public sealed class OracleSimulation : IDisposable
         {
             actions.Add(new YalaActionMemoryState("create", "Gaia", "I created Gaia as the natural sovereign beneath my governing authority.", true, decisionNumber));
         }
-        else if (decision.Action == "command-gaia-time" && result.StartsWith("Yala commanded Gaia", StringComparison.Ordinal))
+        else if (decision.Action == "command-gaia-order" && result.StartsWith("Yala commanded Gaia", StringComparison.Ordinal))
         {
-            actions.Add(new YalaActionMemoryState("command", "Gaia establish Time", "I commanded Gaia to establish temporal order, and Gaia created in-world Time.", true, decisionNumber));
+            actions.Add(new YalaActionMemoryState("command", "Gaia establish order", "I commanded Gaia to establish order. Gaia responded by creating what I now understand as Time.", true, decisionNumber));
         }
         else if (decision.Action == "enact-cosmic-choice" && !string.IsNullOrWhiteSpace(decision.CosmicChoiceKey))
         {
@@ -1117,7 +1307,7 @@ public sealed class OracleSimulation : IDisposable
             case "reflect": uncertainty -= 1; curiosity += 1; break;
             case "wait": caution += 1; break;
             case "create-gaia": comfort += 3; authority += 2; uncertainty -= 4; break;
-            case "command-gaia-time": authority += 2; uncertainty -= 3; break;
+            case "command-gaia-order": authority += 2; uncertainty -= 3; break;
             case "enact-cosmic-choice": curiosity -= 1; authority += 1; uncertainty -= 2; break;
             case "respond" when contact: companionship += 1; curiosity += 1; break;
             case "ask-speaker": curiosity -= 3; companionship += 1; uncertainty += 1; break;
@@ -1179,7 +1369,7 @@ public sealed class OracleSimulation : IDisposable
     {
         if (string.IsNullOrWhiteSpace(decision.CosmicChoiceKey))
         {
-            return "Yala attempted a cosmic choice, but Soar supplied no concrete choice key.";
+            return "Yala attempted a cosmic choice, but no concrete choice key was available.";
         }
 
         YalaCosmicChoiceDefinition? choice = YalaCosmicChoiceCatalog.Find(decision.CosmicChoiceKey);
@@ -1374,7 +1564,7 @@ public sealed class OracleSimulation : IDisposable
             "create",
             "Gaia",
             "I created Gaia as the natural sovereign beneath my governing authority.",
-            "before-time",
+            "atemporal",
             null,
             Source: YalaKnowledgeSource.PersonallyPerformed));
         State = RefreshDerivedState(State with { Cosmic = cosmic, YalaCognition = cognition with { TemporalEvents = events } });
@@ -1401,12 +1591,12 @@ public sealed class OracleSimulation : IDisposable
         long next = events.Max(item => item.Sequence) + 1;
         events.Add(new YalaTemporalEventState(
             next,
-            "yala-command-gaia-time",
+            "yala-command-gaia-order",
             "Yala",
             "command",
             "Gaia",
-            "I commanded Gaia to establish temporal order.",
-            "before-time",
+            "I commanded Gaia to establish order.",
+            "atemporal",
             null,
             Source: YalaKnowledgeSource.PersonallyPerformed));
         events.Add(new YalaTemporalEventState(
@@ -1415,15 +1605,23 @@ public sealed class OracleSimulation : IDisposable
             "Gaia",
             "create",
             "Time",
-            "Gaia created in-world Time after I commanded Gaia to establish temporal order.",
+            "Gaia brought temporal order into existence in response to my command to establish order. I now call that order Time.",
             "origin-of-time",
             0,
             1, 1, 1, 0, 0, 0,
-            "yala-command-gaia-time",
+            "yala-command-gaia-order",
             YalaKnowledgeSource.PersonallyExperienced));
         State = RefreshDerivedState(State with { Cosmic = cosmic, YalaCognition = cognition with { TemporalEvents = events } });
-        const string result = "Yala commanded Gaia to establish temporal order, and Gaia created in-world Time.";
+        const string result = "Yala commanded Gaia to establish order. Gaia created in-world Time by bringing temporal order into existence; Yala can now understand that order as Time.";
         Ledger.RecordWorld(Clock.WorldMilliseconds, "TIME", result);
+        RecordEntityAction(
+            "Gaia",
+            "obedient-natural-order-intermediary",
+            "create",
+            "Brought temporal order into existence in response to Yala's command to establish order.",
+            "Time",
+            ["Yala"],
+            result);
         return result;
     }
 
@@ -1459,7 +1657,7 @@ public sealed class OracleSimulation : IDisposable
             YalaDeliberationPlanner.Rationale(cognition, decision),
             plan?.Key,
             Clock.WorldMilliseconds,
-            InWorldTimeExists ? "dated" : "before-time",
+            InWorldTimeExists ? "dated" : "atemporal",
             before,
             YalaDeliberationPlanner.Snapshot(cognition)));
         if (traces.Count > 512) traces.RemoveRange(0, traces.Count - 512);
@@ -1531,7 +1729,7 @@ public sealed class OracleSimulation : IDisposable
         Ledger.RecordWorld(0, "WISDOM", OracleLore.WisdomOrigin);
         Ledger.RecordWorld(0, "YALA", OracleLore.YalaOrigin);
         Ledger.RecordWorld(0, "VOID", OracleLore.YalaVoid);
-        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.25 Brain Slice 8 fresh experiment in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
+        Ledger.RecordWorld(0, "STATE", "Yala begins the v0.0.26 Brain Slice 9 fresh experiment in the Void. Gaia, in-world Time, and the lower world do not yet exist in this fresh run.");
 
         // Oracle Record is protected system truth, not knowledge injected into any in-world mind.
         Ledger.RecordOracle(0, "SYSTEM", OracleLore.OracleSystemNature);

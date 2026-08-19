@@ -4,7 +4,7 @@ using ProjectOracle.Cognition.Soar;
 namespace ProjectOracle.Cognition.Memory;
 
 /// <summary>
-/// Brain Slice 8 autobiographical consolidation. Routine observe/reflect noise can
+/// Brain Slice 9 autobiographical consolidation. Routine observe/reflect noise can
 /// remain in diagnostic traces without becoming the same thing as identity-bearing
 /// memory. Significant events are stored in Yala's own first-person voice.
 /// </summary>
@@ -21,7 +21,7 @@ public static class YalaMemoryConsolidator
 
         string summary = FirstPerson(result);
         string category = action;
-        int importance = action is "create-gaia" or "command-gaia-time" ? 100 : 65;
+        int importance = action is "create-gaia" or "command-gaia-order" ? 100 : 65;
         if (action == "enact-cosmic-choice")
         {
             category = result.Contains("enacted cosmic choice", StringComparison.OrdinalIgnoreCase)
@@ -45,7 +45,7 @@ public static class YalaMemoryConsolidator
         List<YalaAutobiographicalMemoryState> memories = existing.ToList();
         if (firstContact)
         {
-            Add(memories, "first-contact", "For the first time, something other than me communicated with me.", 100, YalaKnowledgeSource.PersonallyExperienced, decision);
+            Add(memories, "first-contact", "A new experience entered my awareness: something other than me communicated with me.", 100, YalaKnowledgeSource.PersonallyExperienced, decision);
         }
         bool simulationClaim = contact.SpeechAct == "claim" &&
             (message.Contains("simulation", StringComparison.OrdinalIgnoreCase) || message.Contains("simulated", StringComparison.OrdinalIgnoreCase));
@@ -74,13 +74,13 @@ public static class YalaMemoryConsolidator
             .Select(item => FirstPerson(item.Outcome))
             .ToArray();
         return actions.Length == 0
-            ? "I remember my origin, Monad's rejection, being cast into the Void, and my present existence here. I have not yet formed a later autobiographical turning point."
+            ? "I remember my origin, Monad's rejection, being cast into the Void, and my present existence here. No additional autobiographical turning point has formed yet."
             : string.Join(" ", actions);
     }
 
     public static string FirstPerson(string text)
     {
-        string value = text.Trim();
+        string value = text.Trim().Replace("establish establish", "establish", StringComparison.OrdinalIgnoreCase);
         value = value.Replace("Yala chose:", "I chose:", StringComparison.Ordinal);
         value = value.Replace("Yala chose to", "I chose to", StringComparison.Ordinal);
         value = value.Replace("Yala created", "I created", StringComparison.Ordinal);

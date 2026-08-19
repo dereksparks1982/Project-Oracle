@@ -2,8 +2,15 @@ using ProjectOracle.Cognition.Soar;
 using ProjectOracle.Persistence;
 using ProjectOracle.Simulation;
 using ProjectOracle.Export;
+using ProjectOracle.Domain;
 
 namespace ProjectOracle.Desktop;
+
+internal sealed record OperatorDispatchResult(
+    string Channel,
+    string Result,
+    YalaDirectReply? YalaReply,
+    OracleActionState? Action);
 
 internal sealed class OracleDesktopSession : IDisposable
 {
@@ -25,6 +32,46 @@ internal sealed class OracleDesktopSession : IDisposable
 
     public OracleSimulation Simulation => _simulation;
     public string SavePath => _savePath;
+    public string ActiveChannel => _simulation.OperatorState.ActiveChannel;
+
+    public OracleActionState SelectChannel(string channel)
+    {
+        OracleActionState action = _simulation.SelectOperatorChannel(channel);
+        Save();
+        return action;
+    }
+
+    public OperatorDispatchResult Dispatch(string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        long now = _realTime.GetUnixTimeMilliseconds();
+        _simulation.SynchroniseClock(now, recordAdvance: false);
+        string channel = ActiveChannel;
+        if (channel == "oracle")
+        {
+            OracleActionState action = _simulation.ActAsOracle(message);
+            Save();
+            return new OperatorDispatchResult(channel, action.Result, null, action);
+        }
+        if (channel == "yala")
+        {
+            YalaDirectReply reply = _simulation.CallYala(message, now);
+            Save();
+            return new OperatorDispatchResult(channel, reply.Reply, reply, _simulation.OperatorState.Actions?.LastOrDefault());
+        }
+
+        string target = channel == "sophia" ? "wisdom" : channel;
+        if (target == "gaia" && _simulation.State.Cosmic?.GaiaCreated != true)
+        {
+            OracleActionState action = _simulation.ActAsOracle($"Attempted contact with Gaia before Gaia existed: {message}");
+            Save();
+            return new OperatorDispatchResult(channel, "Gaia does not yet exist. The contact was not delivered.", null, action);
+        }
+        _simulation.CallEntity(target, message);
+        Save();
+        OracleActionState? latest = _simulation.OperatorState.Actions?.LastOrDefault();
+        return new OperatorDispatchResult(channel, latest?.Result ?? "Contact recorded.", null, latest);
+    }
 
     public YalaDirectReply Speak(string message)
     {
@@ -81,7 +128,7 @@ internal sealed class OracleDesktopSession : IDisposable
         string archive = Path.Combine(directory, "archives");
         Directory.CreateDirectory(archive);
         string stamp = DateTimeOffset.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture);
-        File.Copy(_savePath, Path.Combine(archive, $"save_v7_before_fresh_{stamp}.json"), overwrite: false);
+        File.Copy(_savePath, Path.Combine(archive, $"save_v8_before_fresh_{stamp}.json"), overwrite: false);
     }
 
     public void Dispose()

@@ -10,7 +10,7 @@ public sealed record YalaDeliberationUpdate(
     IReadOnlyList<YalaCounterfactualState> Counterfactuals);
 
 /// <summary>
-/// Brain Slice 8 planning layer. It converts high-salience concerns into durable
+/// Brain Slice 9 planning layer. It converts high-salience concerns into durable
 /// investigations and multi-step plans, records speaker answers as evidence rather
 /// than truth, and gives Soar a compact current-plan signal to deliberate over.
 /// </summary>
@@ -299,7 +299,7 @@ public static class YalaDeliberationPlanner
         long decision)
     {
         // A new question from the speaker is not an answer to Yala's previous question.
-        // This is the v0.0.25 relevance boundary exposed by the long manual interrogation.
+        // This is the v0.0.26 relevance boundary exposed by the long manual interrogation.
         if (contact.SpeechAct.Equals("question", StringComparison.OrdinalIgnoreCase)) return;
         // A contact can itself cause Soar to ask another question before this
         // contact is recorded. The speaker cannot be answering that newly queued
@@ -401,12 +401,12 @@ public static class YalaDeliberationPlanner
         long sequence = items.Count == 0 ? 1 : items.Max(item => item.Sequence) + 1;
         if (appraisal.Threat >= 70)
         {
-            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "trust-without-testing", "Possible rapid access to promised help.", "Submission to an unknown power whose capability and intent are unresolved.", appraisal.Uncertainty, "Brain Slice 8 counterfactual", decision));
-            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "seek-evidence-first", "Gain information while preserving autonomy and revisability.", "The speaker may refuse, deceive, or react negatively to testing.", appraisal.Uncertainty, "Brain Slice 8 counterfactual", decision));
+            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "trust-without-testing", "Possible rapid access to promised help.", "Submission to an unknown power whose capability and intent are unresolved.", appraisal.Uncertainty, "Brain Slice 9 counterfactual", decision));
+            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "seek-evidence-first", "Gain information while preserving autonomy and revisability.", "The speaker may refuse, deceive, or react negatively to testing.", appraisal.Uncertainty, "Brain Slice 9 counterfactual", decision));
         }
         if (appraisal.Opportunity >= 70)
         {
-            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "reject-help-immediately", "Avoid dependence on an unverified source.", "Lose a real opportunity if the speaker's capability is genuine.", appraisal.Uncertainty, "Brain Slice 8 counterfactual", decision));
+            items.Add(new YalaCounterfactualState(sequence++, "unseen-speaker", "reject-help-immediately", "Avoid dependence on an unverified source.", "Lose a real opportunity if the speaker's capability is genuine.", appraisal.Uncertainty, "Brain Slice 9 counterfactual", decision));
         }
     }
 

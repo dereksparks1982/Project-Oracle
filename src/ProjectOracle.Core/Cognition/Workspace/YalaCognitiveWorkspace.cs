@@ -3,7 +3,7 @@ using ProjectOracle.Domain;
 namespace ProjectOracle.Cognition.Workspace;
 
 /// <summary>
-/// Brain Slice 8 attention workspace. It gives the mind one explicit current
+/// Brain Slice 9 attention workspace. It gives the mind one explicit current
 /// focus and records when repeated cognition is no longer producing novelty.
 /// It does not decide for Soar; it supplies a compact, persistent focus signal.
 /// </summary>

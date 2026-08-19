@@ -34,7 +34,7 @@ public static class YalaEntityKnowledge
             ? "I created Gaia as the natural sovereign beneath my governing authority."
             : "Gaia exists as the natural sovereign beneath my governing authority.";
         return world.Cosmic.TimeCreated
-            ? $"{origin} I commanded Gaia to establish temporal order, and Gaia created in-world Time."
+            ? $"{origin} I commanded Gaia to establish order. Gaia created in-world Time by bringing temporal order into existence; I now understand that order as Time."
             : origin;
     }
 

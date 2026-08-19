@@ -334,6 +334,35 @@ public sealed record YalaDecisionTraceState(
     YalaDecisionSnapshotState Before,
     YalaDecisionSnapshotState After);
 
+
+public sealed record YalaProcedureState(
+    string Key,
+    string Situation,
+    string Strategy,
+    string Provenance,
+    int Uses,
+    int SuccessfulUses,
+    long FirstDecision,
+    long LastDecision);
+
+public sealed record OracleActionState(
+    long Sequence,
+    string Actor,
+    string ControlSource,
+    string ActionKind,
+    string Description,
+    string? Manifestation,
+    string? Target,
+    IReadOnlyList<string>? Witnesses,
+    string Result,
+    long WorldMilliseconds,
+    string TemporalState);
+
+public sealed record OracleOperatorState(
+    string ActiveChannel,
+    string? Manifestation,
+    IReadOnlyList<OracleActionState>? Actions = null);
+
 public sealed record YalaCognitionState(
     long DecisionCount,
     long LastDecisionRealUnixMilliseconds,
@@ -367,7 +396,8 @@ public sealed record YalaCognitionState(
     IReadOnlyList<YalaPropositionState>? Propositions = null,
     YalaCognitiveWorkspaceState? Workspace = null,
     IReadOnlyList<YalaAutobiographicalMemoryState>? AutobiographicalMemory = null,
-    IReadOnlyList<YalaCosmicDeliberationState>? CosmicDeliberations = null);
+    IReadOnlyList<YalaCosmicDeliberationState>? CosmicDeliberations = null,
+    IReadOnlyList<YalaProcedureState>? Procedures = null);
 
 public sealed record AdamState(
     EntityId Id,
@@ -439,4 +469,5 @@ public sealed record WorldState(
     NaturalCourseState NaturalCourse,
     CosmicState? Cosmic = null,
     YalaCognitionState? YalaCognition = null,
-    OracleEmergentLawState? EmergentLaws = null);
+    OracleEmergentLawState? EmergentLaws = null,
+    OracleOperatorState? Operator = null);
