@@ -63,7 +63,6 @@ The bottom tabs are exactly:
 Oracle | Minds | Memory | Cosmology | Laws | History | Debug
 ```
 
-There is no Chronicle tab.
 
 - **Oracle:** current manifestation plus protected Oracle action history.
 - **Minds:** major beings/minds actually relevant to the current simulation and recent action provenance.
